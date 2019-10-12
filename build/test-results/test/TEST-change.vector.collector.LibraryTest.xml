@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<<<<<<< HEAD
-<testsuite name="change.vector.collector.LibraryTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2019-10-12T14:04:23" hostname="ubuntu" time="0.001">
-=======
-<testsuite name="change.vector.collector.LibraryTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2019-10-12T14:02:53" hostname="sinjihoui-MacBookPro.local" time="0.001">
->>>>>>> 08afd7ed02f71514c544cfd37cb771d500394e71
+<testsuite name="change.vector.collector.LibraryTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2019-10-12T14:11:25" hostname="ubuntu" time="0.002">
   <properties/>
-  <testcase name="testSomeLibraryMethod" classname="change.vector.collector.LibraryTest" time="0.001"/>
+  <testcase name="testSomeLibraryMethod" classname="change.vector.collector.LibraryTest" time="0.002"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
