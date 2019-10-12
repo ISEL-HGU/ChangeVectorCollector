@@ -188,6 +188,7 @@ public class ChangeVector {
 		
 		
 		
+		
 		// saving the results in CSV format
 		final String[] headers = {"matches", "deletes", "inserts", "moves", "updates"};
 		File fileP = new File("/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/changeVectors.csv");

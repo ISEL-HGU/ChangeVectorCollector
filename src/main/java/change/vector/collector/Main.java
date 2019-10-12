@@ -21,7 +21,7 @@ public class Main {
 //		bbics = Collector.collectBeforeBIC(input);
 		
 		// collect bbic from csv file
-		String bbicFilePath = "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/myOut.csv";
+		String bbicFilePath = "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/zookeeper_BBIC.csv";
 		bbics = Collector.collectBeforeBICFromLocalFile(input, bbicFilePath);
 		
 		// collect java files of bbic of bic
