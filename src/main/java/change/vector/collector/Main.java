@@ -18,11 +18,11 @@ public class Main {
 				"/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/");
 				
 		// collect bbic from git repository
-//		bbics = Collector.collectBeforeBIC(input);
+		bbics = Collector.collectBeforeBIC(input);
 		
 		// collect bbic from csv file
-		String bbicFilePath = "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/zookeeper_BBIC.csv";
-		bbics = Collector.collectBeforeBICFromLocalFile(input, bbicFilePath);
+//		String bbicFilePath = "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/zookeeper_BBIC.csv";
+//		bbics = Collector.collectBeforeBICFromLocalFile(input, bbicFilePath);
 		
 		// collect java files of bbic of bic
 		Collector.collectFiles(input, bbics);
