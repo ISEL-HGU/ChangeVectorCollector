@@ -122,9 +122,6 @@ public class Collector {
 		return bbics;
 	}
 	
-	
-	
-	
 	/*
 	   Copyright 2013, 2014 Dominik Stadler
 	   Licensed under the Apache License, Version 2.0 (the "License");
