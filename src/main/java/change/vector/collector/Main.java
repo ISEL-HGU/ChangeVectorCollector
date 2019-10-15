@@ -2,6 +2,7 @@ package change.vector.collector;
 
 //import org.apache.commons.cli.Options;
 import change.vector.collector.Input;
+import jxl.write.WriteException;
 import change.vector.collector.Collector;
 import change.vector.collector.ChangeVector;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 
 public class Main {
 
-	public static void main(String[] args) throws IOException, GitAPIException{
+	public static void main(String[] args) throws Exception{
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 	
 		Input input = new Input("https://github.com/apache/zookeeper",
