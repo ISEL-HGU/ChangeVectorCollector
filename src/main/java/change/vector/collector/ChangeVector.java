@@ -158,32 +158,32 @@ public class ChangeVector {
 				} 
 			}
 			
-			// console output
-			System.out.println("MATCHES:");
-			for(String name: matches.keySet()) {
-				System.out.println(name.toString() + " " + matches.get(name).value);
-			}
-			System.out.println();			
-			System.out.println("DELETES:");
-			for(String name: deletes.keySet()) {
-				System.out.println(name.toString() + " " + deletes.get(name).value);
-			}
-			System.out.println();
-			System.out.println("INSERTS:");
-			for(String name: inserts.keySet()) {
-				System.out.println(name.toString() + " " + inserts.get(name).value);
-			}
-			System.out.println();
-			System.out.println("UPDATES:");
-			for(String name: updates.keySet()) {
-				System.out.println(name.toString() + " " + updates.get(name).value);
-			}
-			System.out.println();
-			System.out.println("MOVES:");
-			for(String name: moves.keySet()) {
-				System.out.println(name.toString() + " " + moves.get(name).value);
-			}
-			System.out.println();
+			// console output of each node counts
+			// System.out.println("MATCHES:");
+			// for(String name: matches.keySet()) {
+			// 	System.out.println(name.toString() + " " + matches.get(name).value);
+			// }
+			// System.out.println();			
+			// System.out.println("DELETES:");
+			// for(String name: deletes.keySet()) {
+			// 	System.out.println(name.toString() + " " + deletes.get(name).value);
+			// }
+			// System.out.println();
+			// System.out.println("INSERTS:");
+			// for(String name: inserts.keySet()) {
+			// 	System.out.println(name.toString() + " " + inserts.get(name).value);
+			// }
+			// System.out.println();
+			// System.out.println("UPDATES:");
+			// for(String name: updates.keySet()) {
+			// 	System.out.println(name.toString() + " " + updates.get(name).value);
+			// }
+			// System.out.println();
+			// System.out.println("MOVES:");
+			// for(String name: moves.keySet()) {
+			// 	System.out.println(name.toString() + " " + moves.get(name).value);
+			// }
+			// System.out.println();
 
 			
 			System.out.println(i+"/"+Collector.instanceNumber);
