@@ -40,7 +40,7 @@ public class ChangeVector {
 	public Map<String, MutableInt> updates = null;
 	public Map<String, MutableInt> moves = null;
 
-	public static ArrayList<ChangeVector> runGumtreeDIST() throws Exception {
+	public static ArrayList<ChangeVector> runGumtreeDIST(Input input) throws Exception {
 		ArrayList<ChangeVector> changeVectors = new ArrayList<ChangeVector>();
 		
 		String gumtree = "./gumtree/bin/gumtree";
@@ -204,14 +204,14 @@ public class ChangeVector {
 			changeVectors.add(changeVector);
 		}
 	
-		writeARFF(changeVectors);
+		writeARFF(changeVectors, input);
 		
 		System.out.println("$$$$$$ Change vector extraction complete!!");
 		return changeVectors;
 	}
 	
 	@SuppressWarnings({ "deprecation", "unchecked", "rawtypes" })
-	public static void writeARFF(ArrayList<ChangeVector> CVS) throws Exception {
+	public static void writeARFF(ArrayList<ChangeVector> CVS, Input input) throws Exception {
 		FastVector attributes = new FastVector();
 		Instances dataSet;
         
@@ -291,7 +291,7 @@ public class ChangeVector {
 	    
 	    ArffSaver arffSaverInstance = new ArffSaver();
 	    arffSaverInstance.setInstances(sparseDataset);
-	    arffSaverInstance.setFile(new File("cvc.arff"));
+	    arffSaverInstance.setFile(new File(input.outFile));
 	    arffSaverInstance.writeBatch();
 	}
 	

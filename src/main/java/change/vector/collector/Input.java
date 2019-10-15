@@ -13,15 +13,14 @@ public class Input {
 	public String url = "";
 	public String inFile = "";
 	public String outFile = "";
+	public String bbicFilePath = "";
 	public Repository repo = null;
-
 	public final String REMOTE_URI;
 	public final String projectName;
 	public Git git;
 	
 	
-	public Input(String url, String inFile, String outFile)
-	throws InvalidRemoteException, TransportException, GitAPIException, IOException {
+	public Input(String url, String inFile, String outFile)	throws InvalidRemoteException, TransportException, GitAPIException, IOException {
 		this.url = url;
 		this.inFile = inFile;
 		this.outFile = outFile;
@@ -31,6 +30,7 @@ public class Input {
 			outFile += File.separator;
 		this.git = Utils.gitClone(REMOTE_URI);
 		this.repo = git.getRepository();
+		this.bbicFilePath = "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/BBIC_" + projectName + ".csv";
 	}
 
 }

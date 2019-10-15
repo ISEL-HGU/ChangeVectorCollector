@@ -38,7 +38,7 @@ public class Collector {
 		
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
 		final String[] headers = {"path before", "path BIC", "sha before", "sha BIC", "key"};
-		File fileP = new File(input.outFile+input.projectName+"_BBIC.csv");
+		File fileP = new File(input.bbicFilePath);
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
 		
@@ -99,9 +99,9 @@ public class Collector {
 		return bbics;
 	}
 	
-	public static ArrayList<BeforeBIC> collectBeforeBICFromLocalFile(Input input, String bbicFilePath) throws FileNotFoundException, IOException {
+	public static ArrayList<BeforeBIC> collectBeforeBICFromLocalFile(Input input) throws FileNotFoundException, IOException {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
-		Reader in = new FileReader(bbicFilePath);
+		Reader in = new FileReader(input.inFile);
 		
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
 		
