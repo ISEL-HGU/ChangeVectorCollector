@@ -16,6 +16,7 @@ public class Main {
 	boolean help = false;
 	boolean is_repo = false;
 	boolean is_local = false;
+	boolean is_correlation = false;
 
 	public static void main(String[] args) throws Exception {
 		Main cvc = new Main();
@@ -32,6 +33,12 @@ public class Main {
 				return;
 			}
 			
+			// compute correlation					-c
+			if(is_correlation) {
+				Correlation.computeAll(input);
+				return;
+			}
+				
 			// collect bbic from git repository		-r
 			if(is_repo)
 				bbics = Collector.collectBeforeBIC(input);
@@ -58,12 +65,9 @@ public class Main {
 			CommandLine cmd = parser.parse(options, args);
 			try {
 
-				if (cmd.hasOption("r")) {
-					is_repo = true;
-				}
-				if (cmd.hasOption("l")) {
-					is_local = true;
-				}
+				if (cmd.hasOption("c"))	is_correlation = true;
+				else if (cmd.hasOption("r")) is_repo = true;
+				else if (cmd.hasOption("l")) is_local = true;
 				in = cmd.getOptionValue("i");
 				out = cmd.getOptionValue("o");
 				url = cmd.getOptionValue("u");
@@ -87,6 +91,10 @@ public class Main {
 	private Options createOptions() {
 		Options options = new Options();
 
+		options.addOption(Option.builder("c").longOpt("correlation")
+				.desc("Computes correlation of each vectors")
+				.build());
+		
 		options.addOption(Option.builder("r").longOpt("repo")
 				.desc("Collect change vectors straight from Git repository")
 				.build());
