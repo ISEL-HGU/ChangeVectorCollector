@@ -15,7 +15,6 @@ import org.apache.commons.math3.stat.correlation.Covariance;
 import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
-import org.apache.commons.text.similarity.JaccardDistance;
 import org.apache.commons.text.similarity.JaccardSimilarity;
 
 import weka.core.Instances;
@@ -24,350 +23,153 @@ import weka.core.converters.ConverterUtils.DataSource;
 public class Correlation {
 	
 	public static void computeAll(Input input) throws Exception {
-		computePCC(input);
-		computeSCC(input);
-		computeKCC(input);
-		computeED(input);
-		computeCovariance(input);
+		computeCor(input, "PearsonsCC");
+		computeCor(input, "SpearmansCC");
+		computeCor(input, "KendallsCC");
+		computeCor(input, "JaccardSC");
+		computeCor(input, "Euclidean_distance");
+		computeCor(input, "Manhattan_distance");
+		computeCor(input, "Covariance");
 		System.out.println("writing all corelations done!");
+	}
+	
+	public static void computeCor(Input input, String mode) throws Exception{
+		String filePath = input.inFile;
+		DataSource source = null;
+		Instances dataset = null;
+		source = new DataSource(filePath);
+		dataset = source.getDataSet();
 		
+		if(dataset.classIndex() == -1)
+			dataset.setClassIndex(dataset.numAttributes() - 1);
+		
+		System.out.println("num of att: " + dataset.numAttributes());
+		System.out.println("num of inst " + dataset.numInstances());
+		// System.out.println(dataset);
+		
+		// double[][] instantiation
+		ArrayList<ArrayList<Double>> cor = new ArrayList<ArrayList<Double>>();
+		for(int i = 0; i < dataset.numInstances(); i++) {
+			cor.add(new ArrayList<Double>());
+			for(int j = 0; j < dataset.numInstances(); j++) {
+				cor.get(i).add(0.0);
+			}
+		}
+		
+		if(mode.equals("PearsonsCC")) {
+			cor = computePCC(input, dataset, cor);
+		} else if(mode.equals("SpearmansCC")) {
+			cor = computeSCC(input, dataset, cor);
+		} else if(mode.equals("KendallsCC")) {
+			cor = computeKCC(input, dataset, cor);
+		} else if(mode.equals("JaccardSC")) {
+			cor = computeJSC(input, dataset, cor);
+		} else if(mode.equals("Euclidean_distance")) {
+			cor = computeEucD(input, dataset, cor);
+		} else if(mode.equals("Manhattan_distance")) {
+			cor = computeManD(input, dataset, cor);
+		} else if(mode.equals("Covariance")) {
+			cor = computeCov(input, dataset, cor);
+		} 
+			
+		// writing files
+		File outFile = new File(input.outFile + mode + ".csv");
+		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
+		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
+		for(int i = 0; i < dataset.numInstances(); i++) {
+			for(int j = 0; j < dataset.numInstances(); j++) {
+				csvprinter.print(cor.get(i).get(j));
+				
+			}
+			csvprinter.println();
+		}
+		System.out.println("writing " + mode + " done!");
+		csvprinter.close();
 	}
 
-	public static void computePCC(Input input) throws Exception {
-		String filePath = input.inFile;
-		
-		DataSource source = null;
-		Instances dataset = null;
-		source = new DataSource(filePath);
-		dataset = source.getDataSet();
-		
-		if(dataset.classIndex() == -1)
-			dataset.setClassIndex(dataset.numAttributes() - 1);
-		
-		System.out.println("num of att: " + dataset.numAttributes());
-		System.out.println("num of inst " + dataset.numInstances());
-		// System.out.println(dataset);
-		
-		// double[][] instantiation
-		ArrayList<ArrayList<Double>> pcc = new ArrayList<ArrayList<Double>>();
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			pcc.add(new ArrayList<Double>());
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				pcc.get(i).add(0.0);
-			}
-		}
-		
-		// computing PCC one by one
+	public static ArrayList<ArrayList<Double>> computePCC(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
+		// computing Pearsons Correlation Coefficient one by one
 		for(int i = 0; i < dataset.numInstances(); i++) {
 			double[] x = dataset.get(i).toDoubleArray();
 			for(int j = 0; j < dataset.numInstances(); j++) {
 				double[] y = dataset.get(j).toDoubleArray();
-			    pcc.get(i).set(j, new PearsonsCorrelation().correlation(x,y));
+			    cor.get(i).set(j, new PearsonsCorrelation().correlation(x,y));
 			}
-		}
-		
-		// writing files
-		File outFile = new File(input.outFile+"PeasonsCC.csv");
-		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
-		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				csvprinter.print(pcc.get(i).get(j));
-				
-			}
-			csvprinter.println();
-		}
-		System.out.println("writing pcc done!");
-		csvprinter.close();
+		}		
+		return cor;
 	}
 	
-	public static void computeSCC(Input input) throws Exception {
-		String filePath = input.inFile;
-		
-		DataSource source = null;
-		Instances dataset = null;
-		source = new DataSource(filePath);
-		dataset = source.getDataSet();
-		
-		if(dataset.classIndex() == -1)
-			dataset.setClassIndex(dataset.numAttributes() - 1);
-		
-		System.out.println("num of att: " + dataset.numAttributes());
-		System.out.println("num of inst " + dataset.numInstances());
-		// System.out.println(dataset);
-		
-		// double[][] instantiation
-		ArrayList<ArrayList<Double>> pcc = new ArrayList<ArrayList<Double>>();
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			pcc.add(new ArrayList<Double>());
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				pcc.get(i).add(0.0);
-			}
-		}
-		
-		// computing SCC one by one
+	public static ArrayList<ArrayList<Double>> computeSCC(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
+		// computing Spearmans Correlation Coefficient one by one
 		for(int i = 0; i < dataset.numInstances(); i++) {
 			double[] x = dataset.get(i).toDoubleArray();
 			for(int j = 0; j < dataset.numInstances(); j++) {
 				double[] y = dataset.get(j).toDoubleArray();
-			    pcc.get(i).set(j, new SpearmansCorrelation().correlation(x,y));
+			    cor.get(i).set(j, new SpearmansCorrelation().correlation(x,y));
 			}
-		}
-		
-		// writing files
-		File outFile = new File(input.outFile+"SpearmansCC.csv");
-		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
-		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				csvprinter.print(pcc.get(i).get(j));
-				
-			}
-			csvprinter.println();
-		}
-		System.out.println("writing scc done!");
-		csvprinter.close();
+		}		
+		return cor;
 	}
 	
-	public static void computeKCC(Input input) throws Exception {
-		String filePath = input.inFile;
-		
-		DataSource source = null;
-		Instances dataset = null;
-		source = new DataSource(filePath);
-		dataset = source.getDataSet();
-		
-		if(dataset.classIndex() == -1)
-			dataset.setClassIndex(dataset.numAttributes() - 1);
-		
-		System.out.println("num of att: " + dataset.numAttributes());
-		System.out.println("num of inst " + dataset.numInstances());
-		// System.out.println(dataset);
-		
-		// double[][] instantiation
-		ArrayList<ArrayList<Double>> pcc = new ArrayList<ArrayList<Double>>();
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			pcc.add(new ArrayList<Double>());
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				pcc.get(i).add(0.0);
-			}
-		}
-		
-		// computing KCC one by one
+	public static ArrayList<ArrayList<Double>> computeKCC(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
+		// computing Kendalls Correlation Coefficient one by one
 		for(int i = 0; i < dataset.numInstances(); i++) {
 			double[] x = dataset.get(i).toDoubleArray();
 			for(int j = 0; j < dataset.numInstances(); j++) {
 				double[] y = dataset.get(j).toDoubleArray();
-			    pcc.get(i).set(j, new KendallsCorrelation().correlation(x,y));
+			    cor.get(i).set(j, new KendallsCorrelation().correlation(x,y));
 			}
-		}
-		
-		// writing files
-		File outFile = new File(input.outFile+"KendallsCC.csv");
-		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
-		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				csvprinter.print(pcc.get(i).get(j));
-				
-			}
-			csvprinter.println();
-		}
-		System.out.println("writing kcc done!");
-		csvprinter.close();
+		}		
+		return cor;
 	}
 	
-	public static void computeJSC(Input input) throws Exception {
-		String filePath = input.inFile;
-		
-		DataSource source = null;
-		Instances dataset = null;
-		source = new DataSource(filePath);
-		dataset = source.getDataSet();
-		
-		if(dataset.classIndex() == -1)
-			dataset.setClassIndex(dataset.numAttributes() - 1);
-		
-		System.out.println("num of att: " + dataset.numAttributes());
-		System.out.println("num of inst " + dataset.numInstances());
-		// System.out.println(dataset);
-		
-		// double[][] instantiation
-		ArrayList<ArrayList<Double>> pcc = new ArrayList<ArrayList<Double>>();
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			pcc.add(new ArrayList<Double>());
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				pcc.get(i).add(0.0);
-			}
-		}
-		
-		// computing KCC one by one
+	public static ArrayList<ArrayList<Double>> computeJSC(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
+		// computing Jaccard Similarity Coefficient one by one
 		for(int i = 0; i < dataset.numInstances(); i++) {
 			double[] x = dataset.get(i).toDoubleArray();
 			CharSequence csx = Arrays.toString(x);
 			for(int j = 0; j < dataset.numInstances(); j++) {
 				double[] y = dataset.get(j).toDoubleArray();
 				CharSequence csy = Arrays.toString(y);
-			    pcc.get(i).set(j, new JaccardSimilarity().apply(csx, csy));
+				cor.get(i).set(j, new JaccardSimilarity().apply(csx, csy));
 			}
-		}
-		
-		// writing files
-		File outFile = new File(input.outFile+"jsc.csv");
-		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
-		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				csvprinter.print(pcc.get(i).get(j));
-				
-			}
-			csvprinter.println();
-		}
-		System.out.println("writing JSC done!");
-		csvprinter.close();
+		}		
+		return cor;
 	}
 	
-	public static void computeED(Input input) throws Exception {
-		String filePath = input.inFile;
-		
-		DataSource source = null;
-		Instances dataset = null;
-		source = new DataSource(filePath);
-		dataset = source.getDataSet();
-		
-		if(dataset.classIndex() == -1)
-			dataset.setClassIndex(dataset.numAttributes() - 1);
-		
-		System.out.println("num of att: " + dataset.numAttributes());
-		System.out.println("num of inst " + dataset.numInstances());
-		// System.out.println(dataset);
-		
-		// double[][] instantiation
-		ArrayList<ArrayList<Double>> pcc = new ArrayList<ArrayList<Double>>();
+	public static ArrayList<ArrayList<Double>> computeEucD(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
+		// computing Euclidean Distance one by one
 		for(int i = 0; i < dataset.numInstances(); i++) {
-			pcc.add(new ArrayList<Double>());
+			double[] x = dataset.get(i).toDoubleArray();
 			for(int j = 0; j < dataset.numInstances(); j++) {
-				pcc.get(i).add(0.0);
+				double[] y = dataset.get(j).toDoubleArray();
+			    cor.get(i).set(j, new EuclideanDistance().compute(x,y));
 			}
-		}
-		
+		}		
+		return cor;
+	}
+	
+	public static ArrayList<ArrayList<Double>> computeManD(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
+		// computing Manhattan Distance one by one
+		for(int i = 0; i < dataset.numInstances(); i++) {
+			double[] x = dataset.get(i).toDoubleArray();
+			for(int j = 0; j < dataset.numInstances(); j++) {
+				double[] y = dataset.get(j).toDoubleArray();
+			    cor.get(i).set(j, new ManhattanDistance().compute(x,y));
+			}
+		}		
+		return cor;
+	}
+	
+	public static ArrayList<ArrayList<Double>> computeCov(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
 		// computing Covariance one by one
 		for(int i = 0; i < dataset.numInstances(); i++) {
 			double[] x = dataset.get(i).toDoubleArray();
 			for(int j = 0; j < dataset.numInstances(); j++) {
 				double[] y = dataset.get(j).toDoubleArray();
-			    pcc.get(i).set(j, new EuclideanDistance().compute(x,y));
+			    cor.get(i).set(j, new Covariance().covariance(x,y));
 			}
-		}
-		
-		// writing files
-		File outFile = new File(input.outFile+"Euclidean_distance.csv");
-		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
-		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				csvprinter.print(pcc.get(i).get(j));
-				
-			}
-			csvprinter.println();
-		}
-		System.out.println("writing Euclidean Distance done!");
-		csvprinter.close();
-	}
-	
-	public static void computeMD(Input input) throws Exception {
-		String filePath = input.inFile;
-		
-		DataSource source = null;
-		Instances dataset = null;
-		source = new DataSource(filePath);
-		dataset = source.getDataSet();
-		
-		if(dataset.classIndex() == -1)
-			dataset.setClassIndex(dataset.numAttributes() - 1);
-		
-		System.out.println("num of att: " + dataset.numAttributes());
-		System.out.println("num of inst " + dataset.numInstances());
-		// System.out.println(dataset);
-		
-		// double[][] instantiation
-		ArrayList<ArrayList<Double>> pcc = new ArrayList<ArrayList<Double>>();
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			pcc.add(new ArrayList<Double>());
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				pcc.get(i).add(0.0);
-			}
-		}
-		
-		// computing Covariance one by one
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			double[] x = dataset.get(i).toDoubleArray();
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				double[] y = dataset.get(j).toDoubleArray();
-			    pcc.get(i).set(j, new ManhattanDistance().compute(x,y));
-			}
-		}
-		
-		// writing files
-		File outFile = new File(input.outFile+"Manhattan_distance.csv");
-		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
-		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				csvprinter.print(pcc.get(i).get(j));
-				
-			}
-			csvprinter.println();
-		}
-		System.out.println("writing Manhattan Distance done!");
-		csvprinter.close();
-	}
-	
-	public static void computeCovariance(Input input) throws Exception {
-		String filePath = input.inFile;
-		
-		DataSource source = null;
-		Instances dataset = null;
-		source = new DataSource(filePath);
-		dataset = source.getDataSet();
-		
-		if(dataset.classIndex() == -1)
-			dataset.setClassIndex(dataset.numAttributes() - 1);
-		
-		System.out.println("num of att: " + dataset.numAttributes());
-		System.out.println("num of inst " + dataset.numInstances());
-		// System.out.println(dataset);
-		
-		// double[][] instantiation
-		ArrayList<ArrayList<Double>> pcc = new ArrayList<ArrayList<Double>>();
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			pcc.add(new ArrayList<Double>());
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				pcc.get(i).add(0.0);
-			}
-		}
-		
-		// computing Covariance one by one
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			double[] x = dataset.get(i).toDoubleArray();
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				double[] y = dataset.get(j).toDoubleArray();
-			    pcc.get(i).set(j, new Covariance().covariance(x,y));
-			}
-		}
-		
-		// writing files
-		File outFile = new File(input.outFile+"Covariance.csv");
-		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
-		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				csvprinter.print(pcc.get(i).get(j));
-				
-			}
-			csvprinter.println();
-		}
-		System.out.println("writing Covariance done!");
-		csvprinter.close();
+		}		
+		return cor;
 	}
 }

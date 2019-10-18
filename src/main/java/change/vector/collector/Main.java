@@ -35,8 +35,7 @@ public class Main {
 			
 			// compute correlation					-c
 			if(is_correlation) {
-//				Correlation.computeAll(input);
-				Correlation.computeJSC(input);
+				Correlation.computeAll(input);
 				return;
 			}
 				
