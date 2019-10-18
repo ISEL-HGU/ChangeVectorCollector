@@ -50,4 +50,5 @@ If you have trouble to build using gradlew, enter
 
 <pre><code> ./chang-vector-collector/bin/change-vector-collector -r -u "https://github.com/apache/zookeeper" -i "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/BIC_zookeeper.csv" -o "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/CVC_zookeper.arff" </code></pre>
 
-<pre><code> ./chang-vector-collector/bin/change-vector-collector -r -u "https://github.com/apache/zookeeper" -i "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/BIC_zookeeper.csv" -o "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/CVC_zookeper.arff" </code></pre>
+<pre><code> ./chang-vector-collector/bin/change-vector-collector -c -u "https://github.com/apache/zookeeper" -i "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/cvc.arff" -o "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/correlation/" </code></pre>
+
