@@ -46,9 +46,9 @@ If you have trouble to build using gradlew, enter
 
 # Examples
 
-<pre><code> -r -u "https://github.com/apache/zookeeper" -i "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/BIC_zookeeper.csv" -o "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/CVC_zookeper.arff" </code></pre>
+<pre><code> -r -u "https://github.com/apache/zookeeper" -i "./assets/BIC_zookeeper.csv" -o "./assets/CVC_zookeper.arff" </code></pre>
 
-<pre><code> -l -u "https://github.com/apache/zookeeper" -i "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/BBIC_zookeeper.csv" -o "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/CVC_zookeper.arff" </code></pre>
+<pre><code> -l -u "https://github.com/apache/zookeeper" -i "./assets/BBIC_zookeeper.csv" -o "./assets/CVC_zookeper.arff" </code></pre>
 
-<pre><code> -c -u "https://github.com/apache/zookeeper" -i "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/cvc.arff" -o "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/correlation/" </code></pre>
+<pre><code> -c -u "https://github.com/apache/zookeeper" -i "./assets/cvc.arff" -o "./assets/correlation/" </code></pre>
 
