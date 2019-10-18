@@ -44,7 +44,7 @@ If you have trouble to build using gradlew, enter
 <br> -i is the file path of the change vector arff.
 <br> -o is the folder path where you want to store the correlation csvs.
 
-# Examples
+# Example Tests 
 
 <pre><code> -r -u "https://github.com/apache/zookeeper" -i "./assets/BIC_zookeeper.csv" -o "./assets/CVC_zookeper.arff" </code></pre>
 
