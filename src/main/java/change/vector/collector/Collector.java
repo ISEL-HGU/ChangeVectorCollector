@@ -135,7 +135,7 @@ public class Collector {
 	   limitations under the License.
 	 */
 	public static void collectFiles(Input input, ArrayList<BeforeBIC> bbics) throws IOException {
-		String outPath = "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/collectedFiles/";
+		String outPath = "./assets/collectedFiles/";
 		OutputStream outputStream;
         try (Repository repo = input.repo) {
             // find the HEAD
