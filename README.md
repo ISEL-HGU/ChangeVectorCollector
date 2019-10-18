@@ -4,7 +4,7 @@ ChangeVectorCollector is a tool that uses GumTree to differentiate two code betw
 
 ### How it works:
 1. Takes a csv file that holds target commits and the target changed line.
-<br> You can use result of HGUISEL/BugPatchCollector to find difference when BIC occurs.
+<br> You can use the results from [HGUISEL/BugPatchCollector link](https://github.com/HGUISEL/bugpatchcollector) to find difference when BIC occurs.
 2. Blames the changed line to get the commit before it is changed.
 3. Extracts the files that is before and after the change.
 4. Compares the change of files using GumTree distribution from https://github.com/GumTreeDiff/gumtree
