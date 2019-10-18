@@ -28,22 +28,13 @@ public class Main {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 		
 		if(parseOptions(options, args)) {
-			if(help) {
-				printHelp(options);
-				return;
-			}
 			
-			// compute correlation					-c
-			if(is_correlation) {
-				Correlation.computeAll(input);
-				return;
-			}
-				
-			// collect bbic from git repository		-r
+			
+			// collect bbic from git repository					-r
 			if(is_repo)
 				bbics = Collector.collectBeforeBIC(input);
 			
-			// collect bbic from csv file			-l
+			// collect bbic from csv file						-l
 			if(is_local)
 				bbics = Collector.collectBeforeBICFromLocalFile(input);
 			
@@ -52,6 +43,11 @@ public class Main {
 			
 			// perform Gumtree to retrieve change vector
 			ChangeVector.runGumtreeDIST(input);
+			
+			// compute correlations								-c
+			if(is_correlation) Correlation.computeAll(input);
+			
+			if(help) printHelp(options);
 		}
 	}
 	
