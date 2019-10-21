@@ -73,7 +73,7 @@ public class Correlation {
 		} 
 			
 		// writing files
-		File outFile = new File(input.outFile + mode + ".csv");
+		File outFile = new File(input.outFile + mode + "_"+ input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 		for(int i = 0; i < dataset.numInstances(); i++) {

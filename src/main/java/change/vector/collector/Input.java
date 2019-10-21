@@ -30,7 +30,7 @@ public class Input {
 			outFile += File.separator;
 		this.git = Utils.gitClone(REMOTE_URI);
 		this.repo = git.getRepository();
-		this.bbicFilePath = "/Users/jihoshin/eclipse-workspace/change-vector-collector/assets/BBIC_" + projectName + ".csv";
+		this.bbicFilePath = "./assets/BBIC_" + projectName + ".csv";
 	}
 
 }
