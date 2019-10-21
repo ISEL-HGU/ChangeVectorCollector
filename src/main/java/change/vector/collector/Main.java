@@ -28,7 +28,11 @@ public class Main {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 		
 		if(parseOptions(options, args)) {
-			
+			// compute correlations								-c
+			if(is_correlation) {
+				Correlation.computeAll(input);
+				return;
+			}
 			
 			// collect bbic from git repository					-r
 			if(is_repo)
@@ -43,10 +47,7 @@ public class Main {
 			
 			// perform Gumtree to retrieve change vector
 			ChangeVector.runGumtreeDIST(input);
-			
-			// compute correlations								-c
-			if(is_correlation) Correlation.computeAll(input);
-			
+				
 			if(help) printHelp(options);
 		}
 	}

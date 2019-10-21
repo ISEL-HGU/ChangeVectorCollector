@@ -30,7 +30,7 @@ public class Correlation {
 		computeCor(input, "Euclidean_distance");
 		computeCor(input, "Manhattan_distance");
 		computeCor(input, "Covariance");
-		System.out.println("writing all corelations done!");
+		System.out.println("writing all correlations done!");
 	}
 	
 	public static void computeCor(Input input, String mode) throws Exception{

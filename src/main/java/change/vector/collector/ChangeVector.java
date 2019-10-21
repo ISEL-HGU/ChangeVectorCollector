@@ -27,14 +27,11 @@ class MutableInt {
 }
 
 public class ChangeVector {
-	public int matchesNum = 0;
 	public int deletesNum = 0;
 	public int insertsNum = 0;
 	public int updatesNum = 0;
 	public int movesNum = 0;
-	
-	
-	public Map<String, MutableInt> matches = null;
+		
 	public Map<String, MutableInt> deletes = null;
 	public Map<String, MutableInt> inserts = null;
 	public Map<String, MutableInt> updates = null;
@@ -65,31 +62,12 @@ public class ChangeVector {
 			
 			String str = IOUtils.toString(in);
 			JSONObject json = new JSONObject(str);
-			JSONArray matchesJSON = json.getJSONArray("matches");
-			changeVector.matchesNum = json.getJSONArray("matches").length();
-			Map<String, MutableInt> matches = new HashMap<String, MutableInt>();
+			
 			Map<String, MutableInt> deletes = new HashMap<String, MutableInt>();
 			Map<String, MutableInt> inserts = new HashMap<String, MutableInt>();
 			Map<String, MutableInt> updates = new HashMap<String, MutableInt>();
 			Map<String, MutableInt> moves = new HashMap<String, MutableInt>();
 
-			
-			// counting instances of matches
-			for (int j = 0; j < matchesJSON.length(); j++){
-				JSONObject tmp = matchesJSON.getJSONObject(j);
-				String src = tmp.getString("src");
-				
-				String tmpSplit[] = src.split("\\s");
-				if(tmpSplit[0].contains(":")){
-					tmpSplit[0] = tmpSplit[0].substring(0, tmpSplit[0].length()-1);
-				}
-				MutableInt count = matches.get(tmpSplit[0]);
-				if(count == null) {
-					matches.put(tmpSplit[0], new MutableInt());
-				} else {
-					count.increment();
-				}
-			}
 			
 			// counting instances of actions
 			JSONArray actions = json.getJSONArray("actions");
@@ -111,7 +89,7 @@ public class ChangeVector {
 						count.increment();
 					}					
 				} 
-				// inseted nodes
+				// inserted nodes
 				else if(tmp.getString("action").equals("insert-node")) {
 					changeVector.insertsNum++;
 					
@@ -158,12 +136,7 @@ public class ChangeVector {
 				} 
 			}
 			
-			// console output of each node counts
-			// System.out.println("MATCHES:");
-			// for(String name: matches.keySet()) {
-			// 	System.out.println(name.toString() + " " + matches.get(name).value);
-			// }
-			// System.out.println();			
+			// console output of each node counts		
 			// System.out.println("DELETES:");
 			// for(String name: deletes.keySet()) {
 			// 	System.out.println(name.toString() + " " + deletes.get(name).value);
@@ -187,7 +160,6 @@ public class ChangeVector {
 
 			
 			System.out.println(i+"/"+Collector.instanceNumber);
-			System.out.println("matchesNum: " + changeVector.matchesNum);
 			System.out.println("deletesNum: " + changeVector.deletesNum);
 			System.out.println("insertsNum: " + changeVector.insertsNum);
 			System.out.println("updateNum: " + changeVector.updatesNum);
@@ -195,7 +167,6 @@ public class ChangeVector {
 			System.out.println();
 			
 			// saving instance fields
-			changeVector.matches = matches;
 			changeVector.deletes = deletes;
 			changeVector.inserts = inserts;
 			changeVector.updates = updates;
@@ -218,20 +189,17 @@ public class ChangeVector {
 		// writing all attributes
 		int att;
 	    for (att = 0; att < MyASTNode.nodes.length; att++) {
-	    	attributes.addElement(new Attribute("mat_" + MyASTNode.nodes[att])); 
+	    	attributes.addElement(new Attribute("del_" + MyASTNode.nodes[att])); 
 	    } 
 	    for (int att1 = 0; att < MyASTNode.nodes.length*2; att1++, att++) {
-	    	attributes.addElement(new Attribute("del_" + MyASTNode.nodes[att1]));
+	    	attributes.addElement(new Attribute("ins_" + MyASTNode.nodes[att1]));
 	    } 
 	    for (int att2 = 0; att < MyASTNode.nodes.length*3; att2++, att++) {
-	    	attributes.addElement(new Attribute("ins_" + MyASTNode.nodes[att2]));
+	    	attributes.addElement(new Attribute("upd_" + MyASTNode.nodes[att2]));
 	    } 
 	    for (int att3 = 0; att < MyASTNode.nodes.length*4; att3++, att++) {
-	    	attributes.addElement(new Attribute("upd_" + MyASTNode.nodes[att3]));
+	    	attributes.addElement(new Attribute("mov_" + MyASTNode.nodes[att3]));
 	    } 
-	    for (int att4 = 0; att < MyASTNode.nodes.length*5; att4++, att++) {
-	    	attributes.addElement(new Attribute("mov_" + MyASTNode.nodes[att4]));
-	    }
 
 	    dataSet = new Instances("CVS", attributes, 0);
 	    List<String> astnodes = Arrays.asList(MyASTNode.nodes);
@@ -239,47 +207,38 @@ public class ChangeVector {
 	    // writing the data
 	    for(ChangeVector cv : CVS) { // instances X
 			double[] values = new double[dataSet.numAttributes()];
-			// matches
-			for(String nodeName: cv.matches.keySet()) {
-				int nodeCount = cv.matches.get(nodeName).value;
+			// deletes
+			for(String nodeName: cv.deletes.keySet()) {
+				int nodeCount = cv.deletes.get(nodeName).value;
 				int index = astnodes.indexOf(nodeName);
 				for(int ast_i = 0; ast_i < astnodes.size(); ast_i++) {
 					if(ast_i == index) values[ast_i] = nodeCount;
 				}	
 			}
-			// deletes
-			for(String nodeName: cv.deletes.keySet()) {
-				int nodeCount = cv.deletes.get(nodeName).value;
+			// inserts
+			for(String nodeName: cv.inserts.keySet()) {
+				int nodeCount = cv.inserts.get(nodeName).value;
 				int index = astnodes.indexOf(nodeName);
 				for(int ast_i = 0, del_i = astnodes.size(); ast_i < astnodes.size(); ast_i++, del_i++) {
 					if(ast_i == index) values[del_i] = nodeCount;
 				}
 			}
-			//inserts
-			for(String nodeName: cv.inserts.keySet()) {
-				int nodeCount = cv.inserts.get(nodeName).value;
-				int index = astnodes.indexOf(nodeName);
-				for(int ast_i = 0, ins_i = astnodes.size()*2; ast_i < astnodes.size(); ast_i++, ins_i++) {
-					if(ast_i == index) values[ins_i] = nodeCount;
-				}
-			}
-			// updates
+			//updates
 			for(String nodeName: cv.updates.keySet()) {
 				int nodeCount = cv.updates.get(nodeName).value;
 				int index = astnodes.indexOf(nodeName);
-				for(int ast_i = 0, upd_i = astnodes.size()*3; ast_i < astnodes.size(); ast_i++, upd_i++) {
-					if(ast_i == index) values[upd_i] = nodeCount;
+				for(int ast_i = 0, ins_i = astnodes.size()*2; ast_i < astnodes.size(); ast_i++, ins_i++) {
+					if(ast_i == index) values[ins_i] = nodeCount;
 				}
 			}
 			// moves
 			for(String nodeName: cv.moves.keySet()) {
 				int nodeCount = cv.moves.get(nodeName).value;
 				int index = astnodes.indexOf(nodeName);
-				for(int ast_i = 0, mov_i = astnodes.size()*4; ast_i < astnodes.size(); ast_i++, mov_i++) {
-					if(ast_i == index) values[mov_i] = nodeCount;
+				for(int ast_i = 0, upd_i = astnodes.size()*3; ast_i < astnodes.size(); ast_i++, upd_i++) {
+					if(ast_i == index) values[upd_i] = nodeCount;
 				}
 			}
-			
 			dataSet.add(new SparseInstance(1.0, values));
 	    }
 	    
