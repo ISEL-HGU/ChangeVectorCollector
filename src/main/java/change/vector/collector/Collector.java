@@ -169,7 +169,7 @@ public class Collector {
                         ObjectLoader loader = repo.open(objectId);
 
                         // and then one can the loader to read the file
-                        outputStream = new FileOutputStream(outPath+i+"_before.java");
+                        outputStream = new FileOutputStream(outPath + input.projectName + i + "_before.java");
                         loader.copyTo(outputStream);
                     }
                     
@@ -186,7 +186,7 @@ public class Collector {
                         ObjectLoader loader = repo.open(objectId);
 
                         // and then one can the loader to read the file
-                        outputStream = new FileOutputStream(outPath+i+"_bic.java");
+                        outputStream = new FileOutputStream(outPath + input.projectName + i + "_bic.java");
                         loader.copyTo(outputStream);
                     }
                     revWalk.dispose();

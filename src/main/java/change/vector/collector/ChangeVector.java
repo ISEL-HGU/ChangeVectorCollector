@@ -44,8 +44,9 @@ public class ChangeVector {
 		String com =  " jsondiff ";
 		String gcom = gumtree + com;
 //		String filetest = "./assets/test/El";				
-		String file = "./assets/collectedFiles/";
-		
+		String filePath = "./assets/collectedFiles/";
+		String file = filePath + input.projectName;
+	
 	
 		for (int i = 0; i < Collector.instanceNumber; i++) {
 			ChangeVector changeVector = new ChangeVector();
