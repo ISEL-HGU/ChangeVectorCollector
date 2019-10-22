@@ -37,7 +37,7 @@ public class Collector {
 		Reader in = new FileReader(input.inFile);
 		
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
-		final String[] headers = {"path before", "path BIC", "sha before", "sha BIC", "key"};
+		final String[] headers = {"path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix", "key"};
 		File fileP = new File(input.bbicFilePath);
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
@@ -52,8 +52,11 @@ public class Collector {
 			String file = record.get(1);
 			String lineNum = record.get(4);
 			String content = record.get(6);
+			String path_fix = record.get(2);
+			String sha_fix = record.get(3);
+			
 			if(sha.contains("BIShal1")) continue; //skip the header
-			if(content.length()<5) continue; //skip really short ones
+			if(content.length()<3) continue; //skip really short ones
 
 
 			// call blamer of BIC line-by-line
@@ -66,11 +69,11 @@ public class Collector {
 			// retrieve SHA and path of before BIC
 			String pathBefore = blame.getSourcePath(Integer.parseInt(lineNum));
 			String shaBefore = commit.getName();
-			String key = sha + file + shaBefore + pathBefore;
+			String key = sha + file + shaBefore + pathBefore + sha_fix + path_fix;
 			
 			if(shaBefore.equals(sha)) continue; //skip when there are no BBIC
 			
-			for (int j = 0; i > 2 && j < bbics.size(); j++) { //skip duplicates
+			for (int j = 0; j < bbics.size(); j++) { //skip duplicates
 				if(bbics.get(j).key.equals(key)) {
 					isKeyDuplicate = true;
 				}
@@ -78,18 +81,19 @@ public class Collector {
 			if (isKeyDuplicate) continue;
 			
 			// add BBIC when passed all of the above
-			BeforeBIC bbic = new BeforeBIC(pathBefore, file, shaBefore, sha, key);
+			BeforeBIC bbic = new BeforeBIC(pathBefore, file, shaBefore, sha, path_fix, sha_fix, key);
 			bbics.add(bbic);
 			
 			System.out.println("#" + i);
 			System.out.println(bbic.toString());
-			System.out.println();
 			
 			i++;
 		}
 		
+		// writing the BBIC file
 		for(BeforeBIC bbic : bbics) {
-			csvprinter.printRecord(bbic.pathBefore, bbic.pathBIC, bbic.shaBefore, bbic.shaBIC, bbic.key);
+			csvprinter.printRecord(bbic.pathBefore, bbic.pathBIC, bbic.shaBefore, bbic.shaBIC,
+									bbic.pathFix, bbic.shaFix, bbic.key);
 			csvprinter.flush();
 		}
 		System.out.println("########### Finish collecting BBIC from repo! ###########");
@@ -112,9 +116,11 @@ public class Collector {
 			String shaBefore = record.get(2);
 			String shaBIC = record.get(3);
 			String key = record.get(4);
+			String path_fix = record.get(2);
+			String sha_fix = record.get(3);
 			if(pathBefore.contains("path before")) continue;
 			
-			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, key);
+			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, path_fix, sha_fix, key);
 			bbics.add(bbic);
 		}
 			

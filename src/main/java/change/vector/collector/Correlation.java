@@ -76,10 +76,18 @@ public class Correlation {
 		File outFile = new File(input.outFile + mode + "_"+ input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
+		
+		// 
+		csvprinter.print("x/x");
+		for (int i = 0; i < dataset.numInstances(); i++) {
+			csvprinter.print(i);
+		}
+		csvprinter.println();
+		
 		for(int i = 0; i < dataset.numInstances(); i++) {
+			csvprinter.print(i);
 			for(int j = 0; j < dataset.numInstances(); j++) {
 				csvprinter.print(cor.get(i).get(j));
-				
 			}
 			csvprinter.println();
 		}
