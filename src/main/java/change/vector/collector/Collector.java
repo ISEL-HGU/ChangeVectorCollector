@@ -37,7 +37,7 @@ public class Collector {
 		Reader in = new FileReader(input.inFile);
 		
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
-		final String[] headers = {"path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix", "key"};
+		final String[] headers = {"index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix", "key"};
 		File fileP = new File(input.bbicFilePath);
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
@@ -84,15 +84,14 @@ public class Collector {
 			BeforeBIC bbic = new BeforeBIC(pathBefore, file, shaBefore, sha, path_fix, sha_fix, key);
 			bbics.add(bbic);
 			
-			System.out.println("#" + i);
+			System.out.println("#" + i++);
 			System.out.println(bbic.toString());
-			
-			i++;
 		}
 		
 		// writing the BBIC file
+		int index = 0;
 		for(BeforeBIC bbic : bbics) {
-			csvprinter.printRecord(bbic.pathBefore, bbic.pathBIC, bbic.shaBefore, bbic.shaBIC,
+			csvprinter.printRecord(index++, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore, bbic.shaBIC,
 									bbic.pathFix, bbic.shaFix, bbic.key);
 			csvprinter.flush();
 		}

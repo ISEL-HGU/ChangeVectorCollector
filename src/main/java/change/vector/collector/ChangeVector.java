@@ -27,6 +27,7 @@ class MutableInt {
 }
 
 public class ChangeVector {
+	
 	public int deletesNum = 0;
 	public int insertsNum = 0;
 	public int updatesNum = 0;
@@ -46,8 +47,9 @@ public class ChangeVector {
 //		String filetest = "./assets/test/El";				
 		String filePath = "./assets/collectedFiles/";
 		String file = filePath + input.projectName;
-	
-	
+		
+		
+
 		for (int i = 0; i < Collector.instanceNumber; i++) {
 			ChangeVector changeVector = new ChangeVector();
 			

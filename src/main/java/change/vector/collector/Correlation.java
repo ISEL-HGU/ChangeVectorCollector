@@ -23,12 +23,12 @@ import weka.core.converters.ConverterUtils.DataSource;
 public class Correlation {
 	
 	public static void computeAll(Input input) throws Exception {
-		computeCor(input, "PearsonsCC");
-		computeCor(input, "SpearmansCC");
-		computeCor(input, "KendallsCC");
-		computeCor(input, "JaccardSC");
-		computeCor(input, "Euclidean_distance");
-		computeCor(input, "Manhattan_distance");
+		computeCor(input, "Pearsons");
+		computeCor(input, "Spearmans");
+		computeCor(input, "Kendalls");
+		computeCor(input, "Jaccard");
+		computeCor(input, "EuclideanD");
+		computeCor(input, "ManhattanD");
 		computeCor(input, "Covariance");
 		System.out.println("writing all correlations done!");
 	}
@@ -56,17 +56,17 @@ public class Correlation {
 			}
 		}
 		
-		if(mode.equals("PearsonsCC")) {
+		if(mode.equals("Pearsons")) {
 			cor = computePCC(input, dataset, cor);
-		} else if(mode.equals("SpearmansCC")) {
+		} else if(mode.equals("Spearmans")) {
 			cor = computeSCC(input, dataset, cor);
-		} else if(mode.equals("KendallsCC")) {
+		} else if(mode.equals("Kendalls")) {
 			cor = computeKCC(input, dataset, cor);
-		} else if(mode.equals("JaccardSC")) {
+		} else if(mode.equals("Jaccard")) {
 			cor = computeJSC(input, dataset, cor);
-		} else if(mode.equals("Euclidean_distance")) {
+		} else if(mode.equals("EuclideanD")) {
 			cor = computeEucD(input, dataset, cor);
-		} else if(mode.equals("Manhattan_distance")) {
+		} else if(mode.equals("ManhattanD")) {
 			cor = computeManD(input, dataset, cor);
 		} else if(mode.equals("Covariance")) {
 			cor = computeCov(input, dataset, cor);
@@ -78,7 +78,7 @@ public class Correlation {
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 		
 		// 
-		csvprinter.print("x/x");
+		csvprinter.print(mode);
 		for (int i = 0; i < dataset.numInstances(); i++) {
 			csvprinter.print(i);
 		}
