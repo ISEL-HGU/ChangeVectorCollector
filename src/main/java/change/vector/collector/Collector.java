@@ -85,12 +85,13 @@ public class Collector {
 			bbics.add(bbic);
 
 			// writing the BBIC file
-			csvprinter.printRecord(input.projectName+index++, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore, bbic.shaBIC,
+			csvprinter.printRecord(input.projectName+index, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore, bbic.shaBIC,
 					bbic.pathFix, bbic.shaFix, bbic.key);
 			csvprinter.flush();
 			
-			System.out.println("#" + index++);
+			System.out.println("#" + index);
 			System.out.println(bbic.toString());
+			index++;
 		}
 		
 
