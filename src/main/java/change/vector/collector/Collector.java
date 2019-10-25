@@ -48,30 +48,30 @@ public class Collector {
 			BlameCommand blamer = new BlameCommand(input.repo);
 	
 			// retrieve the record we need
-			String sha = record.get(0);
-			String file = record.get(1);
+			String sha_BIC = record.get(0);
+			String file_BIC = record.get(1);
 			String lineNum = record.get(4);
 			String content = record.get(6);
 			String path_fix = record.get(2);
 			String sha_fix = record.get(3);
 			
-			if(sha.contains("BIShal1")) continue; //skip the header
+			if(sha_BIC.contains("BIShal1")) continue; //skip the header
 			if(content.length()<3) continue; //skip really short ones
 
 
-			// call blamer of BIC line-by-line
-			ObjectId commitID = input.repo.resolve(sha);
+			// call blamer of each BIC 
+			ObjectId commitID = input.repo.resolve(sha_BIC);
 			blamer.setStartCommit(commitID);
-			blamer.setFilePath(file);
+			blamer.setFilePath(file_BIC);
 			BlameResult blame = blamer.call();
-			RevCommit commit = blame.getSourceCommit(Integer.parseInt(lineNum)-1);
+			RevCommit commitBefore = blame.getSourceCommit(Integer.parseInt(lineNum)-1);
 		
 			// retrieve SHA and path of before BIC
 			String pathBefore = blame.getSourcePath(Integer.parseInt(lineNum)-1);
-			String shaBefore = commit.getName();
-			String key = sha + file + shaBefore + pathBefore + sha_fix + path_fix;
+			String shaBefore = commitBefore.getName();
+			String key = sha_BIC + file_BIC + shaBefore + pathBefore + sha_fix + path_fix;
 			
-			if(shaBefore.equals(sha)) continue; //skip when there are no BBIC
+			if(shaBefore.equals(sha_BIC)) continue; //skip when there are no BBIC
 			
 			for (int j = 0; j < bbics.size(); j++) { //skip duplicates
 				if(bbics.get(j).key.equals(key)) {
@@ -81,7 +81,7 @@ public class Collector {
 			if (isKeyDuplicate) continue;
 			
 			// add BBIC when passed all of the above
-			BeforeBIC bbic = new BeforeBIC(pathBefore, file, shaBefore, sha, path_fix, sha_fix, key);
+			BeforeBIC bbic = new BeforeBIC(pathBefore, file_BIC, shaBefore, sha_BIC, path_fix, sha_fix, key);
 			bbics.add(bbic);
 
 			// writing the BBIC file
