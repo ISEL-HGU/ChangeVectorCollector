@@ -91,7 +91,7 @@ public class Collector {
 		// writing the BBIC file
 		int index = 0;
 		for(BeforeBIC bbic : bbics) {
-			csvprinter.printRecord(index++, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore, bbic.shaBIC,
+			csvprinter.printRecord(input.projectName+index++, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore, bbic.shaBIC,
 									bbic.pathFix, bbic.shaFix, bbic.key);
 			csvprinter.flush();
 		}
