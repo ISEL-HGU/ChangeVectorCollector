@@ -64,10 +64,10 @@ public class Collector {
 			blamer.setStartCommit(commitID);
 			blamer.setFilePath(file);
 			BlameResult blame = blamer.call();
-			RevCommit commit = blame.getSourceCommit(Integer.parseInt(lineNum));
+			RevCommit commit = blame.getSourceCommit(Integer.parseInt(lineNum)-1);
 		
 			// retrieve SHA and path of before BIC
-			String pathBefore = blame.getSourcePath(Integer.parseInt(lineNum));
+			String pathBefore = blame.getSourcePath(Integer.parseInt(lineNum)-1);
 			String shaBefore = commit.getName();
 			String key = sha + file + shaBefore + pathBefore + sha_fix + path_fix;
 			
