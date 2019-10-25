@@ -91,7 +91,7 @@ public class Collector {
 			
 			System.out.println("#" + index);
 			System.out.println(bbic.toString());
-			i++;
+			index++;
 		}
 		
 
