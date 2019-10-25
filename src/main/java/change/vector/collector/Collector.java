@@ -42,7 +42,7 @@ public class Collector {
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
 		
-		int i = 0;
+		int index = 0;
 		for(CSVRecord record : records) {
 			boolean isKeyDuplicate = false;
 			BlameCommand blamer = new BlameCommand(input.repo);
@@ -83,18 +83,17 @@ public class Collector {
 			// add BBIC when passed all of the above
 			BeforeBIC bbic = new BeforeBIC(pathBefore, file, shaBefore, sha, path_fix, sha_fix, key);
 			bbics.add(bbic);
+
+			// writing the BBIC file
+			csvprinter.printRecord(input.projectName+index++, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore, bbic.shaBIC,
+					bbic.pathFix, bbic.shaFix, bbic.key);
+			csvprinter.flush();
 			
-			System.out.println("#" + i++);
+			System.out.println("#" + index++);
 			System.out.println(bbic.toString());
 		}
 		
-		// writing the BBIC file
-		int index = 0;
-		for(BeforeBIC bbic : bbics) {
-			csvprinter.printRecord(input.projectName+index++, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore, bbic.shaBIC,
-									bbic.pathFix, bbic.shaFix, bbic.key);
-			csvprinter.flush();
-		}
+
 		System.out.println("########### Finish collecting BBIC from repo! ###########");
 		
 		csvprinter.close();
