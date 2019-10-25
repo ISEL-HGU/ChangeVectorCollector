@@ -28,8 +28,8 @@ public class Input {
 		this.projectName = Utils.getProjectName(REMOTE_URI);
 		if (!outFile.endsWith(File.separator))
 			outFile += File.separator;
-		this.git = Utils.gitClone(REMOTE_URI);
-		this.repo = git.getRepository();
+//		this.git = Utils.gitClone(REMOTE_URI);
+//		this.repo = git.getRepository();
 		this.bbicFilePath = "./assets/BBIC_" + projectName + ".csv";
 	}
 
