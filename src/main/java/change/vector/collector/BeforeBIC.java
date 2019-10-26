@@ -21,6 +21,6 @@ public class BeforeBIC {
 	
 	@Override
 	public String toString() {
-		return "key=" + key + "\n";
+		return key + "\n";
 	}
 }

@@ -12,23 +12,35 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.CSVPrinter;
+import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.api.BlameCommand;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.blame.BlameResult;
+import org.eclipse.jgit.diff.DiffConfig;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.FollowFilter;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.AbstractTreeIterator;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
+
 public class Collector {
 	public static int instanceNumber;
+	public static int dups = 0;
 	
 	public static ArrayList<BeforeBIC> collectBeforeBIC(Input input) throws GitAPIException, FileNotFoundException, IOException {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
@@ -48,48 +60,66 @@ public class Collector {
 			BlameCommand blamer = new BlameCommand(input.repo);
 	
 			// retrieve the record we need
-			String sha_BIC = record.get(0);
-			String file_BIC = record.get(1);
+			String shaBIC = record.get(0);
+			String pathBIC = record.get(1);
 			String lineNum = record.get(4);
 			String content = record.get(6);
-			String path_fix = record.get(2);
-			String sha_fix = record.get(3);
+			String pathFix = record.get(2);
+			String shaFix = record.get(3);
 			
-			if(sha_BIC.contains("BIShal1")) continue; //skip the header
+			if(shaBIC.contains("BIShal1")) continue; //skip the header
 			if(content.length()<3) continue; //skip really short ones
 
-
-			// call blamer of each BIC 
-			ObjectId commitID = input.repo.resolve(sha_BIC);
-			blamer.setStartCommit(commitID);
-			blamer.setFilePath(file_BIC);
+			// get before instance that has before instances by blaming
+			ObjectId bicID = input.repo.resolve(shaBIC);
+			blamer.setStartCommit(bicID);
+			blamer.setFilePath(pathBIC);
 			BlameResult blame = blamer.call();
 			RevCommit commitBefore = blame.getSourceCommit(Integer.parseInt(lineNum)-1);
 		
 			// retrieve SHA and path of before BIC
 			String pathBefore = blame.getSourcePath(Integer.parseInt(lineNum)-1);
 			String shaBefore = commitBefore.getName();
-			String key = sha_BIC + file_BIC + shaBefore + pathBefore + sha_fix + path_fix;
 			
-			if(shaBefore.equals(sha_BIC)) continue; //skip when there are no BBIC
 			
-			for (int j = 0; j < bbics.size(); j++) { //skip duplicates
+			// if there are no before instances
+			// (blamed commit is equal to BIC)
+			// get the path of BIC~1
+			if(shaBefore.equals(shaBIC)) {
+				DiffEntry diff = runDiff(input.repo, shaBIC+"^", shaBIC, pathBIC);
+				if (diff == null) {
+					continue;
+				}
+				else {
+					pathBefore = diff.getOldPath();
+					shaBefore = shaBIC+"^";
+				}
+			};
+//			if(pathBefore.contains("/dev/null")) continue;
+			
+			
+			String key = shaBefore + "\n" + shaBIC + "\n" + pathBefore + "\n" + pathBIC;
+			
+			//skip duplicates
+			for (int j = 0; j < bbics.size(); j++) { 
 				if(bbics.get(j).key.equals(key)) {
 					isKeyDuplicate = true;
+					dups++;
 				}
 			}
 			if (isKeyDuplicate) continue;
 			
 			// add BBIC when passed all of the above
-			BeforeBIC bbic = new BeforeBIC(pathBefore, file_BIC, shaBefore, sha_BIC, path_fix, sha_fix, key);
+			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, shaFix, key);
 			bbics.add(bbic);
 
 			// writing the BBIC file
-			csvprinter.printRecord(input.projectName+index, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore, bbic.shaBIC,
+			csvprinter.printRecord(input.projectName + index, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore, bbic.shaBIC,
 					bbic.pathFix, bbic.shaFix, bbic.key);
 			csvprinter.flush();
 			
 			System.out.println("#" + index);
+			System.out.println("dups: " + dups);
 			System.out.println(bbic.toString());
 			index++;
 		}
@@ -101,6 +131,7 @@ public class Collector {
 		
 		return bbics;
 	}
+
 	
 	public static ArrayList<BeforeBIC> collectBeforeBICFromLocalFile(Input input) throws FileNotFoundException, IOException {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
@@ -202,6 +233,63 @@ public class Collector {
         }
         System.out.println("instance number: " + instanceNumber);
 		System.out.println("########### Finish collecting Files from BBIC! ###########");
+    }
+	
+	
+	private static DiffEntry runDiff(Repository repo, String oldCommit, String newCommit, String path) throws IOException, GitAPIException {
+        // Diff README.md between two commits. The file is named README.md in
+        // the new commit (5a10bd6e), but was named "jgit-cookbook README.md" in
+        // the old commit (2e1d65e4).
+        DiffEntry diff = diffFile(repo,
+                oldCommit,
+                newCommit,
+                path);
+
+        // Display the diff
+//        System.out.println("Showing diff of " + path);
+//        try (DiffFormatter formatter = new DiffFormatter(System.out)) {
+//            formatter.setRepository(repo);
+//            //noinspection ConstantConditions
+//            formatter.format(diff); //i love you Jiho;
+//        }
+        return diff;
+    }
+
+    private static AbstractTreeIterator prepareTreeParser(Repository repository, String objectId) throws IOException {
+        // from the commit we can build the tree which allows us to construct the TreeParser
+        //noinspection Duplicates
+        try (RevWalk walk = new RevWalk(repository)) {
+            RevCommit commit = walk.parseCommit(repository.resolve(objectId));
+            RevTree tree = walk.parseTree(commit.getTree().getId());
+
+            CanonicalTreeParser treeParser = new CanonicalTreeParser();
+            try (ObjectReader reader = repository.newObjectReader()) {
+                treeParser.reset(reader, tree.getId());
+            }
+
+            walk.dispose();
+
+            return treeParser;
+        }
+    }
+
+    private static @NonNull DiffEntry diffFile(Repository repo, String oldCommit,
+                       String newCommit, String path) throws IOException, GitAPIException {
+        Config config = new Config();
+        config.setBoolean("diff", null, "renames", true);
+        DiffConfig diffConfig = config.get(DiffConfig.KEY);
+        try (Git git = new Git(repo)) {
+            List<DiffEntry> diffList = git.diff().
+                setOldTree(prepareTreeParser(repo, oldCommit)).
+                setNewTree(prepareTreeParser(repo, newCommit)).
+                setPathFilter(FollowFilter.create(path, diffConfig)).
+                call();
+            if (diffList.size() == 0)
+                return null;
+            if (diffList.size() > 1)
+                throw new RuntimeException("invalid diff");
+            return diffList.get(0);
+        }
     }
 }
 
