@@ -85,6 +85,10 @@ public class Collector {
 			// if there are no before instances
 			// (blamed commit is equal to BIC)
 			// get the path of BIC~1
+			RevWalk walk = new RevWalk(input.repo);
+			RevCommit commitBIC = walk.parseCommit(bicID);
+			if (commitBIC.getParentCount() == 0) continue;
+			// if(shaBIC.contentEquals("7016f154b20b9ba48fdb2f923d16de59fe5c7c92")) continue;
 			if(shaBefore.equals(shaBIC)) {
 				DiffEntry diff = runDiff(input.repo, shaBIC+"^", shaBIC, pathBIC);
 				if (diff == null) {
@@ -95,7 +99,6 @@ public class Collector {
 					shaBefore = shaBIC+"^";
 				}
 			};
-//			if(pathBefore.contains("/dev/null")) continue;
 			
 			
 			String key = shaBefore + "\n" + shaBIC + "\n" + pathBefore + "\n" + pathBIC;
@@ -122,6 +125,7 @@ public class Collector {
 			System.out.println("dups: " + dups);
 			System.out.println(bbic.toString());
 			index++;
+			walk.close();
 		}
 		
 
@@ -148,7 +152,7 @@ public class Collector {
 			String path_fix = record.get(5);
 			String sha_fix = record.get(6);
 			String key = record.get(7);
-			if(pathBefore.contains("path before")) continue;
+			if(pathBefore.contains("path_before")) continue;
 			
 			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, path_fix, sha_fix, key);
 			bbics.add(bbic);
@@ -183,9 +187,6 @@ public class Collector {
         // from the commit we can build the tree which allows us to construct the TreeParser
         // noinspection Duplicates    	
         try (RevWalk walk = new RevWalk(repository)) {
-        	if(walk.parseCommit(repository.resolve(objectId)) == null) {
-        		return null;
-        	}
             RevCommit commit = walk.parseCommit(repository.resolve(objectId));
             RevTree tree = walk.parseTree(commit.getTree().getId());
 
