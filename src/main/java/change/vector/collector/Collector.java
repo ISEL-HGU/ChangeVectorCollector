@@ -88,7 +88,6 @@ public class Collector {
 			RevWalk walk = new RevWalk(input.repo);
 			RevCommit commitBIC = walk.parseCommit(bicID);
 			if (commitBIC.getParentCount() == 0) continue;
-			// if(shaBIC.contentEquals("7016f154b20b9ba48fdb2f923d16de59fe5c7c92")) continue;
 			if(shaBefore.equals(shaBIC)) {
 				DiffEntry diff = runDiff(input.repo, shaBIC+"^", shaBIC, pathBIC);
 				if (diff == null) {
