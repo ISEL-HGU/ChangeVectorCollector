@@ -30,3 +30,7 @@ repositories/*
 !gumtree/lib/*.jar
 
 .DS_Store
+
+# ignore large files
+*.csv
+*.arff

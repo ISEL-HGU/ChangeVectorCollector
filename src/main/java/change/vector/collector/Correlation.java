@@ -33,7 +33,8 @@ public class Correlation {
 		System.out.println("writing all correlations done!");
 	}
 	
-	public static void computeCor(Input input, String mode) throws Exception{
+	public static void computeCor(Input input, String mode) throws Exception{	
+
 		String filePath = input.inFile;
 		DataSource source = null;
 		Instances dataset = null;
@@ -72,25 +73,67 @@ public class Correlation {
 			cor = computeCov(input, dataset, cor);
 		} 
 			
+
+		
 		// writing files
-		File outFile = new File(input.outFile + mode + "_"+ input.projectName + ".csv");
+		File outFile = new File(input.outFile + mode + "_combined" + ".csv");
+//		File outFile = new File(input.outFile + mode + "_"+ input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 		
-		// 
+	// combined part
+		int numOfIgnite = 1658;
+		int numOfLucene = 3076;
+		int numOfZookeeper = 685;
+		
+		// index of x-axis
 		csvprinter.print(mode);
-		for (int i = 0; i < dataset.numInstances(); i++) {
-			csvprinter.print(i);
+		for (int i = 0; i < numOfIgnite; i++) {
+			csvprinter.print("ignite"+i);
+		}
+		for (int i = 0; i < numOfLucene; i++) {
+			csvprinter.print("lucene"+i);
+		}
+		for (int i = 0; i < numOfZookeeper; i++) {
+			csvprinter.print("zookeeper"+i);
 		}
 		csvprinter.println();
-		
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			csvprinter.print(i);
+
+		// writing data
+		for(int i = 0, lucene = 0, zookeeper = 0; i < dataset.numInstances(); i++) {
+			if(i < numOfIgnite) {
+				csvprinter.print("ignite"+i);
+			} else if(i<(numOfIgnite+numOfLucene)) {
+				csvprinter.print("lucene"+(lucene++));
+			} else {
+				csvprinter.print("zookeeper"+(zookeeper++));
+			}
 			for(int j = 0; j < dataset.numInstances(); j++) {
 				csvprinter.print(cor.get(i).get(j));
 			}
 			csvprinter.println();
 		}
+	// combined part
+		
+		
+		
+	// one-by-one
+		// index of x-axis
+//		csvprinter.print(mode);
+//		for (int i = 0; i < dataset.numInstances(); i++) {
+//			csvprinter.print(i);
+//		}
+//		csvprinter.println();
+//		
+//		for(int i = 0; i < dataset.numInstances(); i++) {
+//			csvprinter.print(i);
+//			for(int j = 0; j < dataset.numInstances(); j++) {
+//				csvprinter.print(cor.get(i).get(j));
+//			}
+//			csvprinter.println();
+//		}
+	// one-bye-one
+		
 		System.out.println("writing " + mode + " done!");
 		csvprinter.close();
 	}
