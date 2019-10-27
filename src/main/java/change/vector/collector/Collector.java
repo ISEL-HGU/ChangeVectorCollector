@@ -141,13 +141,13 @@ public class Collector {
 		
 		
 		for(CSVRecord record : records) {	
-			String pathBefore = record.get(0);
-			String pathBIC = record.get(1);
-			String shaBefore = record.get(2);
-			String shaBIC = record.get(3);
-			String key = record.get(4);
-			String path_fix = record.get(2);
-			String sha_fix = record.get(3);
+			String pathBefore = record.get(1);
+			String pathBIC = record.get(2);
+			String shaBefore = record.get(3);
+			String shaBIC = record.get(4);
+			String path_fix = record.get(5);
+			String sha_fix = record.get(6);
+			String key = record.get(7);
 			if(pathBefore.contains("path before")) continue;
 			
 			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, path_fix, sha_fix, key);
@@ -158,82 +158,6 @@ public class Collector {
 		return bbics;
 	}
 	
-	/*
-	   Copyright 2013, 2014 Dominik Stadler
-	   Licensed under the Apache License, Version 2.0 (the "License");
-	   you may not use this file except in compliance with the License.
-	   You may obtain a copy of the License at
-	     http://www.apache.org/licenses/LICENSE-2.0
-	   Unless required by applicable law or agreed to in writing, software
-	   distributed under the License is distributed on an "AS IS" BASIS,
-	   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	   See the License for the specific language governing permissions and
-	   limitations under the License.
-	 */
-	public static void collectFiles(Input input, ArrayList<BeforeBIC> bbics) throws IOException {
-		String outPath = "./assets/collectedFiles/";
-		OutputStream outputStream;
-        try (Repository repo = input.repo) {
-            // find the HEAD
-            
-            // a RevWalk allows to walk over commits based on some filtering that is defined
-            try (RevWalk revWalk = new RevWalk(repo)) {
-            	int i = 0;
-            	for(BeforeBIC bbic: bbics) {
-            		ObjectId beforeId = repo.resolve(bbic.shaBefore);
-            		ObjectId bicId = repo.resolve(bbic.shaBIC);
-      
-                    RevCommit beforeCommit = revWalk.parseCommit(beforeId);
-                    RevCommit bicCommit = revWalk.parseCommit(bicId);
-                    // and using commit's tree find the path
-                    RevTree beforeTree = beforeCommit.getTree();
-                    RevTree bicTree = bicCommit.getTree();
-                    
-                    System.out.println("Having beforeTree: " + beforeTree);
-                    System.out.println("Having bicTree: " + bicTree);
-
-                    // bbic files
-                    try (TreeWalk treeWalk = new TreeWalk(repo)) {
-                        treeWalk.addTree(beforeTree);
-                        treeWalk.setRecursive(true);
-                        treeWalk.setFilter(PathFilter.create(bbic.pathBefore));
-                        if (!treeWalk.next()) {
-                            throw new IllegalStateException("Did not find expected file " + bbic.pathBefore);
-                        }
-
-                        ObjectId objectId = treeWalk.getObjectId(0);
-                        ObjectLoader loader = repo.open(objectId);
-
-                        // and then one can the loader to read the file
-                        outputStream = new FileOutputStream(outPath + input.projectName + i + "_before.java");
-                        loader.copyTo(outputStream);
-                    }
-                    
-                    // bic files
-                    try (TreeWalk treeWalk = new TreeWalk(repo)) {
-                        treeWalk.addTree(bicTree);
-                        treeWalk.setRecursive(true);
-                        treeWalk.setFilter(PathFilter.create(bbic.pathBIC));
-                        if (!treeWalk.next()) {
-                            throw new IllegalStateException("Did not find expected file " + bbic.pathBIC);
-                        }
-
-                        ObjectId objectId = treeWalk.getObjectId(0);
-                        ObjectLoader loader = repo.open(objectId);
-
-                        // and then one can the loader to read the file
-                        outputStream = new FileOutputStream(outPath + input.projectName + i + "_bic.java");
-                        loader.copyTo(outputStream);
-                    }
-                    revWalk.dispose();
-                    i++;
-            	}
-            	instanceNumber = i;
-            }
-        }
-        System.out.println("instance number: " + instanceNumber);
-		System.out.println("########### Finish collecting Files from BBIC! ###########");
-    }
 	
 	
 	private static DiffEntry runDiff(Repository repo, String oldCommit, String newCommit, String path) throws IOException, GitAPIException {
@@ -257,8 +181,11 @@ public class Collector {
 
     private static AbstractTreeIterator prepareTreeParser(Repository repository, String objectId) throws IOException {
         // from the commit we can build the tree which allows us to construct the TreeParser
-        //noinspection Duplicates
+        // noinspection Duplicates    	
         try (RevWalk walk = new RevWalk(repository)) {
+        	if(walk.parseCommit(repository.resolve(objectId)) == null) {
+        		return null;
+        	}
             RevCommit commit = walk.parseCommit(repository.resolve(objectId));
             RevTree tree = walk.parseTree(commit.getTree().getId());
 
@@ -291,6 +218,84 @@ public class Collector {
             return diffList.get(0);
         }
     }
+    
+    
+    /*
+	   Copyright 2013, 2014 Dominik Stadler
+	   Licensed under the Apache License, Version 2.0 (the "License");
+	   you may not use this file except in compliance with the License.
+	   You may obtain a copy of the License at
+	     http://www.apache.org/licenses/LICENSE-2.0
+	   Unless required by applicable law or agreed to in writing, software
+	   distributed under the License is distributed on an "AS IS" BASIS,
+	   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	   See the License for the specific language governing permissions and
+	   limitations under the License.
+	 */
+	public static void collectFiles(Input input, ArrayList<BeforeBIC> bbics) throws IOException {
+		String outPath = "./assets/collectedFiles/";
+		OutputStream outputStream;
+		try (Repository repo = input.repo) {
+        // find the HEAD
+         
+        // a RevWalk allows to walk over commits based on some filtering that is defined
+			try (RevWalk revWalk = new RevWalk(repo)) {
+				int i = 0;
+				for(BeforeBIC bbic: bbics) {
+					ObjectId beforeId = repo.resolve(bbic.shaBefore);
+					ObjectId bicId = repo.resolve(bbic.shaBIC);
+   
+					RevCommit beforeCommit = revWalk.parseCommit(beforeId);
+					RevCommit bicCommit = revWalk.parseCommit(bicId);
+					// and using commit's tree find the path
+					RevTree beforeTree = beforeCommit.getTree();
+					RevTree bicTree = bicCommit.getTree();
+                 
+					System.out.println("Having beforeTree: " + beforeTree);
+					System.out.println("Having bicTree: " + bicTree);
+
+					// bbic files
+					try (TreeWalk treeWalk = new TreeWalk(repo)) {
+                    	treeWalk.addTree(beforeTree);
+                    	treeWalk.setRecursive(true);
+                    	treeWalk.setFilter(PathFilter.create(bbic.pathBefore));
+                    	if (!treeWalk.next()) {
+                        	throw new IllegalStateException("Did not find expected file " + bbic.pathBefore);
+                    	}
+
+                    	ObjectId objectId = treeWalk.getObjectId(0);
+                    	ObjectLoader loader = repo.open(objectId);
+
+                    	// and then one can the loader to read the file
+                    	outputStream = new FileOutputStream(outPath + input.projectName + i + "_before.java");
+                    	loader.copyTo(outputStream);
+					}
+                 
+					// bic files
+					try (TreeWalk treeWalk = new TreeWalk(repo)) {
+                    	treeWalk.addTree(bicTree);
+                    	treeWalk.setRecursive(true);
+                    	treeWalk.setFilter(PathFilter.create(bbic.pathBIC));
+                    	if (!treeWalk.next()) {
+                        	throw new IllegalStateException("Did not find expected file " + bbic.pathBIC);
+                    	}
+
+                    	ObjectId objectId = treeWalk.getObjectId(0);
+                    	ObjectLoader loader = repo.open(objectId);
+
+                    	// and then one can the loader to read the file
+                    	outputStream = new FileOutputStream(outPath + input.projectName + i + "_bic.java");
+                    	loader.copyTo(outputStream);
+					}
+					revWalk.dispose();
+					i++;
+				}
+				instanceNumber = i;
+			}
+		}
+		System.out.println("instance number: " + instanceNumber);
+		System.out.println("########### Finish collecting Files from BBIC! ###########");
+	}
 }
 
 
