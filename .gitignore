@@ -31,6 +31,6 @@ repositories/*
 
 .DS_Store
 
-# ignore large files
+# ignore data files
 *.csv
 *.arff

@@ -81,7 +81,6 @@ public class Collector {
 			String pathBefore = blame.getSourcePath(Integer.parseInt(lineNum)-1);
 			String shaBefore = commitBefore.getName();
 			
-			
 			// if there are no before instances
 			// (blamed commit is equal to BIC)
 			// get the path of BIC~1
