@@ -26,10 +26,10 @@ public class Correlation {
 		computeCor(input, "Pearsons");
 		computeCor(input, "Spearmans");
 		computeCor(input, "Kendalls");
-		computeCor(input, "Jaccard");
-		computeCor(input, "EuclideanD");
-		computeCor(input, "ManhattanD");
-		computeCor(input, "Covariance");
+		//computeCor(input, "Jaccard");
+		//computeCor(input, "EuclideanD");
+		//computeCor(input, "ManhattanD");
+		//computeCor(input, "Covariance");
 		System.out.println("writing all correlations done!");
 	}
 	
