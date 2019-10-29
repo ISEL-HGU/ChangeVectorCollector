@@ -50,7 +50,7 @@ public class ChangeVector {
 		String file = filePath + input.projectName;
 		
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < Collector.instanceNumber; i++) {
 			ChangeVector changeVector = new ChangeVector();
 			
 			Process p = Runtime.getRuntime().exec(gcom + file + i + "_before.java " + file + i + "_bic.java"); 
