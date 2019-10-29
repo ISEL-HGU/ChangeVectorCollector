@@ -46,7 +46,7 @@ public class Main {
 			Collector.collectFiles(input, bbics);
 			
 			// perform Gumtree to retrieve change vector
-			ChangeVector.runGumtreeDIST(input);
+			ChangeVector.runGumtreeDIST(input, bbics);
 				
 			if(help) printHelp(options);
 		}

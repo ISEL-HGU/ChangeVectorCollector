@@ -12,14 +12,13 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import weka.core.Attribute;
-import weka.core.FastVector;
 import weka.core.Instances;
 import weka.core.SparseInstance;
 import weka.core.converters.ArffSaver;
 import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.NominalToString;
 import weka.filters.unsupervised.instance.NonSparseToSparse;
 
-@SuppressWarnings("deprecation")
 class MutableInt {
 	public int value = 1;
 	public void increment() { value++; }
@@ -32,15 +31,17 @@ public class ChangeVector {
 	public int insertsNum = 0;
 	public int updatesNum = 0;
 	public int movesNum = 0;
-		
+	public String name = "";
+	public String bic = "";
+	public String fix = "";
+	
 	public Map<String, MutableInt> deletes = null;
 	public Map<String, MutableInt> inserts = null;
 	public Map<String, MutableInt> updates = null;
 	public Map<String, MutableInt> moves = null;
 
-	public static ArrayList<ChangeVector> runGumtreeDIST(Input input) throws Exception {
+	public static ArrayList<ChangeVector> runGumtreeDIST(Input input, ArrayList<BeforeBIC> bbics) throws Exception {
 		ArrayList<ChangeVector> changeVectors = new ArrayList<ChangeVector>();
-		
 		String gumtree = "./gumtree/bin/gumtree";
 		String com =  " jsondiff ";
 		String gcom = gumtree + com;
@@ -48,9 +49,8 @@ public class ChangeVector {
 		String filePath = "./assets/collectedFiles/";
 		String file = filePath + input.projectName;
 		
-		
 
-		for (int i = 0; i < Collector.instanceNumber; i++) {
+		for (int i = 0; i < 3; i++) {
 			ChangeVector changeVector = new ChangeVector();
 			
 			Process p = Runtime.getRuntime().exec(gcom + file + i + "_before.java " + file + i + "_bic.java"); 
@@ -71,6 +71,10 @@ public class ChangeVector {
 			Map<String, MutableInt> updates = new HashMap<String, MutableInt>();
 			Map<String, MutableInt> moves = new HashMap<String, MutableInt>();
 
+			// adding some preliminary infos in change vector
+			changeVector.name = input.projectName + i;
+			changeVector.bic = bbics.get(i).shaBIC;
+			changeVector.fix = bbics.get(i).shaFix;
 			
 			// counting instances of actions
 			JSONArray actions = json.getJSONArray("actions");
@@ -184,24 +188,29 @@ public class ChangeVector {
 		return changeVectors;
 	}
 	
-	@SuppressWarnings({ "deprecation", "unchecked", "rawtypes" })
+	
 	public static void writeARFF(ArrayList<ChangeVector> CVS, Input input) throws Exception {
-		FastVector attributes = new FastVector();
+		ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+//		FastVector attributes = new FastVector();
 		Instances dataSet;
         
 		// writing all attributes
+		attributes.add(new Attribute("name", true));
+		attributes.add(new Attribute("bic", true));
+		attributes.add(new Attribute("fix", true));
+		
 		int att;
 	    for (att = 0; att < MyASTNode.nodes.length; att++) {
-	    	attributes.addElement(new Attribute("del_" + MyASTNode.nodes[att])); 
+	    	attributes.add(new Attribute("del_" + MyASTNode.nodes[att])); 
 	    } 
 	    for (int att1 = 0; att < MyASTNode.nodes.length*2; att1++, att++) {
-	    	attributes.addElement(new Attribute("ins_" + MyASTNode.nodes[att1]));
+	    	attributes.add(new Attribute("ins_" + MyASTNode.nodes[att1]));
 	    } 
 	    for (int att2 = 0; att < MyASTNode.nodes.length*3; att2++, att++) {
-	    	attributes.addElement(new Attribute("upd_" + MyASTNode.nodes[att2]));
+	    	attributes.add(new Attribute("upd_" + MyASTNode.nodes[att2]));
 	    } 
 	    for (int att3 = 0; att < MyASTNode.nodes.length*4; att3++, att++) {
-	    	attributes.addElement(new Attribute("mov_" + MyASTNode.nodes[att3]));
+	    	attributes.add(new Attribute("mov_" + MyASTNode.nodes[att3]));
 	    } 
 
 	    dataSet = new Instances("CVS", attributes, 0);
@@ -209,47 +218,61 @@ public class ChangeVector {
 	    
 	    // writing the data
 	    for(ChangeVector cv : CVS) { // instances X
+	    	
 			double[] values = new double[dataSet.numAttributes()];
+			
+			// infos
+			values[0] = dataSet.attribute("name").addStringValue(cv.name);
+			values[1] = dataSet.attribute("bic").addStringValue(cv.bic);
+			values[2] = dataSet.attribute("fix").addStringValue(cv.fix);
+			
 			// deletes
 			for(String nodeName: cv.deletes.keySet()) {
 				int nodeCount = cv.deletes.get(nodeName).value;
 				int index = astnodes.indexOf(nodeName);
-				for(int ast_i = 0; ast_i < astnodes.size(); ast_i++) {
-					if(ast_i == index) values[ast_i] = nodeCount;
+				for(int ast_i = 0, del_i = 3; ast_i < astnodes.size(); ast_i++, del_i++) {
+					if(ast_i == index) values[del_i] = nodeCount;
 				}	
 			}
 			// inserts
 			for(String nodeName: cv.inserts.keySet()) {
 				int nodeCount = cv.inserts.get(nodeName).value;
 				int index = astnodes.indexOf(nodeName);
-				for(int ast_i = 0, del_i = astnodes.size(); ast_i < astnodes.size(); ast_i++, del_i++) {
-					if(ast_i == index) values[del_i] = nodeCount;
+				for(int ast_i = 0, ins_i = astnodes.size()+3; ast_i < astnodes.size(); ast_i++, ins_i++) {
+					if(ast_i == index) values[ins_i] = nodeCount;
 				}
 			}
 			//updates
 			for(String nodeName: cv.updates.keySet()) {
 				int nodeCount = cv.updates.get(nodeName).value;
 				int index = astnodes.indexOf(nodeName);
-				for(int ast_i = 0, ins_i = astnodes.size()*2; ast_i < astnodes.size(); ast_i++, ins_i++) {
-					if(ast_i == index) values[ins_i] = nodeCount;
+				for(int ast_i = 0, upd_i = astnodes.size()*2+3; ast_i < astnodes.size(); ast_i++, upd_i++) {
+					if(ast_i == index) values[upd_i] = nodeCount;
 				}
 			}
 			// moves
 			for(String nodeName: cv.moves.keySet()) {
 				int nodeCount = cv.moves.get(nodeName).value;
 				int index = astnodes.indexOf(nodeName);
-				for(int ast_i = 0, upd_i = astnodes.size()*3; ast_i < astnodes.size(); ast_i++, upd_i++) {
-					if(ast_i == index) values[upd_i] = nodeCount;
+				for(int ast_i = 0, mov_i = astnodes.size()*3+3; ast_i < astnodes.size(); ast_i++, mov_i++) {
+					if(ast_i == index) values[mov_i] = nodeCount;
 				}
 			}
 			dataSet.add(new SparseInstance(1.0, values));
 	    }
-	    
+			
+			
+	    NominalToString nomToString = new NominalToString();
 	    NonSparseToSparse nonSparseToSparseInstance = new NonSparseToSparse();
+	    
+	    nomToString.setInputFormat(dataSet);
+	    Instances nomDataset = Filter.useFilter(dataSet, nomToString);
+	    
 	    nonSparseToSparseInstance.setInputFormat(dataSet);
 	    Instances sparseDataset = Filter.useFilter(dataSet, nonSparseToSparseInstance);
 	    
 	    System.out.println(sparseDataset);
+	    System.out.println(nomDataset);
 	    
 	    ArffSaver arffSaverInstance = new ArffSaver();
 	    arffSaverInstance.setInstances(sparseDataset);
