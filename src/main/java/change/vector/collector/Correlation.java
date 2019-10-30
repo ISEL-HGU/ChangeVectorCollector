@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
@@ -16,20 +15,21 @@ import org.apache.commons.math3.stat.correlation.KendallsCorrelation;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
 import org.apache.commons.text.similarity.JaccardSimilarity;
-
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 
 public class Correlation {
 	
 	public static void computeAll(Input input) throws Exception {
+		computeCor(input, "CosSim");
 		computeCor(input, "Pearsons");
 		computeCor(input, "Spearmans");
 		computeCor(input, "Kendalls");
-		//computeCor(input, "Jaccard");
-		//computeCor(input, "EuclideanD");
-		//computeCor(input, "ManhattanD");
-		//computeCor(input, "Covariance");
+		computeCor(input, "Jaccard");
+		computeCor(input, "EuclideanD");
+		computeCor(input, "ManhattanD");
+		computeCor(input, "Covariance");
+		computeCor(input, "CosSim");
 		System.out.println("writing all correlations done!");
 	}
 	
@@ -70,6 +70,8 @@ public class Correlation {
 		} else if(mode.equals("ManhattanD")) {
 			cor = computeManD(input, dataset, cor);
 		} else if(mode.equals("Covariance")) {
+			cor = computeCov(input, dataset, cor);
+		}  else if(mode.equals("CosSim")) {
 			cor = computeCov(input, dataset, cor);
 		} 
 			
@@ -222,5 +224,29 @@ public class Correlation {
 			}
 		}		
 		return cor;
+	}
+	
+	public static ArrayList<ArrayList<Double>> computeCOS(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
+		// computing Jaccard Similarity Coefficient one by one
+		for(int i = 0; i < dataset.numInstances(); i++) {
+			double[] x = dataset.get(i).toDoubleArray();
+			for(int j = 0; j < dataset.numInstances(); j++) {
+				double[] y = dataset.get(j).toDoubleArray();
+				cor.get(i).set(j, cosineSimilarity(x, y));
+			}
+		}		
+		return cor;
+	}
+	
+	public static double cosineSimilarity(double[] vectorA, double[] vectorB) {
+	    double dotProduct = 0.0;
+	    double normA = 0.0;
+	    double normB = 0.0;
+	    for (int i = 0; i < vectorA.length; i++) {
+	        dotProduct += vectorA[i] * vectorB[i];
+	        normA += Math.pow(vectorA[i], 2);
+	        normB += Math.pow(vectorB[i], 2);
+	    }   
+	    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 	}
 }
