@@ -72,7 +72,7 @@ public class Correlation {
 		} else if(mode.equals("Covariance")) {
 			cor = computeCov(input, dataset, cor);
 		}  else if(mode.equals("CosSim")) {
-			cor = computeCov(input, dataset, cor);
+			cor = computeCos(input, dataset, cor);
 		} 
 			
 
@@ -226,7 +226,7 @@ public class Correlation {
 		return cor;
 	}
 	
-	public static ArrayList<ArrayList<Double>> computeCOS(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
+	public static ArrayList<ArrayList<Double>> computeCos(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
 		// computing Jaccard Similarity Coefficient one by one
 		for(int i = 0; i < dataset.numInstances(); i++) {
 			double[] x = dataset.get(i).toDoubleArray();
@@ -234,7 +234,8 @@ public class Correlation {
 				double[] y = dataset.get(j).toDoubleArray();
 				cor.get(i).set(j, cosineSimilarity(x, y));
 			}
-		}		
+		}
+		
 		return cor;
 	}
 	
