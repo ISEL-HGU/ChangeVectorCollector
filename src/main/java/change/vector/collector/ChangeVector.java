@@ -34,6 +34,7 @@ public class ChangeVector {
 	public String name = "";
 	public String bic = "";
 	public String fix = "";
+	public String file = "";
 	
 	public Map<String, MutableInt> deletes = null;
 	public Map<String, MutableInt> inserts = null;
@@ -75,6 +76,8 @@ public class ChangeVector {
 			changeVector.name = input.projectName + i;
 			changeVector.bic = bbics.get(i).shaBIC;
 			changeVector.fix = bbics.get(i).shaFix;
+			String[] tmps = bbics.get(i).pathFix.split("/");
+			changeVector.file = tmps[tmps.length - 1];
 			
 			// counting instances of actions
 			JSONArray actions = json.getJSONArray("actions");
@@ -179,7 +182,9 @@ public class ChangeVector {
 			changeVector.updates = updates;
 			changeVector.moves = moves;
 			
-			changeVectors.add(changeVector);
+			//if(changeVector.deletesNum + changeVector.insertsNum + changeVector.updatesNum + changeVector.movesNum < 50) {
+				changeVectors.add(changeVector);
+			//}
 		}
 	
 		writeARFF(changeVectors, input);
@@ -198,6 +203,7 @@ public class ChangeVector {
 		attributes.add(new Attribute("name", true));
 		attributes.add(new Attribute("bic", true));
 		attributes.add(new Attribute("fix", true));
+		attributes.add(new Attribute("file", true));
 		
 		int att;
 	    for (att = 0; att < MyASTNode.nodes.length; att++) {
@@ -225,12 +231,13 @@ public class ChangeVector {
 			values[0] = dataSet.attribute("name").addStringValue(cv.name);
 			values[1] = dataSet.attribute("bic").addStringValue(cv.bic);
 			values[2] = dataSet.attribute("fix").addStringValue(cv.fix);
+			values[3] = dataSet.attribute("file").addStringValue(cv.file);
 			
 			// deletes
 			for(String nodeName: cv.deletes.keySet()) {
 				int nodeCount = cv.deletes.get(nodeName).value;
 				int index = astnodes.indexOf(nodeName);
-				for(int ast_i = 0, del_i = 3; ast_i < astnodes.size(); ast_i++, del_i++) {
+				for(int ast_i = 0, del_i = 4; ast_i < astnodes.size(); ast_i++, del_i++) {
 					if(ast_i == index) values[del_i] = nodeCount;
 				}	
 			}
@@ -238,7 +245,7 @@ public class ChangeVector {
 			for(String nodeName: cv.inserts.keySet()) {
 				int nodeCount = cv.inserts.get(nodeName).value;
 				int index = astnodes.indexOf(nodeName);
-				for(int ast_i = 0, ins_i = astnodes.size()+3; ast_i < astnodes.size(); ast_i++, ins_i++) {
+				for(int ast_i = 0, ins_i = astnodes.size()+4; ast_i < astnodes.size(); ast_i++, ins_i++) {
 					if(ast_i == index) values[ins_i] = nodeCount;
 				}
 			}
@@ -246,7 +253,7 @@ public class ChangeVector {
 			for(String nodeName: cv.updates.keySet()) {
 				int nodeCount = cv.updates.get(nodeName).value;
 				int index = astnodes.indexOf(nodeName);
-				for(int ast_i = 0, upd_i = astnodes.size()*2+3; ast_i < astnodes.size(); ast_i++, upd_i++) {
+				for(int ast_i = 0, upd_i = astnodes.size()*2+4; ast_i < astnodes.size(); ast_i++, upd_i++) {
 					if(ast_i == index) values[upd_i] = nodeCount;
 				}
 			}
@@ -254,7 +261,7 @@ public class ChangeVector {
 			for(String nodeName: cv.moves.keySet()) {
 				int nodeCount = cv.moves.get(nodeName).value;
 				int index = astnodes.indexOf(nodeName);
-				for(int ast_i = 0, mov_i = astnodes.size()*3+3; ast_i < astnodes.size(); ast_i++, mov_i++) {
+				for(int ast_i = 0, mov_i = astnodes.size()*3+4; ast_i < astnodes.size(); ast_i++, mov_i++) {
 					if(ast_i == index) values[mov_i] = nodeCount;
 				}
 			}

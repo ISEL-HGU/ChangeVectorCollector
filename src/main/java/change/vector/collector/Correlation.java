@@ -94,7 +94,7 @@ public class Correlation {
 			csvprinter.print("ignite"+i);
 		}
 		for (int i = 0; i < numOfLucene; i++) {
-			csvprinter.print("lucene"+i);
+			csvprinter.print("lucene-solr"+i);
 		}
 		for (int i = 0; i < numOfZookeeper; i++) {
 			csvprinter.print("zookeeper"+i);
