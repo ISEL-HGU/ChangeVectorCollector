@@ -2,6 +2,7 @@ package change.vector.collector;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -21,7 +22,6 @@ import weka.core.converters.ConverterUtils.DataSource;
 public class Correlation {
 	
 	public static void computeAll(Input input) throws Exception {
-		computeCor(input, "CosSim");
 		computeCor(input, "Pearsons");
 		computeCor(input, "Spearmans");
 		computeCor(input, "Kendalls");
@@ -78,12 +78,43 @@ public class Correlation {
 
 		
 		// writing files
-		File outFile = new File(input.outFile + mode + "_combined" + ".csv");
-//		File outFile = new File(input.outFile + mode + "_"+ input.projectName + ".csv");
+		if(input.inFile.contains("combined")) {
+			combined(input, mode, dataset, cor);
+		} else {
+			oneByOne(input, mode, dataset, cor);
+		}
+		
+		System.out.println("writing " + mode + " done!");
+	}
+
+	public static void oneByOne(Input input, String mode, Instances dataset, ArrayList<ArrayList<Double>> cor) throws IOException {
+		File outFile = new File(input.outFile + mode + "_"+ input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 		
-	// combined part
+		// index of x-axis
+		csvprinter.print(mode);
+		for (int i = 0; i < dataset.numInstances(); i++) {
+			csvprinter.print(i);
+		}
+		csvprinter.println();
+		
+		for(int i = 0; i < dataset.numInstances(); i++) {
+			csvprinter.print(i);
+			for(int j = 0; j < dataset.numInstances(); j++) {
+				csvprinter.print(cor.get(i).get(j));
+			}
+			csvprinter.println();
+		}
+		csvprinter.close();
+	}
+	
+	public static void combined(Input input, String mode, Instances dataset, ArrayList<ArrayList<Double>> cor) throws IOException {
+		File outFile = new File(input.outFile + mode + "_combined" + ".csv");
+		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
+		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
+		
+		// combined part
 		int numOfIgnite = 1658;
 		int numOfLucene = 3076;
 		int numOfZookeeper = 685;
@@ -115,31 +146,9 @@ public class Correlation {
 			}
 			csvprinter.println();
 		}
-	// combined part
-		
-		
-		
-	// one-by-one
-		// index of x-axis
-//		csvprinter.print(mode);
-//		for (int i = 0; i < dataset.numInstances(); i++) {
-//			csvprinter.print(i);
-//		}
-//		csvprinter.println();
-//		
-//		for(int i = 0; i < dataset.numInstances(); i++) {
-//			csvprinter.print(i);
-//			for(int j = 0; j < dataset.numInstances(); j++) {
-//				csvprinter.print(cor.get(i).get(j));
-//			}
-//			csvprinter.println();
-//		}
-	// one-bye-one
-		
-		System.out.println("writing " + mode + " done!");
 		csvprinter.close();
 	}
-
+	
 	public static ArrayList<ArrayList<Double>> computePCC(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
 		// computing Pearsons Correlation Coefficient one by one
 		for(int i = 0; i < dataset.numInstances(); i++) {
