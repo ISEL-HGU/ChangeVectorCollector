@@ -182,9 +182,11 @@ public class ChangeVector {
 			changeVector.updates = updates;
 			changeVector.moves = moves;
 			
-			//if(changeVector.deletesNum + changeVector.insertsNum + changeVector.updatesNum + changeVector.movesNum < 50) {
+			int totalChange = changeVector.deletesNum + changeVector.insertsNum + changeVector.updatesNum + changeVector.movesNum;
+			
+			if(0 < totalChange && totalChange < 50 ) {
 				changeVectors.add(changeVector);
-			//}
+			}
 		}
 	
 		writeARFF(changeVectors, input);

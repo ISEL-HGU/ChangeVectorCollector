@@ -137,7 +137,7 @@ public class Correlation {
 			if(i < numOfIgnite) {
 				csvprinter.print("ignite"+i);
 			} else if(i<(numOfIgnite+numOfLucene)) {
-				csvprinter.print("lucene"+(lucene++));
+				csvprinter.print("lucene-solr"+(lucene++));
 			} else {
 				csvprinter.print("zookeeper"+(zookeeper++));
 			}
