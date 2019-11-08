@@ -69,6 +69,7 @@ public class Collector {
 			
 			if(shaBIC.contains("BIShal1")) continue; //skip the header
 			if(content.length()<3) continue; //skip really short ones
+			if(shaBIC.equals(shaFix)) continue;
 
 			// get before instance that has before instances by blaming
 			ObjectId bicID = input.repo.resolve(shaBIC);
