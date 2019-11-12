@@ -12,7 +12,10 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.CSVPrinter;
@@ -295,6 +298,48 @@ public class Collector {
 		}
 		System.out.println("instance number: " + instanceNumber);
 		System.out.println("########### Finish collecting Files from BBIC! ###########");
+	}
+	
+	public static ArrayList<BeforeBIC> rmDups(ArrayList<BeforeBIC> bbics, Input input) throws IOException {
+		
+		final String[] headers = {"index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix", "key"};
+		File fileP = new File(input.bbicFilePath);
+		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
+		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
+		Map<String, MutableInt> dupMap = new HashMap<String, MutableInt>();
+		
+		for(BeforeBIC bbic: bbics) {
+			String key = bbic.shaFix;
+			
+			MutableInt count = dupMap.get(key);
+			if(count == null) {
+				dupMap.put(key, new MutableInt());
+			} else {
+				count.increment();
+			}	
+		}
+		
+		
+		for(int i = 0; i < bbics.size(); i++) {
+			String key = bbics.get(i).shaFix;
+			if(dupMap.get(key).value > 1) {
+				bbics.remove(i);
+				i--;
+			}
+		}
+		
+		int index = 0;
+		for(BeforeBIC bbic:bbics) {
+			// writing the BBIC file
+			csvprinter.printRecord(input.projectName + index, bbic.pathBefore,
+									bbic.pathBIC, bbic.shaBefore, bbic.shaBIC,
+									bbic.pathFix, bbic.shaFix, bbic.key);
+			csvprinter.flush();
+			index++;
+		}
+		
+		csvprinter.close();
+		return bbics;
 	}
 }
 

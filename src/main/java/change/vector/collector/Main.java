@@ -26,6 +26,7 @@ public class Main {
 	public void run(String[] args) throws Exception {
 		Options options = createOptions();
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
+		ArrayList<BeforeBIC> oneBbics = new ArrayList<BeforeBIC>();
 		
 		if(parseOptions(options, args)) {
 			// compute correlations								-c
@@ -39,14 +40,17 @@ public class Main {
 				bbics = Collector.collectBeforeBIC(input);
 			
 			// collect bbic from csv file						-l
-			if(is_local)
+			if(is_local) {
 				bbics = Collector.collectBeforeBICFromLocalFile(input);
+				oneBbics = Collector.rmDups(bbics, input);
+			}
+				
 			
 			// collect java files of bbic of bic
-			Collector.collectFiles(input, bbics);
+			Collector.collectFiles(input, oneBbics);
 			
 			// perform Gumtree to retrieve change vector
-			ChangeVector.runGumtreeDIST(input, bbics);
+			ChangeVector.runGumtreeDIST(input, oneBbics);
 				
 			if(help) printHelp(options);
 		}
