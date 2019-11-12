@@ -17,7 +17,8 @@ public class Main {
 	boolean is_repo = false;
 	boolean is_local = false;
 	boolean is_correlation = false;
-
+	boolean is_all = false;
+	
 	public static void main(String[] args) throws Exception {
 		Main cvc = new Main();
 		cvc.run(args);
@@ -29,6 +30,12 @@ public class Main {
 		ArrayList<BeforeBIC> oneBbics = new ArrayList<BeforeBIC>();
 		
 		if(parseOptions(options, args)) {
+			
+			// collects all changes in a repository				-a
+			if(is_all) {
+				Collector.getAllCommits(input);
+			}
+			
 			// compute correlations								-c
 			if(is_correlation) {
 				Correlation.computeAll(input);
@@ -69,6 +76,8 @@ public class Main {
 				if (cmd.hasOption("c"))	is_correlation = true;
 				else if (cmd.hasOption("r")) is_repo = true;
 				else if (cmd.hasOption("l")) is_local = true;
+				else if (cmd.hasOption("a")) is_all = true;
+				
 				in = cmd.getOptionValue("i");
 				out = cmd.getOptionValue("o");
 				url = cmd.getOptionValue("u");
@@ -91,6 +100,10 @@ public class Main {
 	
 	private Options createOptions() {
 		Options options = new Options();
+		
+		options.addOption(Option.builder("a").longOpt("all")
+				.desc("Collects all changes in a repo")
+				.build());
 
 		options.addOption(Option.builder("c").longOpt("correlation")
 				.desc("Computes correlation of each vectors")
@@ -106,11 +119,11 @@ public class Main {
 		
 		options.addOption(Option.builder("u").longOpt("url")
 				.desc("url of the git repo").hasArg()
-				.argName("input_path").required().build());
+				.argName("git_url").required().build());
 		
 		options.addOption(Option.builder("i").longOpt("input")
 				.desc("directory of the input file to parse").hasArg()
-				.argName("input_path").required().build());
+				.argName("input_path").build());
 		
 		options.addOption(Option.builder("o").longOpt("output")
 				.desc("directory will have result file").hasArg()

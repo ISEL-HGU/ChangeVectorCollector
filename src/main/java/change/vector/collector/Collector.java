@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.CSVPrinter;
@@ -23,6 +22,7 @@ import org.eclipse.jgit.annotations.NonNull;
 import org.eclipse.jgit.api.BlameCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -30,6 +30,7 @@ import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.FollowFilter;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -45,13 +46,14 @@ public class Collector {
 	public static int instanceNumber;
 	public static int dups = 0;
 	
+	// -r option
 	public static ArrayList<BeforeBIC> collectBeforeBIC(Input input) throws GitAPIException, FileNotFoundException, IOException {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 		
 		// load the prepared BIC file from BugPatchCollector
 		Reader in = new FileReader(input.inFile);
-		
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
+		
 		final String[] headers = {"index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix", "key"};
 		File fileP = new File(input.bbicFilePath);
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
@@ -59,6 +61,7 @@ public class Collector {
 		
 		int index = 0;
 		for(CSVRecord record : records) {
+			
 			boolean isKeyDuplicate = false;
 			BlameCommand blamer = new BlameCommand(input.repo);
 	
@@ -185,23 +188,7 @@ public class Collector {
         return diff;
     }
 
-    private static AbstractTreeIterator prepareTreeParser(Repository repository, String objectId) throws IOException {
-        // from the commit we can build the tree which allows us to construct the TreeParser
-        // noinspection Duplicates    	
-        try (RevWalk walk = new RevWalk(repository)) {
-            RevCommit commit = walk.parseCommit(repository.resolve(objectId));
-            RevTree tree = walk.parseTree(commit.getTree().getId());
 
-            CanonicalTreeParser treeParser = new CanonicalTreeParser();
-            try (ObjectReader reader = repository.newObjectReader()) {
-                treeParser.reset(reader, tree.getId());
-            }
-
-            walk.dispose();
-
-            return treeParser;
-        }
-    }
 
     private static @NonNull DiffEntry diffFile(Repository repo, String oldCommit,
                        String newCommit, String path) throws IOException, GitAPIException {
@@ -219,6 +206,25 @@ public class Collector {
             if (diffList.size() > 1)
                 throw new RuntimeException("invalid diff");
             return diffList.get(0);
+        }
+    }
+    
+    
+    private static AbstractTreeIterator prepareTreeParser(Repository repository, String objectId) throws IOException {
+        // from the commit we can build the tree which allows us to construct the TreeParser
+        // noinspection Duplicates    	
+        try (RevWalk walk = new RevWalk(repository)) {
+            RevCommit commit = walk.parseCommit(repository.resolve(objectId));
+            RevTree tree = walk.parseTree(commit.getTree().getId());
+
+            CanonicalTreeParser treeParser = new CanonicalTreeParser();
+            try (ObjectReader reader = repository.newObjectReader()) {
+                treeParser.reset(reader, tree.getId());
+            }
+
+            walk.dispose();
+
+            return treeParser;
         }
     }
     
@@ -341,6 +347,68 @@ public class Collector {
 		csvprinter.close();
 		return bbics;
 	}
+	
+	public static void getAllCommits(Input input) throws NoHeadException, GitAPIException, IOException {
+		final String[] headers = {"index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix", "key"};
+		File fileP = new File(input.outFile+"all.csv");
+		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
+		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
+		
+		RevWalk walk = new RevWalk(input.repo);
+		TreeWalk treeWalk = new TreeWalk(input.repo);
+		
+		for (Map.Entry<String, Ref> entry : input.repo.getAllRefs().entrySet()) {
+			if (entry.getKey().contains("refs/heads/master")) { // only master
+				Ref ref = entry.getValue();
+				RevCommit commit = walk.parseCommit(ref.getObjectId());
+				walk.markStart(commit);
+			}
+		}
+		
+		int count = 0;
+		for(RevCommit commit : walk) {
+			RevTree tree = commit.getTree();
+			
+			treeWalk.addTree(tree);
+			treeWalk.setRecursive(true);
+			while(treeWalk.next()) {
+				String sha = commit.getName();
+				String path = treeWalk.getPathString();
+				String pathBefore = "";
+				String shaBefore = "";
+				
+				// skip if not java file
+				if(!path.endsWith(".java")) continue;
+					
+				System.out.println(sha + path);
+				
+				DiffEntry diff = runDiff(input.repo, sha+"^", sha, path);
+				if (diff == null) {
+					continue;
+				}
+				else {
+					pathBefore = diff.getOldPath();
+					shaBefore = sha+"^";
+				}
+				
+				String key = shaBefore + "\n" + sha + "\n" + pathBefore + "\n" + path;
+				csvprinter.printRecord(input.projectName + count, pathBefore, path, shaBefore, sha,
+						"-", "-", key);
+				csvprinter.flush();
+				System.out.println(key);
+			}
+			
+			count++;
+		}
+		
+		System.out.println(count);
+		System.out.println("All collected!");
+		walk.close();
+		treeWalk.close();
+		csvprinter.close();
+	}
+	
+	
 }
 
 
