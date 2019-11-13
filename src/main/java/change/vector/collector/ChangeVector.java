@@ -78,6 +78,11 @@ public class ChangeVector {
 			changeVector.bic = bbics.get(i).shaBIC;
 			changeVector.fix = bbics.get(i).shaFix;
 			String[] tmps = bbics.get(i).pathFix.split("/");
+			
+			// if pathFix is - get pathBIC (-a case)
+			if(tmps[tmps.length-1].equals("-")) {
+				tmps = bbics.get(i).pathBIC.split("/");
+			}
 			changeVector.file = tmps[tmps.length - 1];
 			
 			// counting instances of actions
@@ -183,11 +188,11 @@ public class ChangeVector {
 			changeVector.updates = updates;
 			changeVector.moves = moves;
 			
-			int totalChange = changeVector.deletesNum + changeVector.insertsNum + changeVector.updatesNum + changeVector.movesNum;
+			//int totalChange = changeVector.deletesNum + changeVector.insertsNum + changeVector.updatesNum + changeVector.movesNum;
 			
-			if(0 < totalChange && totalChange < 50 ) {
+			//if(0 < totalChange && totalChange < 50 ) {
 				changeVectors.add(changeVector);
-			}
+			//}
 		}
 	
 		writeARFF(changeVectors, input);

@@ -402,9 +402,9 @@ public class Collector {
 				bbics.add(bbic);
 				System.out.println(key);
 				count++;
-				if(count>100) break;
+				if(count>=3) break;
 			}
-			if(count>100) break;
+			if(count>=3) break;
 		}
 		
 		System.out.println(count);
