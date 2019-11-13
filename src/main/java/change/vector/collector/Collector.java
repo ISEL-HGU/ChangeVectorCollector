@@ -74,7 +74,7 @@ public class Collector {
 			String shaFix = record.get(3);
 			
 			if(shaBIC.contains("BIShal1")) continue; //skip the header
-			if(content.length()<3) continue; //skip really short ones
+			if(content.length() < 3) continue; //skip really short ones
 			if(shaBIC.equals(shaFix)) continue;
 
 			// get before instance that has before instances by blaming
@@ -243,6 +243,7 @@ public class Collector {
 	 */
 	public static void collectFiles(Input input, ArrayList<BeforeBIC> bbics) throws IOException {
 		String outPath = "./assets/collectedFiles/";
+		if(Main.is_all) outPath = "./assets/alls/collectedFiles/";
 		OutputStream outputStream;
 		try (Repository repo = input.repo) {
         // find the HEAD
@@ -348,9 +349,11 @@ public class Collector {
 		return bbics;
 	}
 	
-	public static void getAllCommits(Input input) throws NoHeadException, GitAPIException, IOException {
+	public static ArrayList<BeforeBIC> getAllCommits(Input input) throws NoHeadException, GitAPIException, IOException {
+		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
+		
 		final String[] headers = {"index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix", "key"};
-		File fileP = new File(input.outFile+"all.csv");
+		File fileP = new File(input.bbicFilePath);
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
 		
@@ -379,7 +382,7 @@ public class Collector {
 				
 				// skip if not java file
 				if(!path.endsWith(".java")) continue;
-					
+				if(path.contains("/test/")) continue;
 				System.out.println(sha + path);
 				
 				DiffEntry diff = runDiff(input.repo, sha+"^", sha, path);
@@ -395,10 +398,13 @@ public class Collector {
 				csvprinter.printRecord(input.projectName + count, pathBefore, path, shaBefore, sha,
 						"-", "-", key);
 				csvprinter.flush();
+				BeforeBIC bbic = new BeforeBIC(pathBefore, path, shaBefore, sha, "-", "-", key);
+				bbics.add(bbic);
 				System.out.println(key);
+				count++;
+				if(count>100) break;
 			}
-			
-			count++;
+			if(count>100) break;
 		}
 		
 		System.out.println(count);
@@ -406,6 +412,8 @@ public class Collector {
 		walk.close();
 		treeWalk.close();
 		csvprinter.close();
+		
+		return bbics;
 	}
 	
 	

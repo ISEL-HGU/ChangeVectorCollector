@@ -31,6 +31,7 @@ public class Input {
 		this.git = Utils.gitClone(REMOTE_URI);
 		this.repo = git.getRepository();
 		this.bbicFilePath = "./assets/BBIC_" + projectName + ".csv";
+		if(Main.is_all) this.bbicFilePath = "./assets/alls/BBIC_" + projectName + ".csv";
 	}
 
 }

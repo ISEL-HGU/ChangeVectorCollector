@@ -48,6 +48,7 @@ public class ChangeVector {
 		String gcom = gumtree + com;
 //		String filetest = "./assets/test/El";				
 		String filePath = "./assets/collectedFiles/";
+		if(Main.is_all) filePath = "assets/alls/collectedFiles/";
 		String file = filePath + input.projectName;
 		
 

@@ -14,10 +14,10 @@ import org.apache.commons.cli.Options;
 public class Main {
 	Input input = null;
 	boolean help = false;
-	boolean is_repo = false;
-	boolean is_local = false;
-	boolean is_correlation = false;
-	boolean is_all = false;
+	public static boolean is_repo = false;
+	public static boolean is_local = false;
+	public static boolean is_correlation = false;
+	public static boolean is_all = false;
 	
 	public static void main(String[] args) throws Exception {
 		Main cvc = new Main();
@@ -27,13 +27,12 @@ public class Main {
 	public void run(String[] args) throws Exception {
 		Options options = createOptions();
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
-		ArrayList<BeforeBIC> oneBbics = new ArrayList<BeforeBIC>();
 		
 		if(parseOptions(options, args)) {
 			
 			// collects all changes in a repository				-a
 			if(is_all) {
-				Collector.getAllCommits(input);
+				bbics = Collector.getAllCommits(input);
 			}
 			
 			// compute correlations								-c
@@ -49,15 +48,15 @@ public class Main {
 			// collect bbic from csv file						-l
 			if(is_local) {
 				bbics = Collector.collectBeforeBICFromLocalFile(input);
-				oneBbics = Collector.rmDups(bbics, input);
+				bbics = Collector.rmDups(bbics, input);
 			}
 				
 			
 			// collect java files of bbic of bic
-			Collector.collectFiles(input, oneBbics);
+			Collector.collectFiles(input, bbics);
 			
 			// perform Gumtree to retrieve change vector
-			ChangeVector.runGumtreeDIST(input, oneBbics);
+			ChangeVector.runGumtreeDIST(input, bbics);
 				
 			if(help) printHelp(options);
 		}
