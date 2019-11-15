@@ -22,24 +22,72 @@ import weka.core.converters.ConverterUtils.DataSource;
 public class Correlation {
 	
 	public static void computeAll(Input input) throws Exception {
-		computeCor(input, "Pearsons");
-		computeCor(input, "Spearmans");
-		computeCor(input, "Kendalls");
-		computeCor(input, "Jaccard");
-		computeCor(input, "EuclideanD");
-		computeCor(input, "ManhattanD");
-		computeCor(input, "Covariance");
-		computeCor(input, "CosSim");
-		System.out.println("writing all correlations done!");
+		if(input.inFile.contains("test")) {
+			testCor(input, "Pearsons");
+			testCor(input, "Kendalls");
+			testCor(input, "EuclideanD");
+			System.out.println("testing all correlations done!");
+		} else {
+			computeCor(input, "Pearsons");
+			computeCor(input, "Kendalls");
+			computeCor(input, "EuclideanD");
+			//computeCor(input, "Spearmans");
+			//computeCor(input, "Jaccard");
+			//computeCor(input, "ManhattanD");
+			//computeCor(input, "Covariance");
+			//computeCor(input, "CosSim");
+			System.out.println("writing all correlations done!");
+		}
+	}
+	
+	public static void testCor(Input input, String mode) throws Exception{
+		String trainPath = "./assets/test/database.arff";
+		String testPath = input.inFile;
+		
+		DataSource trainSource = new DataSource(trainPath);
+		DataSource testSource = new DataSource(testPath);
+		Instances trainset = trainSource.getDataSet();
+		Instances testset = testSource.getDataSet();
+		
+		if(trainset.classIndex() == -1)
+			trainset.setClassIndex(trainset.numAttributes() - 1);
+		if(testset.classIndex() == -1)
+			testset.setClassIndex(testset.numAttributes() - 1);
+		
+		System.out.println("<Trainset>");
+		System.out.println("num of att: " + trainset.numAttributes());
+		System.out.println("num of inst " + trainset.numInstances());
+		System.out.println();
+		System.out.println("<Testset>");
+		System.out.println("num of att: " + testset.numAttributes());
+		System.out.println("num of inst " + testset.numInstances());
+		
+		// double[][] instantiation
+		ArrayList<ArrayList<Double>> cor = new ArrayList<ArrayList<Double>>();
+		for(int i = 0; i < testset.numInstances(); i++) {
+			cor.add(new ArrayList<Double>());
+			for(int j = 0; j < trainset.numInstances(); j++) {
+				cor.get(i).add(0.0);
+			}
+		}
+		
+		if(mode.equals("Pearsons")) {
+			cor = computePCC(input, trainset, testset, cor);
+		} else if(mode.equals("Kendalls")) {
+			cor = computeKCC(input, trainset, testset, cor);
+		} else if(mode.equals("EuclideanD")) {
+			cor = computeEucD(input, trainset, testset, cor);
+		} 
+		
+		writeCombined(input, mode, trainset, testset, cor);
+		System.out.println("writing " + mode + " done!\n");
 	}
 	
 	public static void computeCor(Input input, String mode) throws Exception{	
 
 		String filePath = input.inFile;
-		DataSource source = null;
-		Instances dataset = null;
-		source = new DataSource(filePath);
-		dataset = source.getDataSet();
+		DataSource source = new DataSource(filePath);
+		Instances dataset = source.getDataSet();
 		
 		if(dataset.classIndex() == -1)
 			dataset.setClassIndex(dataset.numAttributes() - 1);
@@ -75,19 +123,17 @@ public class Correlation {
 			cor = computeCos(input, dataset, cor);
 		} 
 			
-
-		
 		// writing files
 		if(input.inFile.contains("combined")) {
-			combined(input, mode, dataset, cor);
+			writeCombined(input, mode, dataset, cor);
 		} else {
-			oneByOne(input, mode, dataset, cor);
+			writeOnebyOne(input, mode, dataset, cor);
 		}
 		
-		System.out.println("writing " + mode + " done!");
+		System.out.println("writing " + mode + " done!\n");
 	}
 
-	public static void oneByOne(Input input, String mode, Instances dataset, ArrayList<ArrayList<Double>> cor) throws IOException {
+	public static void writeOnebyOne(Input input, String mode, Instances dataset, ArrayList<ArrayList<Double>> cor) throws IOException {
 		File outFile = new File(input.outFile + mode + "_"+ input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
@@ -108,8 +154,50 @@ public class Correlation {
 		}
 		csvprinter.close();
 	}
+	public static void writeCombined(Input input, String mode, Instances trainset, Instances testset, ArrayList<ArrayList<Double>> cor) throws IOException {
+		File outFile = new File(input.outFile + mode + "_test_"+ input.projectName + ".csv");
+		
+		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
+		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
+		
+		// combined part
+		int trainIgnite = 150;
+		int trainLucene = 236;
+		int trainZookeeper = 140;
+		int testIgnite = 22293;
+		int testLucene = 18326;
+		// int testZookeeper = 5510;
+		
+		// index of x-axis
+		csvprinter.print(mode);
+		for (int i = 0; i < trainIgnite; i++) {
+			csvprinter.print("ignite"+i);
+		}
+		for (int i = 0; i < trainLucene; i++) {
+			csvprinter.print("lucene-solr"+i);
+		}
+		for (int i = 0; i < trainZookeeper; i++) {
+			csvprinter.print("zookeeper"+i);
+		}
+		csvprinter.println();
+		
+		for(int i = 0, lucene = 0, zookeeper = 0; i < testset.numInstances(); i++) {
+			if(i < testIgnite) {
+				csvprinter.print("ignite"+i);
+			} else if(i < testIgnite + testLucene) {
+				csvprinter.print("lucene-solr"+(lucene++));
+			} else {
+				csvprinter.print("zookeeper"+(zookeeper++));
+			}
+			for(int j = 0; j < trainset.numInstances(); j++) {
+				csvprinter.print(cor.get(i).get(j));
+			}
+			csvprinter.println();
+		}
+		csvprinter.close();
+	}
 	
-	public static void combined(Input input, String mode, Instances dataset, ArrayList<ArrayList<Double>> cor) throws IOException {
+	public static void writeCombined(Input input, String mode, Instances dataset, ArrayList<ArrayList<Double>> cor) throws IOException {
 		File outFile = new File(input.outFile + mode + "_combined" + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
@@ -160,14 +248,13 @@ public class Correlation {
 		}		
 		return cor;
 	}
-	
-	public static ArrayList<ArrayList<Double>> computeSCC(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
-		// computing Spearmans Correlation Coefficient one by one
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			double[] x = dataset.get(i).toDoubleArray();
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				double[] y = dataset.get(j).toDoubleArray();
-			    cor.get(i).set(j, new SpearmansCorrelation().correlation(x,y));
+	public static ArrayList<ArrayList<Double>> computePCC(Input input, Instances trainset, Instances testset, ArrayList<ArrayList<Double>> cor) throws Exception {
+		// computing Pearsons Correlation Coefficient one by one
+		for(int i = 0; i < testset.numInstances(); i++) {
+			double[] x = testset.get(i).toDoubleArray();
+			for(int j = 0; j < trainset.numInstances(); j++) {
+				double[] y = trainset.get(j).toDoubleArray();
+			    cor.get(i).set(j, new PearsonsCorrelation().correlation(x,y));
 			}
 		}		
 		return cor;
@@ -184,16 +271,13 @@ public class Correlation {
 		}		
 		return cor;
 	}
-	
-	public static ArrayList<ArrayList<Double>> computeJSC(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
-		// computing Jaccard Similarity Coefficient one by one
-		for(int i = 0; i < dataset.numInstances(); i++) {
-			double[] x = dataset.get(i).toDoubleArray();
-			CharSequence csx = Arrays.toString(x);
-			for(int j = 0; j < dataset.numInstances(); j++) {
-				double[] y = dataset.get(j).toDoubleArray();
-				CharSequence csy = Arrays.toString(y);
-				cor.get(i).set(j, new JaccardSimilarity().apply(csx, csy));
+	public static ArrayList<ArrayList<Double>> computeKCC(Input input, Instances trainset, Instances testset, ArrayList<ArrayList<Double>> cor) throws Exception {
+		// computing Kendalls Correlation Coefficient one by one
+		for(int i = 0; i < testset.numInstances(); i++) {
+			double[] x = testset.get(i).toDoubleArray();
+			for(int j = 0; j < trainset.numInstances(); j++) {
+				double[] y = trainset.get(j).toDoubleArray();
+			    cor.get(i).set(j, new KendallsCorrelation().correlation(x,y));
 			}
 		}		
 		return cor;
@@ -210,7 +294,42 @@ public class Correlation {
 		}		
 		return cor;
 	}
+	public static ArrayList<ArrayList<Double>> computeEucD(Input input, Instances trainset, Instances testset, ArrayList<ArrayList<Double>> cor) throws Exception {
+		// computing Euclidean Distance one by one
+		for(int i = 0; i < testset.numInstances(); i++) {
+			double[] x = testset.get(i).toDoubleArray();
+			for(int j = 0; j < trainset.numInstances(); j++) {
+				double[] y = trainset.get(j).toDoubleArray();
+			    cor.get(i).set(j, new EuclideanDistance().compute(x,y));
+			}
+		}		
+		return cor;
+	}
 	
+	public static ArrayList<ArrayList<Double>> computeSCC(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
+		// computing Spearmans Correlation Coefficient one by one
+		for(int i = 0; i < dataset.numInstances(); i++) {
+			double[] x = dataset.get(i).toDoubleArray();
+			for(int j = 0; j < dataset.numInstances(); j++) {
+				double[] y = dataset.get(j).toDoubleArray();
+			    cor.get(i).set(j, new SpearmansCorrelation().correlation(x,y));
+			}
+		}		
+		return cor;
+	}
+	public static ArrayList<ArrayList<Double>> computeJSC(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
+		// computing Jaccard Similarity Coefficient one by one
+		for(int i = 0; i < dataset.numInstances(); i++) {
+			double[] x = dataset.get(i).toDoubleArray();
+			CharSequence csx = Arrays.toString(x);
+			for(int j = 0; j < dataset.numInstances(); j++) {
+				double[] y = dataset.get(j).toDoubleArray();
+				CharSequence csy = Arrays.toString(y);
+				cor.get(i).set(j, new JaccardSimilarity().apply(csx, csy));
+			}
+		}		
+		return cor;
+	}
 	public static ArrayList<ArrayList<Double>> computeManD(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
 		// computing Manhattan Distance one by one
 		for(int i = 0; i < dataset.numInstances(); i++) {
@@ -222,7 +341,6 @@ public class Correlation {
 		}		
 		return cor;
 	}
-	
 	public static ArrayList<ArrayList<Double>> computeCov(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
 		// computing Covariance one by one
 		for(int i = 0; i < dataset.numInstances(); i++) {
@@ -234,7 +352,6 @@ public class Correlation {
 		}		
 		return cor;
 	}
-	
 	public static ArrayList<ArrayList<Double>> computeCos(Input input, Instances dataset, ArrayList<ArrayList<Double>> cor) throws Exception {
 		// computing Jaccard Similarity Coefficient one by one
 		for(int i = 0; i < dataset.numInstances(); i++) {
@@ -247,7 +364,6 @@ public class Correlation {
 		
 		return cor;
 	}
-	
 	public static double cosineSimilarity(double[] vectorA, double[] vectorB) {
 	    double dotProduct = 0.0;
 	    double normA = 0.0;
