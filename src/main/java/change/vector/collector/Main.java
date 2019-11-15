@@ -48,7 +48,7 @@ public class Main {
 			// collect bbic from csv file						-l
 			if(is_local) {
 				bbics = Collector.collectBeforeBICFromLocalFile(input);
-				bbics = Collector.rmDups(bbics, input);
+				//bbics = Collector.rmDups(bbics, input);
 			}
 				
 			

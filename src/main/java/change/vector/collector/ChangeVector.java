@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import weka.core.Attribute;
 import weka.core.Instances;
@@ -50,13 +51,19 @@ public class ChangeVector {
 		String filePath = "./assets/collectedFiles/";
 		if(Main.is_all) filePath = "assets/alls/collectedFiles/";
 		String file = filePath + input.projectName;
-		
-
+		Process p;
+		JSONObject json;
 		for (int i = 0; i < Collector.instanceNumber; i++) {
 			ChangeVector changeVector = new ChangeVector();
 			
-			Process p = Runtime.getRuntime().exec(gcom + file + i + "_before.java " + file + i + "_bic.java"); 
-//			Process p = Runtime.getRuntime().exec(gcom + filetest+ "1.java " + filetest + "2.java"); 
+			try {
+				p = Runtime.getRuntime().exec(gcom + file + i + "_before.java " + file + i + "_bic.java"); 
+	//			p = Runtime.getRuntime().exec(gcom + filetest+ "1.java " + filetest + "2.java"); 
+			} catch(NullPointerException npe) {
+				System.out.println("gumtree faced npe: "+ npe + ", skipping instance");
+				continue;
+			}
+			
 			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));  
 
 // 			printing the console output.
@@ -66,8 +73,12 @@ public class ChangeVector {
 //			}
 			
 			String str = IOUtils.toString(in);
-			JSONObject json = new JSONObject(str);
-			
+			try {
+				json = new JSONObject(str);
+			} catch (JSONException je) {
+				System.out.println("gumtree faced je: "+ je + ", skipping instance");
+				continue;
+			}
 			Map<String, MutableInt> deletes = new HashMap<String, MutableInt>();
 			Map<String, MutableInt> inserts = new HashMap<String, MutableInt>();
 			Map<String, MutableInt> updates = new HashMap<String, MutableInt>();
