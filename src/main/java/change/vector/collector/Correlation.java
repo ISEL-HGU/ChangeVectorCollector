@@ -339,7 +339,7 @@ public class Correlation {
 				}
 				
 			    cor.get(i).set(j, pearson);
-			    //System.out.println("cor: " + pearson);
+			    System.out.println("cor: " + pearson);
 			}
 		}		
 		return cor;
@@ -387,7 +387,7 @@ public class Correlation {
 				}
 				
 			    cor.get(i).set(j, kendalls);
-			    //System.out.println("cor: " + kendalls);
+			    System.out.println("cor: " + kendalls);
 			}
 		}		
 		return cor;
