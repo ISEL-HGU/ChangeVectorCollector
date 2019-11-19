@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.math3.exception.MathIllegalArgumentException;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.apache.commons.math3.ml.distance.ManhattanDistance;
 import org.apache.commons.math3.stat.correlation.Covariance;
@@ -54,33 +55,79 @@ public class Correlation {
 		if(testset.classIndex() == -1)
 			testset.setClassIndex(testset.numAttributes() - 1);
 		
+		int attrNum = trainset.numAttributes();
+		int trainSize = trainset.numInstances();
+		int testSize = testset.numInstances();
+		
 		System.out.println("<Trainset>");
 		System.out.println("num of att: " + trainset.numAttributes());
-		System.out.println("num of inst " + trainset.numInstances());
+		System.out.println("num of inst " + trainSize);
 		System.out.println();
 		System.out.println("<Testset>");
 		System.out.println("num of att: " + testset.numAttributes());
-		System.out.println("num of inst " + testset.numInstances());
+		System.out.println("num of inst " + testSize);
 		
-		// double[][] instantiation
+		// init correlation matrix
 		ArrayList<ArrayList<Double>> cor = new ArrayList<ArrayList<Double>>();
-		for(int i = 0; i < testset.numInstances(); i++) {
+		for(int i = 0; i < testSize; i++) {
 			cor.add(new ArrayList<Double>());
-			for(int j = 0; j < trainset.numInstances(); j++) {
+			for(int j = 0; j < trainSize; j++) {
 				cor.get(i).add(0.0);
 			}
 		}
 		
+		// init train_arr
+		ArrayList<double[]> train_arr = new ArrayList<double[]>();
+		for(int i = 0; i < trainSize; i++) {
+			train_arr.add(new double[attrNum]);
+		}
+		for(int i = 0; i < trainSize; i++) {
+			train_arr.set(i, trainset.get(i).toDoubleArray());
+		}
+		
+		// removing changeVector info before computing correlation coefficients
+		ArrayList<double[]> train_rm = new ArrayList<double[]>();
+		for(int i = 0; i < trainSize; i++) {
+			train_rm.add(new double[attrNum-4]);
+			
+		}
+		for(int i = 0; i < trainSize; i++) {
+			for(int j = 4; j < attrNum-4; j++) {
+				train_rm.get(i)[j] = train_arr.get(i)[j];
+			}
+		}
+
+		// init test_arr
+		ArrayList<double[]> test_arr = new ArrayList<double[]>();
+		for(int i = 0; i < testset.numInstances(); i++) {
+			test_arr.add(new double[testset.numAttributes()]);
+		}
+		for(int i = 0; i < testset.numInstances(); i++) {
+			test_arr.set(i, testset.get(i).toDoubleArray());
+		}
+		// removing changeVector info before computing correlation coefficients
+		ArrayList<double[]> test_rm = new ArrayList<double[]>();
+		for(int i = 0; i < testSize; i++) {
+			test_rm.add(new double[attrNum-4]);
+			
+		}
+		for(int i = 0; i < testSize; i++) {
+			for(int j = 4; j < attrNum-4; j++) {
+				test_rm.get(i)[j] = test_arr.get(i)[j];
+			}
+		}
+			
+
 		if(mode.equals("Pearsons")) {
-			cor = computePCC(input, trainset, testset, cor);
+			cor = computePCC(input, train_rm, test_rm, cor);
 		} else if(mode.equals("Kendalls")) {
-			cor = computeKCC(input, trainset, testset, cor);
+			cor = computeKCC(input, train_rm, test_rm, cor);
 		} else if(mode.equals("EuclideanD")) {
-			cor = computeEucD(input, trainset, testset, cor);
+			cor = computeEucD(input, train_rm, test_rm, cor);
 		} 
 		
-		writeCombined(input, mode, trainset, testset, cor);
-		System.out.println("writing " + mode + " done!\n");
+		writeCombined(input, mode, trainSize, testSize, cor);
+		System.out.println("\nWriting " + mode + " done!\n");
 	}
 	
 	public static void computeCor(Input input, String mode) throws Exception{	
@@ -130,7 +177,7 @@ public class Correlation {
 			writeOnebyOne(input, mode, dataset, cor);
 		}
 		
-		System.out.println("writing " + mode + " done!\n");
+		System.out.println("\nWriting " + mode + " done!\n");
 	}
 
 	public static void writeOnebyOne(Input input, String mode, Instances dataset, ArrayList<ArrayList<Double>> cor) throws IOException {
@@ -154,8 +201,10 @@ public class Correlation {
 		}
 		csvprinter.close();
 	}
-	public static void writeCombined(Input input, String mode, Instances trainset, Instances testset, ArrayList<ArrayList<Double>> cor) throws IOException {
-		File outFile = new File(input.outFile + mode + "_test_"+ input.projectName + ".csv");
+	
+	// writing file for test
+	public static void writeCombined(Input input, String mode, int trainSize, int testSize, ArrayList<ArrayList<Double>> cor) throws IOException {
+		File outFile = new File(input.outFile + mode + "_test_commons" + ".csv");
 		
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
@@ -164,11 +213,15 @@ public class Correlation {
 		int trainIgnite = 150;
 		int trainLucene = 236;
 		int trainZookeeper = 140;
-		int testIgnite = 22293;
-		int testLucene = 18326;
-		// int testZookeeper = 5510;
+
+		int testIO = 2865;
+		int testLang = 6306;
+		//int testMath = 19383;
+		String test1 = "commons-io";
+		String test2 = "commons-lang";
+		String test3 = "commons-math";
 		
-		// index of x-axis
+		// writing index of trainset
 		csvprinter.print(mode);
 		for (int i = 0; i < trainIgnite; i++) {
 			csvprinter.print("ignite"+i);
@@ -181,15 +234,18 @@ public class Correlation {
 		}
 		csvprinter.println();
 		
-		for(int i = 0, lucene = 0, zookeeper = 0; i < testset.numInstances(); i++) {
-			if(i < testIgnite) {
-				csvprinter.print("ignite"+i);
-			} else if(i < testIgnite + testLucene) {
-				csvprinter.print("lucene-solr"+(lucene++));
+		// writing correlation
+		for(int i = 0, lang = 0, math = 0; i < testSize; i++) {
+			// writing index of testset
+			if(i < testIO) {
+				csvprinter.print(test1+i);
+			} else if(i < testIO + testLang) {
+				csvprinter.print(test2+(lang++));
 			} else {
-				csvprinter.print("zookeeper"+(zookeeper++));
+				csvprinter.print(test3+(math++));
 			}
-			for(int j = 0; j < trainset.numInstances(); j++) {
+			// writing the computed correlation
+			for(int j = 0; j < trainSize; j++) {
 				csvprinter.print(cor.get(i).get(j));
 			}
 			csvprinter.println();
@@ -248,13 +304,42 @@ public class Correlation {
 		}		
 		return cor;
 	}
-	public static ArrayList<ArrayList<Double>> computePCC(Input input, Instances trainset, Instances testset, ArrayList<ArrayList<Double>> cor) throws Exception {
+	public static ArrayList<ArrayList<Double>> computePCC(Input input, ArrayList<double[]> train_arr, ArrayList<double[]> test_arr, ArrayList<ArrayList<Double>> cor) throws Exception {
 		// computing Pearsons Correlation Coefficient one by one
-		for(int i = 0; i < testset.numInstances(); i++) {
-			double[] x = testset.get(i).toDoubleArray();
-			for(int j = 0; j < trainset.numInstances(); j++) {
-				double[] y = trainset.get(j).toDoubleArray();
-			    cor.get(i).set(j, new PearsonsCorrelation().correlation(x,y));
+		int attrNum = train_arr.get(0).length;
+		for(int i = 0; i < test_arr.size(); i++) {
+			for(int j = 0; j < train_arr.size(); j++) {
+				
+				// make new changeVector 
+				ArrayList<Double> excludeCVtrain = new ArrayList<Double>();
+				ArrayList<Double> excludeCVtest = new ArrayList<Double>();
+				// traverse attributes
+				for(int k = 0; k < attrNum; k++) {
+					// if either test and train has non_zero value, add to the new CV
+					if(test_arr.get(i)[k] !=0 || train_arr.get(j)[k] != 0) {
+						excludeCVtrain.add(train_arr.get(j)[k]);
+						excludeCVtest.add(test_arr.get(i)[k]);
+					}
+				}
+				// changing the type to double[]
+				double[] train = new double[excludeCVtrain.size()];
+				for(int k = 0; k < excludeCVtrain.size(); k++) {
+					train[k] = excludeCVtrain.get(k);
+				}
+				double[] test = new double[excludeCVtest.size()];
+				for(int k = 0; k < excludeCVtest.size(); k++) {
+					test[k] = excludeCVtest.get(k);
+				}
+				double pearson;
+				try {
+					pearson = new PearsonsCorrelation().correlation(test, train);
+				} catch(MathIllegalArgumentException miae) {
+					System.out.println("exception: "+miae);
+					pearson = 0.0;
+				}
+				
+			    cor.get(i).set(j, pearson);
+			    System.out.println("cor: " + pearson);
 			}
 		}		
 		return cor;
@@ -271,13 +356,29 @@ public class Correlation {
 		}		
 		return cor;
 	}
-	public static ArrayList<ArrayList<Double>> computeKCC(Input input, Instances trainset, Instances testset, ArrayList<ArrayList<Double>> cor) throws Exception {
+	public static ArrayList<ArrayList<Double>> computeKCC(Input input, ArrayList<double[]> train_arr, ArrayList<double[]> test_arr, ArrayList<ArrayList<Double>> cor) throws Exception {
 		// computing Kendalls Correlation Coefficient one by one
-		for(int i = 0; i < testset.numInstances(); i++) {
-			double[] x = testset.get(i).toDoubleArray();
-			for(int j = 0; j < trainset.numInstances(); j++) {
-				double[] y = trainset.get(j).toDoubleArray();
-			    cor.get(i).set(j, new KendallsCorrelation().correlation(x,y));
+		int attrNum = train_arr.get(0).length;
+		for(int i = 0; i < test_arr.size(); i++) {
+			for(int j = 0; j < train_arr.size(); j++) {
+				ArrayList<Double> excludeCVtrain = new ArrayList<Double>();
+				ArrayList<Double> excludeCVtest = new ArrayList<Double>();
+				for(int k = 0; k < attrNum; k++) {
+					// only compute for non_zero values
+					if(test_arr.get(i)[k] != 0 || train_arr.get(j)[k] != 0) {
+						excludeCVtrain.add(train_arr.get(j)[k]);
+						excludeCVtest.add(test_arr.get(i)[k]);
+					}
+				}
+				double[] train = new double[excludeCVtrain.size()];
+				for(int k = 0; k < excludeCVtrain.size(); k++) {
+					train[k] = excludeCVtrain.get(k);
+				}
+				double[] test = new double[excludeCVtest.size()];
+				for(int k = 0; k < excludeCVtest.size(); k++) {
+					test[k] = excludeCVtest.get(k);
+				}
+			    cor.get(i).set(j, new KendallsCorrelation().correlation(test, train));
 			}
 		}		
 		return cor;
@@ -294,13 +395,29 @@ public class Correlation {
 		}		
 		return cor;
 	}
-	public static ArrayList<ArrayList<Double>> computeEucD(Input input, Instances trainset, Instances testset, ArrayList<ArrayList<Double>> cor) throws Exception {
+	public static ArrayList<ArrayList<Double>> computeEucD(Input input, ArrayList<double[]> train_arr, ArrayList<double[]> test_arr, ArrayList<ArrayList<Double>> cor) throws Exception {
 		// computing Euclidean Distance one by one
-		for(int i = 0; i < testset.numInstances(); i++) {
-			double[] x = testset.get(i).toDoubleArray();
-			for(int j = 0; j < trainset.numInstances(); j++) {
-				double[] y = trainset.get(j).toDoubleArray();
-			    cor.get(i).set(j, new EuclideanDistance().compute(x,y));
+		int attrNum = train_arr.get(0).length;
+		for(int i = 0; i < test_arr.size(); i++) {
+			for(int j = 0; j < train_arr.size(); j++) {
+				ArrayList<Double> excludeCVtrain = new ArrayList<Double>();
+				ArrayList<Double> excludeCVtest = new ArrayList<Double>();
+				for(int k = 0; k < attrNum; k++) {
+					// only compute for non_zero values
+					if(test_arr.get(i)[k] != 0 || train_arr.get(j)[k] != 0) {
+						excludeCVtrain.add(train_arr.get(j)[k]);
+						excludeCVtest.add(test_arr.get(i)[k]);
+					}
+				}
+				double[] train = new double[excludeCVtrain.size()];
+				for(int k = 0; k < excludeCVtrain.size(); k++) {
+					train[k] = excludeCVtrain.get(k);
+				}
+				double[] test = new double[excludeCVtest.size()];
+				for(int k = 0; k < excludeCVtest.size(); k++) {
+					test[k] = excludeCVtest.get(k);
+				}
+			    cor.get(i).set(j, new EuclideanDistance().compute(test, train));
 			}
 		}		
 		return cor;
