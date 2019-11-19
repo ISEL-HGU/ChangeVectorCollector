@@ -339,7 +339,7 @@ public class Correlation {
 				}
 				
 			    cor.get(i).set(j, pearson);
-			    System.out.println("cor: " + pearson);
+			    //System.out.println("cor: " + pearson);
 			}
 		}		
 		return cor;
@@ -378,7 +378,16 @@ public class Correlation {
 				for(int k = 0; k < excludeCVtest.size(); k++) {
 					test[k] = excludeCVtest.get(k);
 				}
-			    cor.get(i).set(j, new KendallsCorrelation().correlation(test, train));
+				double kendalls;
+				try {
+					kendalls = new KendallsCorrelation().correlation(test, train);
+				} catch(ArrayIndexOutOfBoundsException aioobe) {
+					System.out.println("exception: "+aioobe);
+					kendalls = 0.0;
+				}
+				
+			    cor.get(i).set(j, kendalls);
+			    //System.out.println("cor: " + kendalls);
 			}
 		}		
 		return cor;
