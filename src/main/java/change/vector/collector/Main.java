@@ -42,8 +42,11 @@ public class Main {
 			}
 			
 			// collect bbic from git repository					-r
-			if(is_repo)
+			if(is_repo) {
 				bbics = Collector.collectBeforeBIC(input);
+				bbics = Collector.rmDups(bbics, input);
+			}
+				
 			
 			// collect bbic from csv file						-l
 			if(is_local) {
