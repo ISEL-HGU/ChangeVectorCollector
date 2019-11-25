@@ -204,7 +204,7 @@ public class Correlation {
 	
 	// writing file for test
 	public static void writeCombined(Input input, String mode, int trainSize, int testSize, ArrayList<ArrayList<Double>> cor) throws IOException {
-		File outFile = new File(input.outFile + mode + "_test_commons" + ".csv");
+		File outFile = new File(input.outFile + mode + "_test_commons7" + ".csv");
 		
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
@@ -213,10 +213,15 @@ public class Correlation {
 		int trainIgnite = 150;
 		int trainLucene = 236;
 		int trainZookeeper = 140;
+		int trainFlink = 3640;
+		int trainIsis = 1120;
+		int trainMahout = 1066;
+		int trainOozie = 1044;
 
 		int testIO = 2865;
 		int testLang = 6306;
 		//int testMath = 19383;
+		
 		String test1 = "commons-io";
 		String test2 = "commons-lang";
 		String test3 = "commons-math";
@@ -231,6 +236,18 @@ public class Correlation {
 		}
 		for (int i = 0; i < trainZookeeper; i++) {
 			csvprinter.print("zookeeper"+i);
+		}
+		for (int i = 0; i < trainFlink; i++) {
+			csvprinter.print("flink"+i);
+		}
+		for (int i = 0; i < trainIsis; i++) {
+			csvprinter.print("isis"+i);
+		}
+		for (int i = 0; i < trainMahout; i++) {
+			csvprinter.print("mahout"+i);
+		}
+		for (int i = 0; i < trainOozie; i++) {
+			csvprinter.print("oozie"+i);
 		}
 		csvprinter.println();
 		
