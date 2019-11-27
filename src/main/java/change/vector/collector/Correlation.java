@@ -44,7 +44,7 @@ public class Correlation {
 	
 	// calculates correlation of two different set of vectors (e.g. train x test)
 	public static void calcCorrelationAxB(Input input, String mode) throws Exception {
-		String trainPath = "./assets/test/database.arff";
+		String trainPath = "./assets/test/database3.arff";
 		String testPath = input.inFile;
 
 		DataSource trainSource = new DataSource(trainPath);
@@ -258,7 +258,7 @@ public class Correlation {
 	// writing the result of correlation computation on csv 
 	public static void writeMultiAxB(Input input, String mode, int trainSize, int testSize,
 			ArrayList<ArrayList<Double>> cor) throws IOException {
-		File outFile = new File(input.outFile + mode + "_test_commons7_0" + ".csv");
+		File outFile = new File(input.outFile + mode + "_test_database" + ".csv");
 
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
@@ -267,20 +267,25 @@ public class Correlation {
 		int trainIgnite = 150;
 		int trainLucene = 236;
 		int trainZookeeper = 140;
-		int trainFlink = 459;
-		int trainIsis = 124;
-		int trainMahout = 130;
-		int trainOozie = 186;
+//		int trainFlink = 459;
+//		int trainIsis = 124;
+//		int trainMahout = 130;
+//		int trainOozie = 186;
 
-		int testIO = 2865;
-		int testLang = 6306;
+		// int testIO = 2865;
+		// int testLang = 6306;
 		// int testMath = 19383;
-
-		String test1 = "commons-io";
-		String test2 = "commons-lang";
-		String test3 = "commons-math";
-
-		// writing index of trainset
+		int testFlink = 459;
+		int testIsis = 124;
+		int testMahout = 130;
+		//int testOozie = 186;
+		
+		String test1 = "flink";
+		String test2 = "isis";
+		String test3 = "mahout";
+		String test4 = "oozie";
+		
+		// writing index of x-axis
 		csvprinter.print(mode);
 		for (int i = 0; i < trainIgnite; i++) {
 			csvprinter.print("ignite" + i);
@@ -291,29 +296,19 @@ public class Correlation {
 		for (int i = 0; i < trainZookeeper; i++) {
 			csvprinter.print("zookeeper" + i);
 		}
-		for (int i = 0; i < trainFlink; i++) {
-			csvprinter.print("flink" + i);
-		}
-		for (int i = 0; i < trainIsis; i++) {
-			csvprinter.print("isis" + i);
-		}
-		for (int i = 0; i < trainMahout; i++) {
-			csvprinter.print("mahout" + i);
-		}
-		for (int i = 0; i < trainOozie; i++) {
-			csvprinter.print("oozie" + i);
-		}
 		csvprinter.println();
 
 		// writing correlation
-		for (int i = 0, lang = 0, math = 0; i < testSize; i++) {
-			// writing index of testset
-			if (i < testIO) {
+		for (int i = 0, isis = 0, mahout = 0, oozie = 0; i < testSize; i++) {
+			// writing index of y-axis
+			if (i < testFlink) {
 				csvprinter.print(test1 + i);
-			} else if (i < testIO + testLang) {
-				csvprinter.print(test2 + (lang++));
+			} else if (i < testFlink + testIsis) {
+				csvprinter.print(test2 + (isis++));
+			} else if (i < testFlink + testIsis + testMahout){
+				csvprinter.print(test3 + (mahout++));
 			} else {
-				csvprinter.print(test3 + (math++));
+				csvprinter.print(test4 + (oozie++));
 			}
 			// writing the computed correlation
 			for (int j = 0; j < trainSize; j++) {
@@ -388,7 +383,7 @@ public class Correlation {
 					test[k] = excludeCVtest.get(k);
 				}
 				
-				if(excludeCVtrain.size() == 0 && excludeCVtest.size() == 0) {
+				if(excludeCVtrain.size() < 2 && excludeCVtest.size() < 2) {
 					cor.get(i).set(j, 0.0);
 					continue;
 				}
@@ -469,8 +464,13 @@ public class Correlation {
 					cor.get(i).set(j, 0.0);
 					continue;
 				}
-
-				cor.get(i).set(j, new KendallsCorrelation().correlation(test, train));
+				
+				double kendalls = new KendallsCorrelation().correlation(test, train);
+				if(kendalls < 0.0) {
+					cor.get(i).set(j, -1.0);
+				} else {
+					cor.get(i).set(j, kendalls);
+				}
 				
 			}
 			System.out.println(i + "/" + test_arr.size());

@@ -23,7 +23,8 @@ import weka.filters.unsupervised.instance.NonSparseToSparse;
 class MutableInt {
 	public int value = 1;
 	public void increment() { value++; }
-	public int get() { return value; }
+	public void decrement() { value --; }
+	
 }
 
 public class ChangeVector {
@@ -199,6 +200,50 @@ public class ChangeVector {
 			changeVector.updates = updates;
 			changeVector.moves = moves;
 			
+			// handling gumtree bug
+			if(changeVector.deletes.containsKey("Modifier") &&
+					changeVector.deletes.containsKey("SimpleName") &&
+					changeVector.deletes.containsKey("TYPE_DECLARATION_KIND") &&
+					changeVector.inserts.containsKey("Modifier") &&
+					changeVector.inserts.containsKey("SimpleName") &&
+					changeVector.inserts.containsKey("TYPE_DECLARATION_KIND")) {
+				MutableInt del1 = changeVector.deletes.get("Modifier");
+				if(del1.value == 1) {
+					changeVector.deletes.remove("Modifier");
+				} else {
+					del1.decrement();
+				}
+				MutableInt del2 = changeVector.deletes.get("SimpleName");
+				if(del2.value == 1) {
+					changeVector.deletes.remove("SimpleName");
+				} else {
+					del2.decrement();
+				}
+				MutableInt del3 = changeVector.deletes.get("TYPE_DECLARATION_KIND");
+				if(del3.value == 1) {
+					changeVector.deletes.remove("TYPE_DECLARATION_KIND");
+				} else {
+					del3.decrement();
+				}
+				MutableInt ins1 = changeVector.inserts.get("Modifier");
+				if(ins1.value == 1) {
+					changeVector.inserts.remove("Modifier");
+				} else {
+					ins1.decrement();
+				}
+				MutableInt ins2 = changeVector.inserts.get("SimpleName");
+				if(ins2.value == 1) {
+					changeVector.inserts.remove("SimpleName");
+				} else {
+					ins2.decrement();
+				}
+				MutableInt ins3 = changeVector.inserts.get("TYPE_DECLARATION_KIND");
+				if(ins3.value == 1) {
+					changeVector.inserts.remove("TYPE_DECLARATION_KIND");
+				} else {
+					ins3.decrement();
+				}
+			}
 			//int totalChange = changeVector.deletesNum + changeVector.insertsNum + changeVector.updatesNum + changeVector.movesNum;
 			
 			//if(0 < totalChange && totalChange < 50 ) {
@@ -215,7 +260,6 @@ public class ChangeVector {
 	
 	public static void writeARFF(ArrayList<ChangeVector> CVS, Input input) throws Exception {
 		ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-//		FastVector attributes = new FastVector();
 		Instances dataSet;
         
 		// writing all attributes
