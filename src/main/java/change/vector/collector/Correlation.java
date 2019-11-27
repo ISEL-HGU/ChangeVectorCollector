@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.math3.exception.MathIllegalArgumentException;
 import org.apache.commons.math3.ml.distance.EuclideanDistance;
 import org.apache.commons.math3.ml.distance.ManhattanDistance;
 import org.apache.commons.math3.stat.correlation.Covariance;
@@ -25,9 +24,9 @@ public class Correlation {
 	// runner for all
 	public static void computeAll(Input input) throws Exception {
 		if (input.inFile.contains("test")) {
-			// calcCorrelationAxB(input, "Pearsons");
+			calcCorrelationAxB(input, "Pearsons");
 			calcCorrelationAxB(input, "Kendalls");
-			// calcCorrelationAxB(input, "EuclideanD");
+			calcCorrelationAxB(input, "EuclideanD");
 			System.out.println("testing all correlations done!");
 		} else {
 			calcCorrelationAxA(input, "Pearsons");
@@ -42,6 +41,7 @@ public class Correlation {
 		}
 	}
 
+	
 	// calculates correlation of two different set of vectors (e.g. train x test)
 	public static void calcCorrelationAxB(Input input, String mode) throws Exception {
 		String trainPath = "./assets/test/database.arff";
@@ -120,20 +120,21 @@ public class Correlation {
 		}
 
 		if (mode.equals("Pearsons")) {
-			cor = calcPearsons(input, trainset, testset, cor);
-			//cor = calcPearsonsExclude0(input, train_arr, test_arr, cor);
+			//cor = calcPearsons(input, trainset, testset, cor);
+			cor = calcPearsonsExclude0(input, train_arr, test_arr, cor);
 		} else if (mode.equals("Kendalls")) {
-			cor = calcKendalls(input, trainset, testset, cor);
-			//cor = calcKendallsExclude0(input, train_arr, test_arr, cor);
+			//cor = calcKendalls(input, trainset, testset, cor);
+			cor = calcKendallsExclude0(input, train_arr, test_arr, cor);
 		} else if (mode.equals("EuclideanD")) {
-			cor = calcEuclidean(input, trainset, testset, cor);
-			//cor = calcEuclideanExclude0(input, train_arr, test_arr, cor);
+			//cor = calcEuclidean(input, trainset, testset, cor);
+			cor = calcEuclideanExclude0(input, train_arr, test_arr, cor);
 		}
 
 		writeMultiAxB(input, mode, trainSize, testSize, cor);
 		System.out.println("\nWriting " + mode + " done!\n");
 	}
 
+	
 	// calculates correlation of instances itself (e.g. train x test)
 	public static void calcCorrelationAxA(Input input, String mode) throws Exception {
 
@@ -185,6 +186,7 @@ public class Correlation {
 		System.out.println("\nWriting " + mode + " done!\n");
 	}
 	
+	
 	// writing the result of correlation computation on csv 
 	public static void writeSingleAxA(Input input, String mode, Instances dataset, ArrayList<ArrayList<Double>> cor)
 			throws IOException {
@@ -209,6 +211,7 @@ public class Correlation {
 		csvprinter.close();
 	}
 
+	
 	// writing the result of correlation computation on csv 
 	public static void writeMultiAxA(Input input, String mode, Instances dataset, ArrayList<ArrayList<Double>> cor)
 			throws IOException {
@@ -250,6 +253,7 @@ public class Correlation {
 		}
 		csvprinter.close();
 	}
+	
 	
 	// writing the result of correlation computation on csv 
 	public static void writeMultiAxB(Input input, String mode, int trainSize, int testSize,
@@ -320,6 +324,7 @@ public class Correlation {
 		csvprinter.close();
 	}
 
+	
 	// calculates Pearsons for AxA
 	public static ArrayList<ArrayList<Double>> calcPearsons(Input input, Instances dataset,
 			ArrayList<ArrayList<Double>> cor) throws Exception {
@@ -334,6 +339,7 @@ public class Correlation {
 		return cor;
 	}
 
+	
 	// calculates Pearsons AxB fullsize
 	public static ArrayList<ArrayList<Double>> calcPearsons(Input input, Instances trainset,
 	Instances testset, ArrayList<ArrayList<Double>> cor){
@@ -349,18 +355,20 @@ public class Correlation {
 		return cor;
 	}
 	
+	
 	// calculates Pearsons AxB remove zeros
 	public static ArrayList<ArrayList<Double>> calcPearsonsExclude0(Input input,
 	ArrayList<double[]> train_arr, ArrayList<double[]> test_arr,
 	ArrayList<ArrayList<Double>> cor) throws Exception {
-		
 		int attrNum = train_arr.get(0).length;
+		
 		for (int i = 0; i < test_arr.size(); i++) {
 			for (int j = 0; j < train_arr.size(); j++) {
-
-				// make new changeVector
+				
+				// make new changeVector that has no both zeros
 				ArrayList<Double> excludeCVtrain = new ArrayList<Double>();
 				ArrayList<Double> excludeCVtest = new ArrayList<Double>();
+				
 				// traverse attributes
 				for (int k = 0; k < attrNum; k++) {
 					// if either test and train has non_zero value, add to the new CV
@@ -369,6 +377,7 @@ public class Correlation {
 						excludeCVtest.add(test_arr.get(i)[k]);
 					}
 				}
+				
 				// changing the type to double[]
 				double[] train = new double[excludeCVtrain.size()];
 				for (int k = 0; k < excludeCVtrain.size(); k++) {
@@ -379,12 +388,12 @@ public class Correlation {
 					test[k] = excludeCVtest.get(k);
 				}
 				double pearson;
-				try {
+				
 					pearson = new PearsonsCorrelation().correlation(test, train);
-				} catch (MathIllegalArgumentException miae) {
-					System.out.println("exception: " + miae);
-					pearson = 0.0;
-				}
+				
+				
+				
+				
 				cor.get(i).set(j, pearson);
 			}
 			System.out.println(i + "/" + test_arr.size());
@@ -392,6 +401,7 @@ public class Correlation {
 		return cor;
 	}
 
+	
 	// calculates Kendalls AxA
 	public static ArrayList<ArrayList<Double>> calcKendalls(Input input, Instances dataset,
 			ArrayList<ArrayList<Double>> cor) throws Exception {
@@ -405,6 +415,7 @@ public class Correlation {
 		}
 		return cor;
 	}
+	
 	
 	// calculates Kendalls AxB full size
 	public static ArrayList<ArrayList<Double>> calcKendalls(Input input, Instances trainset,
@@ -421,16 +432,20 @@ public class Correlation {
 		return cor;
 	}
 
+	
 	// calculates Kendalls AxB remove zero
 	public static ArrayList<ArrayList<Double>> calcKendallsExclude0(Input input,
 	ArrayList<double[]> train_arr, ArrayList<double[]> test_arr,
 	ArrayList<ArrayList<Double>> cor) throws Exception {
 		
 		int attrNum = train_arr.get(0).length;
+		
 		for (int i = 0; i < test_arr.size(); i++) {
 			for (int j = 0; j < train_arr.size(); j++) {
+				
 				ArrayList<Double> excludeCVtrain = new ArrayList<Double>();
 				ArrayList<Double> excludeCVtest = new ArrayList<Double>();
+				
 				for (int k = 0; k < attrNum; k++) {
 					// only compute for non_zero values
 					if (test_arr.get(i)[k] != 0 || train_arr.get(j)[k] != 0) {
@@ -438,6 +453,7 @@ public class Correlation {
 						excludeCVtest.add(test_arr.get(i)[k]);
 					}
 				}
+				
 				double[] train = new double[excludeCVtrain.size()];
 				for (int k = 0; k < excludeCVtrain.size(); k++) {
 					train[k] = excludeCVtrain.get(k);
@@ -448,24 +464,13 @@ public class Correlation {
 					test[k] = excludeCVtest.get(k);
 				}
 
-				double kendalls;
-				try {
-					kendalls = new KendallsCorrelation().correlation(test, train);
-				} catch (ArrayIndexOutOfBoundsException aioobe) {
-					System.out.println("exception: " + aioobe);
-					kendalls = 0.0;
-				}
-				if (kendalls > 0.0) {
-					cor.get(i).set(j, kendalls);
-				} else {
-					cor.get(i).set(j, -1.0);
-				}
+				cor.get(i).set(j, new KendallsCorrelation().correlation(test, train));
+				
 			}
 			System.out.println(i + "/" + test_arr.size());
 		}
 		return cor;
 	}
-
 
 	// calculates Euclidean Distance AxA
 	public static ArrayList<ArrayList<Double>> calcEuclidean(Input input, Instances dataset,
@@ -481,6 +486,7 @@ public class Correlation {
 		return cor;
 	}
 
+	
 	// calculates Euclidean Distance AxB full size
 	public static ArrayList<ArrayList<Double>> calcEuclidean(Input input, Instances trainset,
 			Instances testset, ArrayList<ArrayList<Double>> cor) throws Exception {
@@ -495,6 +501,7 @@ public class Correlation {
 		}
 		return cor;
 	}
+	
 	
 	// calculates Euclidean Distance AxB remove zeros
 	public static ArrayList<ArrayList<Double>> calcEuclideanExclude0(Input input, ArrayList<double[]> train_arr,
@@ -527,6 +534,7 @@ public class Correlation {
 		return cor;
 	}
 	
+	
 	// calculates Spearmans AxA
 	public static ArrayList<ArrayList<Double>> calcSpearmans(Input input, Instances dataset,
 			ArrayList<ArrayList<Double>> cor) throws Exception {
@@ -541,6 +549,7 @@ public class Correlation {
 		return cor;
 	}
 
+	
 	// calculates Jaccard AxA
 	public static ArrayList<ArrayList<Double>> calcJaccard(Input input, Instances dataset,
 			ArrayList<ArrayList<Double>> cor) throws Exception {
@@ -557,6 +566,7 @@ public class Correlation {
 		return cor;
 	}
 
+	
 	// calculates Manhattans Distance AxA
 	public static ArrayList<ArrayList<Double>> calcManhattan(Input input, Instances dataset,
 			ArrayList<ArrayList<Double>> cor) throws Exception {
@@ -571,6 +581,7 @@ public class Correlation {
 		return cor;
 	}
 
+	
 	// calculates Covariance matrix AxA
 	public static ArrayList<ArrayList<Double>> calcCovariance(Input input, Instances dataset,
 			ArrayList<ArrayList<Double>> cor) throws Exception {
@@ -585,6 +596,7 @@ public class Correlation {
 		return cor;
 	}
 
+	
 	// calculates cosine similarity AxA
 	public static ArrayList<ArrayList<Double>> calcCosine(Input input, Instances dataset,
 			ArrayList<ArrayList<Double>> cor) throws Exception {
@@ -600,6 +612,7 @@ public class Correlation {
 		return cor;
 	}
 
+	
 	// cosine similarity implementation
 	public static double cosineSimilarity(double[] vectorA, double[] vectorB) {
 		double dotProduct = 0.0;
