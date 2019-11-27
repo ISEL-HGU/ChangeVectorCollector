@@ -24,9 +24,9 @@ public class Correlation {
 	// runner for all
 	public static void computeAll(Input input) throws Exception {
 		if (input.inFile.contains("test")) {
-			calcCorrelationAxB(input, "Pearsons");
+			//calcCorrelationAxB(input, "Pearsons");
 			calcCorrelationAxB(input, "Kendalls");
-			calcCorrelationAxB(input, "EuclideanD");
+			//calcCorrelationAxB(input, "EuclideanD");
 			System.out.println("testing all correlations done!");
 		} else {
 			calcCorrelationAxA(input, "Pearsons");
@@ -121,13 +121,13 @@ public class Correlation {
 
 		if (mode.equals("Pearsons")) {
 			//cor = calcPearsons(input, trainset, testset, cor);
-			cor = calcPearsonsExclude0(input, train_arr, test_arr, cor);
+			cor = calcPearsonsExclude0(input, train_rm, test_rm, cor);
 		} else if (mode.equals("Kendalls")) {
 			//cor = calcKendalls(input, trainset, testset, cor);
-			cor = calcKendallsExclude0(input, train_arr, test_arr, cor);
+			cor = calcKendallsExclude0(input, train_rm, test_rm, cor);
 		} else if (mode.equals("EuclideanD")) {
 			//cor = calcEuclidean(input, trainset, testset, cor);
-			cor = calcEuclideanExclude0(input, train_arr, test_arr, cor);
+			cor = calcEuclideanExclude0(input, train_rm, test_rm, cor);
 		}
 
 		writeMultiAxB(input, mode, trainSize, testSize, cor);
@@ -387,14 +387,13 @@ public class Correlation {
 				for (int k = 0; k < excludeCVtest.size(); k++) {
 					test[k] = excludeCVtest.get(k);
 				}
-				double pearson;
 				
-					pearson = new PearsonsCorrelation().correlation(test, train);
+				if(excludeCVtrain.size() == 0 && excludeCVtest.size() == 0) {
+					cor.get(i).set(j, 0.0);
+					continue;
+				}
 				
-				
-				
-				
-				cor.get(i).set(j, pearson);
+				cor.get(i).set(j, new PearsonsCorrelation().correlation(test, train));
 			}
 			System.out.println(i + "/" + test_arr.size());
 		}
@@ -443,8 +442,8 @@ public class Correlation {
 		for (int i = 0; i < test_arr.size(); i++) {
 			for (int j = 0; j < train_arr.size(); j++) {
 				
-				ArrayList<Double> excludeCVtrain = new ArrayList<Double>();
 				ArrayList<Double> excludeCVtest = new ArrayList<Double>();
+				ArrayList<Double> excludeCVtrain = new ArrayList<Double>();
 				
 				for (int k = 0; k < attrNum; k++) {
 					// only compute for non_zero values
@@ -457,11 +456,18 @@ public class Correlation {
 				double[] train = new double[excludeCVtrain.size()];
 				for (int k = 0; k < excludeCVtrain.size(); k++) {
 					train[k] = excludeCVtrain.get(k);
+					
 				}
-
+				
 				double[] test = new double[excludeCVtest.size()];
 				for (int k = 0; k < excludeCVtest.size(); k++) {
 					test[k] = excludeCVtest.get(k);
+				
+				}
+				
+				if(excludeCVtrain.size() == 0 && excludeCVtest.size() == 0) {
+					cor.get(i).set(j, 0.0);
+					continue;
 				}
 
 				cor.get(i).set(j, new KendallsCorrelation().correlation(test, train));
