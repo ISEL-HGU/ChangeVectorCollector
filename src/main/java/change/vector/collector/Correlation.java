@@ -24,9 +24,9 @@ public class Correlation {
 	// runner for all
 	public static void computeAll(Input input) throws Exception {
 		if (input.inFile.contains("test")) {
-			//calcCorrelationAxB(input, "Pearsons");
+			calcCorrelationAxB(input, "Pearsons");
 			calcCorrelationAxB(input, "Kendalls");
-			//calcCorrelationAxB(input, "EuclideanD");
+			calcCorrelationAxB(input, "EuclideanD");
 			System.out.println("testing all correlations done!");
 		} else {
 			calcCorrelationAxA(input, "Pearsons");

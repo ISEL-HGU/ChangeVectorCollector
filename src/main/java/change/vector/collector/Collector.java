@@ -307,6 +307,7 @@ public class Collector {
 		System.out.println("########### Finish collecting Files from BBIC! ###########");
 	}
 	
+	// removes instances that 
 	public static ArrayList<BeforeBIC> rmDups(ArrayList<BeforeBIC> bbics, Input input) throws IOException {
 		
 		final String[] headers = {"index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix", "key"};
@@ -315,8 +316,9 @@ public class Collector {
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
 		Map<String, MutableInt> dupMap = new HashMap<String, MutableInt>();
 		
+		// put bbics in a hashmap w.r.t. shaFix
 		for(BeforeBIC bbic: bbics) {
-			String key = bbic.shaFix;
+			String key = bbic.shaFix + bbic.pathFix;
 			
 			MutableInt count = dupMap.get(key);
 			if(count == null) {
@@ -326,15 +328,16 @@ public class Collector {
 			}	
 		}
 		
-		
+		// if an instance count is greater than 1, remove
 		for(int i = 0; i < bbics.size(); i++) {
-			String key = bbics.get(i).shaFix;
+			String key = bbics.get(i).shaFix + bbics.get(i).pathFix;
 			if(dupMap.get(key).value > 1) {
 				bbics.remove(i);
 				i--;
 			}
 		}
 		
+		// overwrite the new bbics on BBIC.csv
 		int index = 0;
 		for(BeforeBIC bbic:bbics) {
 			// writing the BBIC file
