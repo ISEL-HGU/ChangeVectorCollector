@@ -244,11 +244,11 @@ public class ChangeVector {
 					ins3.decrement();
 				}
 			}
-			//int totalChange = changeVector.deletesNum + changeVector.insertsNum + changeVector.updatesNum + changeVector.movesNum;
+			int totalChange = changeVector.deletesNum + changeVector.insertsNum + changeVector.updatesNum + changeVector.movesNum;
 			
-			//if(0 < totalChange && totalChange < 50 ) {
+			if(10 < totalChange && totalChange < 50 ) {
 				changeVectors.add(changeVector);
-			//}
+			}
 		}
 	
 		writeARFF(changeVectors, input);

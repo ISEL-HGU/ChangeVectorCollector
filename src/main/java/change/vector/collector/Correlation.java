@@ -264,9 +264,9 @@ public class Correlation {
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 
 		// combined part
-		int trainIgnite = 150;
-		int trainLucene = 236;
-		int trainZookeeper = 140;
+		int trainIgnite = 647;
+		int trainLucene = 1041;
+		int trainZookeeper = 294;
 //		int trainFlink = 459;
 //		int trainIsis = 124;
 //		int trainMahout = 130;
@@ -275,10 +275,10 @@ public class Correlation {
 		// int testIO = 2865;
 		// int testLang = 6306;
 		// int testMath = 19383;
-		int testFlink = 459;
-		int testIsis = 124;
-		int testMahout = 130;
-		//int testOozie = 186;
+		int testFlink = 1351;
+		int testIsis = 396;
+		int testMahout = 386;
+		//int testOozie = 514;
 		
 		String test1 = "flink";
 		String test2 = "isis";
