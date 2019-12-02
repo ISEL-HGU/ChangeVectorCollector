@@ -8,8 +8,9 @@ public class BeforeBIC {
 	public String key;
 	public String pathFix;
 	public String shaFix;
-	
-	public BeforeBIC(String pathBefore, String pathBIC, String shaBefore, String shaBIC, String pathFix, String shaFix, String key) {
+
+	public BeforeBIC(String pathBefore, String pathBIC, String shaBefore, String shaBIC, String pathFix, String shaFix,
+			String key) {
 		this.pathBefore = pathBefore;
 		this.pathBIC = pathBIC;
 		this.shaBefore = shaBefore;
@@ -18,7 +19,7 @@ public class BeforeBIC {
 		this.shaFix = shaFix;
 		this.key = key;
 	}
-	
+
 	@Override
 	public String toString() {
 		return key + "\n";

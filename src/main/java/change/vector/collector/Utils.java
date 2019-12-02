@@ -12,12 +12,10 @@ import org.eclipse.jgit.diff.DiffAlgorithm;
 import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
 
-
 public class Utils {
 
 	static public DiffAlgorithm diffAlgorithm = DiffAlgorithm.getAlgorithm(DiffAlgorithm.SupportedAlgorithm.MYERS);
 	static public RawTextComparator diffComparator = RawTextComparator.WS_IGNORE_ALL;
-
 
 	public static Git gitClone(String REMOTE_URI)
 			throws InvalidRemoteException, TransportException, GitAPIException, IOException {
@@ -27,8 +25,8 @@ public class Utils {
 		if (repositoriesDir.exists()) {
 			try {
 				git = Git.open(repositoriesDir);
-			} catch(RepositoryNotFoundException e) {
-				if(repositoriesDir.delete()) {
+			} catch (RepositoryNotFoundException e) {
+				if (repositoriesDir.delete()) {
 					return gitClone(REMOTE_URI);
 				}
 			}
@@ -51,5 +49,5 @@ public class Utils {
 		return m.group(1);
 
 	}
-	
+
 }
