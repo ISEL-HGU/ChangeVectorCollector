@@ -73,9 +73,9 @@ public class Collector {
 			String pathFix = record.get(2);
 			String shaFix = record.get(3);
 			
-			if(shaBIC.contains("BIShal1")) continue; //skip the header
-			if(content.length() < 3) continue; //skip really short ones
-			if(shaBIC.equals(shaFix)) continue;
+			if(shaBIC.contains("BIShal1")) continue; // skip the header
+			if(content.length() < 3) continue; // skip really short ones
+			if(shaBIC.equals(shaFix)) continue;// skip if BIC == FIX
 
 			// get before instance that has before instances by blaming
 			ObjectId bicID = input.repo.resolve(shaBIC);
