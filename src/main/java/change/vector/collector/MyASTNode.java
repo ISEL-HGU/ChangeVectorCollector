@@ -4,7 +4,7 @@ package change.vector.collector;
 //import org.eclipse.jdt.core.dom.ASTNode; //+ some gumtree
 
 public class MyASTNode {
-	static int nodenums = 106;
+	static int nodenums = 107;
 	static public String[] nodes = {
 	 /* 4. */ "AnnotationTypeDeclaration",
 	 /* 5. */ "AnnotationTypeMemberDeclaration",
@@ -111,6 +111,7 @@ public class MyASTNode {
 	 /* 106. */ "TYPE_DECLARATION_KIND",
 	 /* 107. */ "ASSIGNEMENT_OPERATOR",
 	 /* 108. */ "PREFIX_EXPRESSION_OPERATOR",
-	 /* 109. */ "POSTFIX_EXPRESSION_OPERATOR"
+	 /* 109. */ "POSTFIX_EXPRESSION_OPERATOR",
+	 /* 110. */ "ReturnStatement"
 	};
 }

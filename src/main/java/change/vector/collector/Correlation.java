@@ -21,7 +21,7 @@ import weka.core.converters.ConverterUtils.DataSource;
 
 public class Correlation {
 	enum mode {
-		PEARSONS, KENDALLS, EUCLIDEAND, SPEARMANS, JACCARD, MANHATTAND, COVARIANCE, COSSIM, LCS;
+		PEARSONS, KENDALLS, EUCLIDEAND, SPEARMANS, JACCARD, MANHATTAND, COVARIANCE, COSSIM, LCS, MY;
 	}
 
 	// runner for all
@@ -30,7 +30,8 @@ public class Correlation {
 //			calcCorrelationAxB(input, mode.PEARSONS);
 //			calcCorrelationAxB(input, mode.KENDALLS);
 //			calcCorrelationAxB(input, mode.EUCLIDEAND);
-			calcCorrelationAxB(input, mode.LCS);
+//			calcCorrelationAxB(input, mode.LCS);
+			calcCorrelationAxB(input, mode.MY);
 			System.out.println("testing all correlations done!");
 		} else {
 			calcCorrelationAxA(input, mode.PEARSONS);
@@ -135,6 +136,9 @@ public class Correlation {
 		case LCS:
 			cor = calcLCSexclude0(input, train_rm, test_rm, cor);
 			break;
+		case MY:
+			cor = calcMycor(input, train_rm, test_rm, cor);
+			break;
 		}
 
 		writeMultiAxB(input, mode, trainSize, testSize, cor);
@@ -142,6 +146,7 @@ public class Correlation {
 	}
 
 	// calculates correlation of instances itself (e.g. train x test)
+	@SuppressWarnings("incomplete-switch")
 	public static void calcCorrelationAxA(Input input, mode mode) throws Exception {
 
 		String filePath = input.inFile;
@@ -333,24 +338,43 @@ public class Correlation {
 		csvprinter.close();
 	}
 
-	static int lcs(char[] X, char[] Y, int m, int n) {
-		int L[][] = new int[m + 1][n + 1];
+	static ArrayList<ArrayList<Double>> calcMycor(Input input, ArrayList<double[]> train_arr,
+			ArrayList<double[]> test_arr, ArrayList<ArrayList<Double>> cor) {
 
-		for (int i = 0; i <= m; i++) {
-			for (int j = 0; j <= n; j++) {
-				if (i == 0 || j == 0)
-					L[i][j] = 0;
-				else if (X[i - 1] == Y[j - 1])
-					L[i][j] = L[i - 1][j - 1] + 1;
-				else
-					L[i][j] = max(L[i - 1][j], L[i][j - 1]);
+		for (int i = 0; i < test_arr.size(); i++) {
+			for (int j = 0; j < train_arr.size(); j++) {
+
+				// calculating my correlation algo.
+				double intersection = 0.0;
+				double union = 0.0;
+
+				for (int k = 0; k < train_arr.get(0).length; k++) {
+					if (train_arr.get(j)[k] == test_arr.get(i)[k]) {
+						intersection += train_arr.get(j)[k];
+						union += train_arr.get(j)[k];
+					} else {
+						intersection += min(train_arr.get(j)[k], test_arr.get(i)[k]);
+						union += max(train_arr.get(j)[k], test_arr.get(i)[k]);
+					}
+					if (k ==  34 || k == 141 || k == 248 || k == 355 || 
+						k ==  30 || k == 137 || k == 244 || k == 351 || 
+						k ==  32 || k == 139 || k == 246 || k == 353 || 
+						k == 106 || k == 313 || k == 520 || k == 727 || 
+						k ==  96 || k == 203 || k == 310 || k == 417) {
+						if (train_arr.get(j)[k] > 0 && test_arr.get(i)[k] > 0) {
+							intersection += 5;
+							union += 5;
+						}
+					}
+
+				}
+
+				cor.get(i).set(j, intersection / union);
+				System.out.println("my: " + intersection / union);
 			}
+			System.out.println(i + "/" + test_arr.size());
 		}
-		return L[m][n];
-	}
-
-	static int max(int a, int b) {
-		return (a > b) ? a : b;
+		return cor;
 	}
 
 	// calculates my correlation algorithm for AxB
@@ -389,15 +413,20 @@ public class Correlation {
 				}
 				String train = excludeCVtrain.toString();
 				String test = excludeCVtest.toString();
+				int trainSize = train.length();
+				int testSize = test.length();
 
-
-				if (excludeCVtrain.size() == 0 && excludeCVtest.size() == 0) {
+				if (trainSize == 0 && testSize == 0) {
 					cor.get(i).set(j, 0.0);
 					continue;
 				}
 				char[] x = test.toCharArray();
 				char[] y = train.toCharArray();
-				cor.get(i).set(j, (double) lcs(x, y, test.length(), train.length()));
+
+				int maxVal = max(trainSize, testSize);
+				double lcs = (double) lcs(x, y, testSize, trainSize) / maxVal;
+
+				cor.get(i).set(j, lcs);
 			}
 			System.out.println(i + "/" + test_arr.size());
 		}
@@ -415,7 +444,8 @@ public class Correlation {
 				String y = dataset.get(j).toString();
 				char[] x1 = x.toCharArray();
 				char[] y1 = y.toCharArray();
-				cor.get(i).set(j, (double) lcs(x1, y1, x.length(), y.length()));;
+				cor.get(i).set(j, (double) lcs(x1, y1, x.length(), y.length()));
+				;
 			}
 			System.out.println(i + "/" + dataset.size());
 		}
@@ -718,4 +748,33 @@ public class Correlation {
 		}
 		return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 	}
+
+	static int lcs(char[] X, char[] Y, int m, int n) {
+		int L[][] = new int[m + 1][n + 1];
+
+		for (int i = 0; i <= m; i++) {
+			for (int j = 0; j <= n; j++) {
+				if (i == 0 || j == 0)
+					L[i][j] = 0;
+				else if (X[i - 1] == Y[j - 1])
+					L[i][j] = L[i - 1][j - 1] + 1;
+				else
+					L[i][j] = max(L[i - 1][j], L[i][j - 1]);
+			}
+		}
+		return L[m][n];
+	}
+
+	static int max(int a, int b) {
+		return (a > b) ? a : b;
+	}
+
+	static double max(double a, double b) {
+		return (a > b) ? a : b;
+	}
+
+	static double min(double a, double b) {
+		return (a < b) ? a : b;
+	}
+
 }
