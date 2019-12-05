@@ -26,22 +26,11 @@ public class Correlation {
 
 	// runner for all
 	public static void computeAll(Input input) throws Exception {
-		if (input.inFile.contains("test")) {
-//			calcCorrelationAxB(input, mode.PEARSONS);
-//			calcCorrelationAxB(input, mode.KENDALLS);
-//			calcCorrelationAxB(input, mode.EUCLIDEAND);
-//			calcCorrelationAxB(input, mode.LCS);
+		if (input.inFile.contains("test_")) {
 			calcCorrelationAxB(input, mode.MY);
 			System.out.println("testing all correlations done!");
 		} else {
-			calcCorrelationAxA(input, mode.PEARSONS);
-			calcCorrelationAxA(input, mode.KENDALLS);
-			calcCorrelationAxA(input, mode.EUCLIDEAND);
-//			calcCorrelationAxA(input, mode.SPEARMANS);
-//			calcCorrelationAxA(input, mode.JACCARD);
-//			calcCorrelationAxA(input, mode.MANHATTAND);
-//			calcCorrelationAxA(input, mode.COVARIANCE);
-//			calcCorrelationAxA(input, mode.COSSIM);
+			calcCorrelationAxA(input, mode.MY);
 			System.out.println("writing all correlations done!");
 		}
 	}
@@ -137,7 +126,7 @@ public class Correlation {
 			cor = calcLCSexclude0(input, train_rm, test_rm, cor);
 			break;
 		case MY:
-			cor = calcMycor(input, train_rm, test_rm, cor);
+			cor = calcMyCor(input, train_rm, test_rm, cor);
 			break;
 		}
 
@@ -156,11 +145,13 @@ public class Correlation {
 		if (dataset.classIndex() == -1)
 			dataset.setClassIndex(dataset.numAttributes() - 1);
 
+		int dataSize = dataset.numInstances();
+		int attrNum = dataset.numAttributes();
+
 		System.out.println("num of att: " + dataset.numAttributes());
 		System.out.println("num of inst " + dataset.numInstances());
-		// System.out.println(dataset);
 
-		// double[][] instantiation
+		// cor instantiation
 		ArrayList<ArrayList<Double>> cor = new ArrayList<ArrayList<Double>>();
 		for (int i = 0; i < dataset.numInstances(); i++) {
 			cor.add(new ArrayList<Double>());
@@ -169,33 +160,30 @@ public class Correlation {
 			}
 		}
 
+		// init data_arr
+		ArrayList<double[]> data_arr = new ArrayList<double[]>();
+		for (int i = 0; i < dataSize; i++) {
+			data_arr.add(new double[attrNum]);
+		}
+		for (int i = 0; i < dataSize; i++) {
+			data_arr.set(i, dataset.get(i).toDoubleArray());
+		}
+
+		// removing changeVector info before computing correlation coefficients
+		ArrayList<double[]> data_rm = new ArrayList<double[]>();
+		for (int i = 0; i < dataSize; i++) {
+			data_rm.add(new double[attrNum - 4]);
+
+		}
+		for (int i = 0; i < dataSize; i++) {
+			for (int j = 4; j < attrNum - 4; j++) {
+				data_rm.get(i)[j] = data_arr.get(i)[j];
+			}
+		}
+
 		switch (mode) {
-		case PEARSONS:
-			cor = calcPearsons(input, dataset, cor);
-			break;
-		case SPEARMANS:
-			cor = calcSpearmans(input, dataset, cor);
-			break;
-		case KENDALLS:
-			cor = calcKendalls(input, dataset, cor);
-			break;
-		case JACCARD:
-			cor = calcJaccard(input, dataset, cor);
-			break;
-		case EUCLIDEAND:
-			cor = calcEuclidean(input, dataset, cor);
-			break;
-		case MANHATTAND:
-			cor = calcManhattan(input, dataset, cor);
-			break;
-		case COVARIANCE:
-			cor = calcCovariance(input, dataset, cor);
-			break;
-		case COSSIM:
-			cor = calcCosine(input, dataset, cor);
-			break;
-		case LCS:
-			cor = calcLCS(input, dataset, cor);
+		case MY:
+			cor = calcMyCor(input, data_rm, cor);
 		}
 
 		// writing files
@@ -240,31 +228,57 @@ public class Correlation {
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 
 		// combined part
-		int numOfIgnite = 1658;
-		int numOfLucene = 3076;
-		int numOfZookeeper = 685;
+		int igniteNum = 647;
+		int luceneNum = 1041;
+		int zookeeperNum = 294;
+		int flinkNum = 1351;
+		int isisNum = 396;
+		int mahoutNum = 386;
+		int oozieNum = 514;
 
 		// index of x-axis
-		csvprinter.print(mode);
-		for (int i = 0; i < numOfIgnite; i++) {
+		// writing index of x-axis
+		csvprinter.print(mode.toString());
+		for (int i = 0; i < igniteNum; i++) {
 			csvprinter.print("ignite" + i);
 		}
-		for (int i = 0; i < numOfLucene; i++) {
+		for (int i = 0; i < luceneNum; i++) {
 			csvprinter.print("lucene-solr" + i);
 		}
-		for (int i = 0; i < numOfZookeeper; i++) {
+		for (int i = 0; i < zookeeperNum; i++) {
 			csvprinter.print("zookeeper" + i);
+		}
+		for (int i = 0; i < flinkNum; i++) {
+			csvprinter.print("flink" + i);
+		}
+		for (int i = 0; i < isisNum; i++) {
+			csvprinter.print("isis" + i);
+		}
+		for (int i = 0; i < mahoutNum; i++) {
+			csvprinter.print("mahout" + i);
+		}
+		for (int i = 0; i < oozieNum; i++) {
+			csvprinter.print("oozie" + i);
 		}
 		csvprinter.println();
 
 		// writing data
-		for (int i = 0, lucene = 0, zookeeper = 0; i < dataset.numInstances(); i++) {
-			if (i < numOfIgnite) {
+		for (int i = 0, lucene = 0, zookeeper = 0, flink = 0, isis = 0, mahout = 0, oozie = 0; i < dataset
+				.numInstances(); i++) {
+			if (i < igniteNum) {
 				csvprinter.print("ignite" + i);
-			} else if (i < (numOfIgnite + numOfLucene)) {
+			} else if (i < (igniteNum + luceneNum)) {
 				csvprinter.print("lucene-solr" + (lucene++));
-			} else {
+			} else if (i < igniteNum + luceneNum + zookeeperNum) {
 				csvprinter.print("zookeeper" + (zookeeper++));
+			} else if (i < igniteNum + luceneNum + zookeeperNum + flinkNum) {
+				csvprinter.print("flink" + (flink++));
+			} else if (i < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum) {
+				csvprinter.print("isis" + (isis++));
+			} else if (i < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum) {
+				csvprinter.print("mahout" + (mahout++));
+			} else if (i < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum + oozieNum) {
+				csvprinter.print("oozie" + (oozie++));
 			}
 			for (int j = 0; j < dataset.numInstances(); j++) {
 				csvprinter.print(cor.get(i).get(j));
@@ -338,7 +352,48 @@ public class Correlation {
 		csvprinter.close();
 	}
 
-	static ArrayList<ArrayList<Double>> calcMycor(Input input, ArrayList<double[]> train_arr,
+	// calculate my correlation algorithm AxA
+	static ArrayList<ArrayList<Double>> calcMyCor(Input input, ArrayList<double[]> data_arr,
+			ArrayList<ArrayList<Double>> cor) {
+
+		for (int i = 0; i < data_arr.size(); i++) {
+			for (int j = 0; j < data_arr.size(); j++) {
+
+				// calculating my correlation algo.
+				double intersection = 0.0;
+				double union = 0.0;
+
+				for (int k = 0; k < data_arr.get(0).length; k++) {
+					if (data_arr.get(j)[k] == data_arr.get(i)[k]) {
+						intersection += data_arr.get(j)[k];
+						union += data_arr.get(j)[k];
+					} else {
+						intersection += min(data_arr.get(j)[k], data_arr.get(i)[k]);
+						union += max(data_arr.get(j)[k], data_arr.get(i)[k]);
+					}
+					if (k ==  34 || k == 141 || k == 248 || k == 355
+					 || k ==  30 || k == 137 || k == 244 || k == 351
+					 || k ==  32 || k == 139 || k == 246 || k == 353 
+					 || k == 106 || k == 313 || k == 520 || k == 727 
+					 || k ==  96 || k == 203 || k == 310 || k == 417) {
+						if (data_arr.get(j)[k] > 0 && data_arr.get(i)[k] > 0) {
+							intersection += 5;
+							union += 5;
+						}
+					}
+
+				}
+
+				cor.get(i).set(j, intersection / union);
+				// System.out.println("my: " + intersection / union);
+			}
+			System.out.println(i + "/" + data_arr.size());
+		}
+		return cor;
+	}
+
+	// calculate my correlation algorithm AxB
+	static ArrayList<ArrayList<Double>> calcMyCor(Input input, ArrayList<double[]> train_arr,
 			ArrayList<double[]> test_arr, ArrayList<ArrayList<Double>> cor) {
 
 		for (int i = 0; i < test_arr.size(); i++) {
@@ -356,11 +411,11 @@ public class Correlation {
 						intersection += min(train_arr.get(j)[k], test_arr.get(i)[k]);
 						union += max(train_arr.get(j)[k], test_arr.get(i)[k]);
 					}
-					if (k ==  34 || k == 141 || k == 248 || k == 355 || 
-						k ==  30 || k == 137 || k == 244 || k == 351 || 
-						k ==  32 || k == 139 || k == 246 || k == 353 || 
-						k == 106 || k == 313 || k == 520 || k == 727 || 
-						k ==  96 || k == 203 || k == 310 || k == 417) {
+					if (k ==  34 || k == 141 || k == 248 || k == 355 
+					 || k ==  30 || k == 137 || k == 244 || k == 351
+					 || k ==  32 || k == 139 || k == 246 || k == 353 
+					 || k == 106 || k == 313 || k == 520 || k == 727 
+					 || k ==  96 || k == 203 || k == 310 || k == 417) {
 						if (train_arr.get(j)[k] > 0 && test_arr.get(i)[k] > 0) {
 							intersection += 5;
 							union += 5;
@@ -370,7 +425,7 @@ public class Correlation {
 				}
 
 				cor.get(i).set(j, intersection / union);
-				System.out.println("my: " + intersection / union);
+				// System.out.println("my: " + intersection / union);
 			}
 			System.out.println(i + "/" + test_arr.size());
 		}
