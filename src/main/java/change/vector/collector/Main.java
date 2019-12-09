@@ -3,10 +3,6 @@ package change.vector.collector;
 import change.vector.collector.Input;
 import change.vector.collector.Collector;
 import change.vector.collector.ChangeVector;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -14,8 +10,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
 
 public class Main {
 	Input input = null;
@@ -62,27 +56,8 @@ public class Main {
 
 			// get precfix results -p
 			if (is_precfix) {
-				File outFile = new File(input.outFile + "prec_" + input.projectName + ".csv");
-				BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
-				CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
-				double[][] similarity = new double[bbics.size()][bbics.size()];
-				
 				bbics = Collector.collectBeforeBICFromLocalFile(input);
-				similarity = Precfix.runPrecfix(input, bbics);
-				csvprinter.print(input.projectName);
-				for (int i = 0; i < similarity.length; i++) {
-					csvprinter.print(i);
-				}
-				csvprinter.println();
-
-				for (int i = 0; i < similarity.length; i++) {
-					for (int j = 0; j < similarity.length; j++) {
-						csvprinter.print(similarity[i][j]);
-					}
-					csvprinter.println();
-				}
-				csvprinter.close();
-				System.out.println("writing precfix done!");
+				Precfix.runPrecfix(input, bbics);
 				return;
 			}
 
