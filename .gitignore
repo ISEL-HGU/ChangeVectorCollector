@@ -29,7 +29,7 @@ repositories/*
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
 !gumtree/lib/*.jar
-
+!libcommoncrawl-1.1.jar
 .DS_Store
 
 # ignore data files
