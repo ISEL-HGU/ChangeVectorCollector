@@ -3,6 +3,10 @@ package change.vector.collector;
 import change.vector.collector.Input;
 import change.vector.collector.Collector;
 import change.vector.collector.ChangeVector;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -10,6 +14,8 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 
 public class Main {
 	Input input = null;
@@ -18,6 +24,7 @@ public class Main {
 	public static boolean is_local = false;
 	public static boolean is_correlation = false;
 	public static boolean is_all = false;
+	public static boolean is_precfix = false;
 
 	public static void main(String[] args) throws Exception {
 		Main cvc = new Main();
@@ -53,6 +60,32 @@ public class Main {
 				bbics = Collector.rmDups(bbics, input);
 			}
 
+			// get precfix results -p
+			if (is_precfix) {
+				File outFile = new File(input.outFile + "prec_" + input.projectName + ".csv");
+				BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
+				CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
+				double[][] similarity = new double[bbics.size()][bbics.size()];
+				
+				bbics = Collector.collectBeforeBICFromLocalFile(input);
+				similarity = Precfix.runPrecfix(input, bbics);
+				csvprinter.print(input.projectName);
+				for (int i = 0; i < similarity.length; i++) {
+					csvprinter.print(i);
+				}
+				csvprinter.println();
+
+				for (int i = 0; i < similarity.length; i++) {
+					for (int j = 0; j < similarity.length; j++) {
+						csvprinter.print(similarity[i][j]);
+					}
+					csvprinter.println();
+				}
+				csvprinter.close();
+				System.out.println("writing precfix done!");
+				return;
+			}
+
 			// collect java files of bbic of bic
 			Collector.collectFiles(input, bbics);
 
@@ -82,6 +115,8 @@ public class Main {
 					is_local = true;
 				else if (cmd.hasOption("a"))
 					is_all = true;
+				else if (cmd.hasOption("p"))
+					is_precfix = true;
 
 				in = cmd.getOptionValue("i");
 				out = cmd.getOptionValue("o");
@@ -105,6 +140,8 @@ public class Main {
 
 	private Options createOptions() {
 		Options options = new Options();
+
+		options.addOption(Option.builder("p").longOpt("precfix").desc("run PRECFIX").build());
 
 		options.addOption(Option.builder("a").longOpt("all").desc("Collects all changes in a repo").build());
 

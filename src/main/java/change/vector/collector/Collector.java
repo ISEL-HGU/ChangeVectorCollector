@@ -3,6 +3,7 @@ package change.vector.collector;
 import change.vector.collector.BeforeBIC;
 import java.io.File;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -26,6 +27,7 @@ import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
@@ -171,20 +173,21 @@ public class Collector {
 		return bbics;
 	}
 
-	private static DiffEntry runDiff(Repository repo, String oldCommit, String newCommit, String path)
+	public static String getDiff(Repository repo, DiffEntry diff) throws IOException {
+		String code = "";
+		OutputStream out = new ByteArrayOutputStream();
+		try (DiffFormatter formatter = new DiffFormatter(out)) {
+        	formatter.setRepository(repo);
+            formatter.format(diff);
+            code = out.toString();
+        }
+		return code;
+	}
+	
+	// https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/DiffRenamedFile.java
+	public static DiffEntry runDiff(Repository repo, String oldCommit, String newCommit, String path)
 			throws IOException, GitAPIException {
-		// Diff README.md between two commits. The file is named README.md in
-		// the new commit (5a10bd6e), but was named "jgit-cookbook README.md" in
-		// the old commit (2e1d65e4).
 		DiffEntry diff = diffFile(repo, oldCommit, newCommit, path);
-
-		// Display the diff
-//        System.out.println("Showing diff of " + path);
-//        try (DiffFormatter formatter = new DiffFormatter(System.out)) {
-//            formatter.setRepository(repo);
-//            //noinspection ConstantConditions
-//            formatter.format(diff); //i love you Jiho;
-//        }
 		return diff;
 	}
 

@@ -5,9 +5,9 @@ public class BeforeBIC {
 	public String pathBIC;
 	public String shaBefore;
 	public String shaBIC;
-	public String key;
 	public String pathFix;
 	public String shaFix;
+	public String key;
 
 	public BeforeBIC(String pathBefore, String pathBIC, String shaBefore, String shaBIC, String pathFix, String shaFix,
 			String key) {
