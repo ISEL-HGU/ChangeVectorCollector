@@ -10,6 +10,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.text.similarity.JaccardSimilarity;
 import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.checkerframework.checker.units.qual.kg;
 import org.commoncrawl.util.shared.SimHash;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -17,7 +18,7 @@ public class Precfix {
 
 	public static void runPrecfix(Input input, ArrayList<BeforeBIC> bbics) throws IOException, GitAPIException {
 		ArrayList<DefectPatchPair> dps = new ArrayList<DefectPatchPair>();
-		if(input.inFile.contains("combined")) {
+		if (input.inFile.contains("combined")) {
 			// combined part
 			int igniteNum = 647;
 			int luceneNum = 1041;
@@ -52,16 +53,13 @@ public class Precfix {
 				}
 				dps.add(dp);
 			}
-			
-		}
-		else {
+
+		} else {
 			for (BeforeBIC bbic : bbics) {
 				DefectPatchPair dp = new DefectPatchPair(bbic, input);
 				dps.add(dp);
 			}
 		}
-		
-//		DefectPatchPair dp = new DefectPatchPair(bbics.get(501), input);
 
 		// get SimHash for defect-patch pairs;
 		ArrayList<ArrayList<Long>> simHashes = new ArrayList<ArrayList<Long>>();
@@ -152,25 +150,27 @@ public class Precfix {
 						levenPatchMax = levenPatch;
 				}
 			}
-//			if (i > 0) {
-//				System.out.print(String.format("\033[%dA", 1)); // Move up
-//			}
-//			System.out.println("Getting Levenshtien Max " + i + "/" + dps.size());
+			if (i > 0) {
+				System.out.print(String.format("\033[%dA", 1)); // Move up
+			}
+			System.out.println("Getting Levenshtien Max " + i + "/" + dps.size());
 		}
 		for (int i = 0; i < dps.size(); i++) {
 			for (int j = 0; j < dps.size(); j++) {
 				if (reducer[i][j] > 17) {
 					similarity[i][j] = 0.0;
 				} else {
-					if (defectStrings[i].equals("") || defectStrings[j].equals("") || patchStrings[i].equals("")
-							|| patchStrings[j].equals("")) {
+					if (defectStrings[i].length() < 10 || defectStrings[j].length() < 10
+							|| patchStrings[i].length() < 10 || patchStrings[j].length() < 10) {
 						similarity[i][j] = 0.0;
 						continue;
 					}
+
 					if (i == j) {
 						similarity[i][j] = 1.0;
 						continue;
 					}
+
 					double jaccardDefect = new JaccardSimilarity().apply(defectStrings[i], defectStrings[j]);
 					double levenshteinDefect = new LevenshteinDistance().apply(defectStrings[i], defectStrings[j]);
 					levenshteinDefect /= levenDefectMax;
@@ -217,7 +217,7 @@ public class Precfix {
 	}
 
 	public static void writePrecfixMulti(Input input, double[][] similarity) throws IOException {
-		File outFile = new File(input.outFile + "_prec_combined7" + ".csv");
+		File outFile = new File(input.outFile + "prec_combined7" + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 
@@ -274,10 +274,41 @@ public class Precfix {
 				csvprinter.print("oozie" + (oozie++));
 			}
 			for (int j = 0; j < similarity.length; j++) {
-				csvprinter.print(similarity[i][j]);
+				if (i == j) {
+					csvprinter.print("same_instance");
+				} else if (i < igniteNum && j < igniteNum) {
+					csvprinter.print("-");
+				} else if (i > igniteNum && j > igniteNum && i < igniteNum + luceneNum && j < igniteNum + luceneNum) {
+					csvprinter.print("-");
+				} else if (i > igniteNum + luceneNum && j > igniteNum + luceneNum
+						&& i < igniteNum + luceneNum + zookeeperNum && j < igniteNum + luceneNum + zookeeperNum) {
+					csvprinter.print("-");
+				} else if (i > igniteNum + luceneNum + zookeeperNum && j > igniteNum + luceneNum + zookeeperNum
+						&& i < igniteNum + luceneNum + zookeeperNum + flinkNum
+						&& j < igniteNum + luceneNum + zookeeperNum + flinkNum) {
+					csvprinter.print("-");
+				} else if (i > igniteNum + luceneNum + zookeeperNum + flinkNum
+						&& j > igniteNum + luceneNum + zookeeperNum + flinkNum
+						&& i < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum
+						&& j < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum) {
+					csvprinter.print("-");
+				} else if (i > igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum
+						&& j > igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum
+						&& i < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum
+						&& j < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum) {
+					csvprinter.print("-");
+				} else if (i > igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum
+						&& j > igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum
+						&& i < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum + oozieNum
+						&& j < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum + oozieNum) {
+					csvprinter.print("-");
+				} else {
+					csvprinter.print(similarity[i][j]);
+				}
 			}
 			csvprinter.println();
 		}
 		csvprinter.close();
+		System.out.println("writing precfix multi done!");
 	}
 }
