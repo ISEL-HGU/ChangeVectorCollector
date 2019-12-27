@@ -10,7 +10,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.text.similarity.JaccardSimilarity;
 import org.apache.commons.text.similarity.LevenshteinDistance;
-import org.checkerframework.checker.units.qual.kg;
 import org.commoncrawl.util.shared.SimHash;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -23,7 +22,7 @@ public class Precfix {
 			int igniteNum = 647;
 			int luceneNum = 1041;
 			int zookeeperNum = 294;
-			int flinkNum = 1351;
+			int flinkNum = 1349;
 			int isisNum = 396;
 			int mahoutNum = 386;
 			// int oozieNum = 514;
@@ -83,18 +82,19 @@ public class Precfix {
 		ArrayList<ArrayList<Long>> simHashes = new ArrayList<ArrayList<Long>>();
 		for (DefectPatchPair dp : dps) {
 			String defectString = "";
-			String patchString = "";
+//			String patchString = "";
 			for (int i = 0; i < dp.codeDefect.size(); i++) {
 				defectString += dp.codeDefect.get(i);
 			}
-			for (int i = 0; i < dp.codePatch.size(); i++) {
-				patchString += dp.codePatch.get(i);
-			}
+//			for (int i = 0; i < dp.codePatch.size(); i++) {
+//				patchString += dp.codePatch.get(i);
+//			}
 			long defectSH = SimHash.computeOptimizedSimHashForString(defectString);
-			long patchSH = SimHash.computeOptimizedSimHashForString(patchString);
+			System.out.println("sim: " + defectSH);
+//			long patchSH = SimHash.computeOptimizedSimHashForString(patchString);
 			ArrayList<Long> dpPair = new ArrayList<Long>();
 			dpPair.add(defectSH);
-			dpPair.add(patchSH);
+//			dpPair.add(patchSH);
 			simHashes.add(dpPair);
 		}
 		System.out.println("Calculating SimHashes complete!");
@@ -106,9 +106,9 @@ public class Precfix {
 		for (int i = 0; i < simHashes.size(); i++) {
 			for (int j = 0; j < simHashes.size(); j++) {
 				float defectHD = (float) SimHash.hammingDistance(simHashes.get(i).get(0), simHashes.get(j).get(0));
-				float patchHD = (float) SimHash.hammingDistance(simHashes.get(i).get(1), simHashes.get(j).get(1));
-				float hammingDistance = (defectHD + patchHD) / 2;
-				reducer[i][j] = hammingDistance;
+//				float patchHD = (float) SimHash.hammingDistance(simHashes.get(i).get(1), simHashes.get(j).get(1));
+//				float hammingDistance = (defectHD + patchHD) / 2;
+				reducer[i][j] = defectHD;
 			}
 		}
 		System.out.println("Calculating reducers complete!");
@@ -118,36 +118,42 @@ public class Precfix {
 	public static double[][] calculateSimilarity(double[][] reducer, ArrayList<DefectPatchPair> dps) {
 		double[][] similarity = new double[dps.size()][dps.size()];
 		String[] defectStrings = new String[dps.size()];
-		String[] patchStrings = new String[dps.size()];
+//		String[] patchStrings = new String[dps.size()];
 		int dpsIndex = 0;
 
 		// concatenating ArrayList<String> of code to one String
 		for (DefectPatchPair dp : dps) {
 			String defectString = "";
-			String patchString = "";
+//			String patchString = "";
 			for (int i = 0; i < dp.codeDefect.size(); i++) {
-				defectString += dp.codeDefect.get(i);
+				defectString += dp.codeDefect.get(i).replaceAll("\\s", "");
+				defectString += "\n";
 			}
-			for (int i = 0; i < dp.codePatch.size(); i++) {
-				patchString += dp.codePatch.get(i);
-			}
+//			for (int i = 0; i < dp.codePatch.size(); i++) {
+//				patchString += dp.codePatch.get(i).replaceAll("\\s", "");
+//				patchString += "\n";
+//			}
+			if (dpsIndex == 45 || dpsIndex == 899)
+				System.out.println(defectString);
 			defectStrings[dpsIndex] = defectString;
-			patchStrings[dpsIndex] = patchString;
+//			patchStrings[dpsIndex] = patchString;
 			dpsIndex++;
 		}
 
 		double levenDefectMax = 0;
-		double levenPatchMax = 0;
+//		double levenPatchMax = 0;
 
 		for (int i = 0; i < dps.size(); i++) {
 			for (int j = 0; j < dps.size(); j++) {
-				if (reducer[i][j] <= 17) {
+
+				if (reducer[i][j] < 17) {
 					double levenDefect = new LevenshteinDistance().apply(defectStrings[i], defectStrings[j]);
-					double levenPatch = new LevenshteinDistance().apply(patchStrings[i], patchStrings[j]);
+					// double levenPatch = new LevenshteinDistance().apply(patchStrings[i],
+					// patchStrings[j]);
 					if (levenDefect > levenDefectMax)
 						levenDefectMax = levenDefect;
-					if (levenPatch > levenPatchMax)
-						levenPatchMax = levenPatch;
+//					if (levenPatch > levenPatchMax)
+//						levenPatchMax = levenPatch;
 				}
 			}
 			if (i > 0) {
@@ -160,8 +166,8 @@ public class Precfix {
 				if (reducer[i][j] > 17) {
 					similarity[i][j] = 0.0;
 				} else {
-					if (defectStrings[i].length() < 10 || defectStrings[j].length() < 10
-							|| patchStrings[i].length() < 10 || patchStrings[j].length() < 10) {
+					if (defectStrings[i].length() < 50 || defectStrings[j].length() < 50) {
+//							|| patchStrings[i].length() < 50 || patchStrings[j].length() < 50) {
 						similarity[i][j] = 0.0;
 						continue;
 					}
@@ -173,49 +179,31 @@ public class Precfix {
 
 					double jaccardDefect = new JaccardSimilarity().apply(defectStrings[i], defectStrings[j]);
 					double levenshteinDefect = new LevenshteinDistance().apply(defectStrings[i], defectStrings[j]);
-					levenshteinDefect /= levenDefectMax;
+					levenshteinDefect = levenshteinDefect / levenDefectMax;
 					levenshteinDefect = 1 - levenshteinDefect;
-					double jaccardPatch = new JaccardSimilarity().apply(patchStrings[i], patchStrings[j]);
-					double levenshteinPatch = 1 - (new LevenshteinDistance().apply(patchStrings[i], patchStrings[j]));
-					levenshteinPatch /= levenPatchMax;
-					levenshteinPatch = 1 - levenshteinPatch;
+//					double jaccardPatch = new JaccardSimilarity().apply(patchStrings[i], patchStrings[j]);
+//					double levenshteinPatch = 1 - (new LevenshteinDistance().apply(patchStrings[i], patchStrings[j]));
+//					levenshteinPatch = levenshteinPatch / levenPatchMax;
+//					levenshteinPatch = 1 - levenshteinPatch;
 					double scoreDefect = jaccardDefect * 0.8 + levenshteinDefect * 0.2;
-					double scorePatch = jaccardPatch * 0.8 + levenshteinPatch * 0.2;
-					double score = (scoreDefect + scorePatch) / 2;
+//					double scorePatch = jaccardPatch * 0.8 + levenshteinPatch * 0.2;
+//					double score = (scoreDefect + scorePatch) / 2;
+					if (i == 45 && j == 899) {
+						System.out.println(jaccardDefect);
+						System.out.println(levenshteinDefect);
+					}
 
-					similarity[i][j] = score;
+					similarity[i][j] = scoreDefect;
 				}
 			}
-//			if (i > 0) {
-//				System.out.print(String.format("\033[%dA", 1)); // Move up
-//			}
-//			System.out.println("Getting Scores " + i + "/" + dps.size());
+			if (i > 0) {
+				System.out.print(String.format("\033[%dA", 1)); // Move up
+			}
+			System.out.println("Getting Scores " + i + "/" + dps.size());
 		}
 		return similarity;
 	}
-
-	public static void writePrecfix(Input input, double[][] similarity) throws IOException {
-		File outFile = new File(input.outFile + "test_" + input.projectName + ".csv");
-		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
-		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
-
-		csvprinter.print(input.projectName);
-		for (int i = 0; i < similarity.length; i++) {
-			csvprinter.print(i);
-		}
-		csvprinter.println();
-
-		for (int i = 0; i < similarity.length; i++) {
-			csvprinter.print(i);
-			for (int j = 0; j < similarity.length; j++) {
-				csvprinter.print(similarity[i][j]);
-			}
-			csvprinter.println();
-		}
-		csvprinter.close();
-		System.out.println("writing precfix done!");
-	}
-
+	
 	public static void writePrecfixMulti(Input input, double[][] similarity) throws IOException {
 		File outFile = new File(input.outFile + "prec_combined7" + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
@@ -225,7 +213,7 @@ public class Precfix {
 		int igniteNum = 647;
 		int luceneNum = 1041;
 		int zookeeperNum = 294;
-		int flinkNum = 1351;
+		int flinkNum = 1349;
 		int isisNum = 396;
 		int mahoutNum = 386;
 		int oozieNum = 514;
@@ -311,4 +299,27 @@ public class Precfix {
 		csvprinter.close();
 		System.out.println("writing precfix multi done!");
 	}
+	
+	public static void writePrecfix(Input input, double[][] similarity) throws IOException {
+		File outFile = new File(input.outFile + "test_" + input.projectName + ".csv");
+		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
+		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
+
+		csvprinter.print(input.projectName);
+		for (int i = 0; i < similarity.length; i++) {
+			csvprinter.print(i);
+		}
+		csvprinter.println();
+
+		for (int i = 0; i < similarity.length; i++) {
+			csvprinter.print(i);
+			for (int j = 0; j < similarity.length; j++) {
+				csvprinter.print(similarity[i][j]);
+			}
+			csvprinter.println();
+		}
+		csvprinter.close();
+		System.out.println("writing precfix done!");
+	}
+
 }

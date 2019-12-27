@@ -281,7 +281,37 @@ public class Correlation {
 				csvprinter.print("oozie" + (oozie++));
 			}
 			for (int j = 0; j < dataset.numInstances(); j++) {
-				csvprinter.print(cor.get(i).get(j));
+				if (i == j) {
+					csvprinter.print("same");
+				} else if (i < igniteNum && j < igniteNum) {
+					csvprinter.print("-");
+				} else if (i > igniteNum && j > igniteNum && i < igniteNum + luceneNum && j < igniteNum + luceneNum) {
+					csvprinter.print("-");
+				} else if (i > igniteNum + luceneNum && j > igniteNum + luceneNum
+						&& i < igniteNum + luceneNum + zookeeperNum && j < igniteNum + luceneNum + zookeeperNum) {
+					csvprinter.print("-");
+				} else if (i > igniteNum + luceneNum + zookeeperNum && j > igniteNum + luceneNum + zookeeperNum
+						&& i < igniteNum + luceneNum + zookeeperNum + flinkNum
+						&& j < igniteNum + luceneNum + zookeeperNum + flinkNum) {
+					csvprinter.print("-");
+				} else if (i > igniteNum + luceneNum + zookeeperNum + flinkNum
+						&& j > igniteNum + luceneNum + zookeeperNum + flinkNum
+						&& i < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum
+						&& j < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum) {
+					csvprinter.print("-");
+				} else if (i > igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum
+						&& j > igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum
+						&& i < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum
+						&& j < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum) {
+					csvprinter.print("-");
+				} else if (i > igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum
+						&& j > igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum
+						&& i < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum + oozieNum
+						&& j < igniteNum + luceneNum + zookeeperNum + flinkNum + isisNum + mahoutNum + oozieNum) {
+					csvprinter.print("-");
+				} else {
+					csvprinter.print(cor.get(i).get(j));
+				}
 			}
 			csvprinter.println();
 		}
@@ -374,7 +404,7 @@ public class Correlation {
 					if (k ==  34 || k == 141 || k == 248 || k == 355
 					 || k ==  30 || k == 137 || k == 244 || k == 351
 					 || k ==  32 || k == 139 || k == 246 || k == 353 
-					 || k == 106 || k == 313 || k == 520 || k == 727 
+					 || k == 106 || k == 213 || k == 320 || k == 427 
 					 || k ==  96 || k == 203 || k == 310 || k == 417) {
 						if (data_arr.get(j)[k] > 0 && data_arr.get(i)[k] > 0) {
 							intersection += 5;
