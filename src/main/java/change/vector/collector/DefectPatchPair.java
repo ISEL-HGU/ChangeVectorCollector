@@ -11,6 +11,7 @@ public class DefectPatchPair {
 	String pathPatch = "";
 	String shaBeforePatch = "";
 	String pathBeforePatch = "";
+	String codeBIC = "";
 	ArrayList<String> codeDefect = new ArrayList<String>();
 	ArrayList<String> codePatch = new ArrayList<String>();
 	ArrayList<String> defectPatch = new ArrayList<String>();
@@ -27,9 +28,15 @@ public class DefectPatchPair {
 		defectPatch = getDefectPatch(input.repo, diff, shaPatch, pathPatch);
 		codeDefect = getCodeDefect(defectPatch);
 		codePatch = getCodePatch(defectPatch);
-
+		codeBIC = getBICcode(input.repo, diff, bbic.shaBIC, bbic.pathBIC);
 	}
 
+	public static String getBICcode(Repository repo, DiffEntry diff, String sha, String path) throws IOException{
+		String codeBIC = Collector.getDiff(repo, diff);
+		// System.out.println(code);
+		return codeBIC;
+	}
+	
 	public static ArrayList<String> getDefectPatch(Repository repo, DiffEntry diff, String sha, String path)
 			throws IOException {
 		String code = Collector.getDiff(repo, diff);
@@ -87,6 +94,8 @@ public class DefectPatchPair {
 
 		return patches;
 	}
+	
+	@Override
 	public String toString() {
 		String string = "";
 		for(String str: defectPatch) {

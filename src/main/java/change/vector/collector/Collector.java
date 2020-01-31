@@ -71,12 +71,12 @@ public class Collector {
 			// retrieve the record we need
 			String shaBIC = record.get(0);
 			String pathBIC = record.get(1);
-			String lineNum = record.get(4);
-			String content = record.get(6);
+			String lineNum = record.get(6);
+			String content = record.get(9);
 			String pathFix = record.get(2);
 			String shaFix = record.get(3);
 
-			if (shaBIC.contains("BIShal1"))
+			if (shaBIC.contains("BISha1"))
 				continue; // skip the header
 			if (content.length() < 3)
 				continue; // skip really short ones

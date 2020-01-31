@@ -2,6 +2,7 @@ package change.vector.collector;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -17,6 +18,7 @@ public class Precfix {
 
 	public static void runPrecfix(Input input, ArrayList<BeforeBIC> bbics) throws IOException, GitAPIException {
 		ArrayList<DefectPatchPair> dps = new ArrayList<DefectPatchPair>();
+		BufferedWriter writer = new BufferedWriter(new FileWriter("./assets/BIC_code.txt"));
 		if (input.inFile.contains("combined")) {
 			// combined part
 			int igniteNum = 647;
@@ -51,31 +53,38 @@ public class Precfix {
 					dp = new DefectPatchPair(bbics.get(i), inputOozie);
 				}
 				dps.add(dp);
+				writer.write(dp.codeBIC);
 			}
 
 		} else {
 			for (BeforeBIC bbic : bbics) {
 				DefectPatchPair dp = new DefectPatchPair(bbic, input);
 				dps.add(dp);
+
+				//writing codeCommit
+				writer.write("<start>\n");
+				writer.write(dp.codeBIC);
+				writer.write("<end>\n");
 			}
-		}
+		}		
 
 		// get SimHash for defect-patch pairs;
-		ArrayList<ArrayList<Long>> simHashes = new ArrayList<ArrayList<Long>>();
-		simHashes = getSimHash(dps);
-
-		double[][] reducer = new double[simHashes.size()][simHashes.size()];
-		reducer = getReducers(simHashes);
-
-		double[][] similarity = new double[simHashes.size()][simHashes.size()];
-		similarity = calculateSimilarity(reducer, dps);
-
-		if (input.inFile.contains("combined")) {
-			writePrecfixMulti(input, similarity);
-		} else {
-			writePrecfix(input, similarity);
-		}
-
+//		ArrayList<ArrayList<Long>> simHashes = new ArrayList<ArrayList<Long>>();
+//		simHashes = getSimHash(dps);
+//
+//		double[][] reducer = new double[simHashes.size()][simHashes.size()];
+//		reducer = getReducers(simHashes);
+//
+//		double[][] similarity = new double[simHashes.size()][simHashes.size()];
+//		similarity = calculateSimilarity(reducer, dps);
+//
+//		if (input.inFile.contains("combined")) {
+//			writePrecfixMulti(input, similarity);
+//		} else {
+//			writePrecfix(input, similarity);
+//		}
+		System.out.println("done writing commits");
+		writer.close();
 	}
 
 	public static ArrayList<ArrayList<Long>> getSimHash(ArrayList<DefectPatchPair> dps) {
