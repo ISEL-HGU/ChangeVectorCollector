@@ -69,6 +69,10 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.commoncrawl/libcommoncrawl
 	compile group: 'org.commoncrawl', name: 'libcommoncrawl', version: '1.1', ext: 'pom'
 
+	// https://mvnrepository.com/artifact/fr.inria.gforge.spoon.labs/gumtree-spoon-ast-diff
+	compile group: 'fr.inria.gforge.spoon.labs', name: 'gumtree-spoon-ast-diff', version: '1.23'
+
+	
 }
 
 //jar {

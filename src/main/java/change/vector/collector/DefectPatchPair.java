@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
 
 public class DefectPatchPair {
@@ -18,20 +19,25 @@ public class DefectPatchPair {
 
 	public DefectPatchPair(BeforeBIC bbic, Input input) throws IOException, GitAPIException {
 		shaPatch = bbic.shaFix;
-
 		pathPatch = bbic.pathFix;
 		shaBeforePatch = shaPatch + "^";
-		DiffEntry diff = Collector.runDiff(input.repo, shaBeforePatch, shaPatch, pathPatch);
-		if (diff != null) {
-			pathBeforePatch = diff.getOldPath();
+		DiffEntry diff;
+		try {
+			 diff = Collector.runDiff(input.repo, shaBeforePatch, shaPatch, pathPatch);
+			 if (diff != null) {
+					pathBeforePatch = diff.getOldPath();
+				}
+				defectPatch = getDefectPatch(input.repo, diff, shaPatch, pathPatch);
+				codeDefect = getCodeDefect(defectPatch);
+				codePatch = getCodePatch(defectPatch);
+				codeBIC = getBICcode(input.repo, diff);
+		} catch(MissingObjectException moe) {
+			System.out.println("moe: " + moe);
 		}
-		defectPatch = getDefectPatch(input.repo, diff, shaPatch, pathPatch);
-		codeDefect = getCodeDefect(defectPatch);
-		codePatch = getCodePatch(defectPatch);
-		codeBIC = getBICcode(input.repo, diff, bbic.shaBIC, bbic.pathBIC);
+		
 	}
 
-	public static String getBICcode(Repository repo, DiffEntry diff, String sha, String path) throws IOException{
+	public static String getBICcode(Repository repo, DiffEntry diff) throws IOException{
 		String codeBIC = Collector.getDiff(repo, diff);
 		// System.out.println(code);
 		return codeBIC;

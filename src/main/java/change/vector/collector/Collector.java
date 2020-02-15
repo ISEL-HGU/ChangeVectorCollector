@@ -58,7 +58,7 @@ public class Collector {
 
 		final String[] headers = { "index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix",
 				"key" };
-		File fileP = new File(input.bbicFilePath);
+		File fileP = new File(input.outFile + "BBIC_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
 
@@ -71,10 +71,10 @@ public class Collector {
 			// retrieve the record we need
 			String shaBIC = record.get(0);
 			String pathBIC = record.get(1);
-			String lineNum = record.get(6);
-			String content = record.get(9);
 			String pathFix = record.get(2);
 			String shaFix = record.get(3);
+			String lineNum = record.get(6);
+			String content = record.get(9);
 
 			if (shaBIC.contains("BISha1"))
 				continue; // skip the header
@@ -110,10 +110,9 @@ public class Collector {
 					shaBefore = shaBIC + "^";
 				}
 			}
-			;
 
 			String key = shaBefore + "\n" + shaBIC + "\n" + pathBefore + "\n" + pathBIC;
-
+			System.out.println(key);
 			// skip duplicates
 			for (int j = 0; j < bbics.size(); j++) {
 				if (bbics.get(j).key.equals(key)) {
@@ -128,7 +127,6 @@ public class Collector {
 			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, shaFix, key);
 			bbics.add(bbic);
 
-			// writing the BBIC file
 			csvprinter.printRecord(input.projectName + index, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore,
 					bbic.shaBIC, bbic.pathFix, bbic.shaFix, bbic.key);
 			csvprinter.flush();
@@ -142,8 +140,8 @@ public class Collector {
 
 		System.out.println("########### Finish collecting BBIC from repo! ###########");
 
+//		BeforeBIC.writeBBICsOnCSV(input, bbics);
 		csvprinter.close();
-
 		return bbics;
 	}
 
@@ -169,7 +167,7 @@ public class Collector {
 			bbics.add(bbic);
 		}
 
-		System.out.println("########### Finish collecting BBIC from local file! ###########");
+		System.out.println("########### Finish collecting BBIC from local file: " + bbics.size() + " ###########");
 		return bbics;
 	}
 
@@ -177,13 +175,13 @@ public class Collector {
 		String code = "";
 		OutputStream out = new ByteArrayOutputStream();
 		try (DiffFormatter formatter = new DiffFormatter(out)) {
-        	formatter.setRepository(repo);
-            formatter.format(diff);
-            code = out.toString();
-        }
+			formatter.setRepository(repo);
+			formatter.format(diff);
+			code = out.toString();
+		}
 		return code;
 	}
-	
+
 	// https://github.com/centic9/jgit-cookbook/blob/master/src/main/java/org/dstadler/jgit/porcelain/DiffRenamedFile.java
 	public static DiffEntry runDiff(Repository repo, String oldCommit, String newCommit, String path)
 			throws IOException, GitAPIException {

@@ -18,16 +18,17 @@ public class Precfix {
 
 	public static void runPrecfix(Input input, ArrayList<BeforeBIC> bbics) throws IOException, GitAPIException {
 		ArrayList<DefectPatchPair> dps = new ArrayList<DefectPatchPair>();
-		BufferedWriter writer = new BufferedWriter(new FileWriter("./assets/BIC_code.txt"));
+		ArrayList<BeforeBIC> newBeforeBICs = new ArrayList<BeforeBIC>();
+		BufferedWriter writer = new BufferedWriter(new FileWriter("./assets/BIC_code_short.txt"));
 		if (input.inFile.contains("combined")) {
 			// combined part
-			int igniteNum = 647;
-			int luceneNum = 1041;
-			int zookeeperNum = 294;
-			int flinkNum = 1349;
-			int isisNum = 396;
-			int mahoutNum = 386;
-			// int oozieNum = 514;
+			int igniteNum = 0;
+			int luceneNum = 2273;
+			int zookeeperNum = 873;
+			int flinkNum = 25490;
+			int isisNum = 1365;
+			int mahoutNum = 5240;
+			// int oozieNum = 1124;
 			Input inputIgnite = new Input("https://github.com/apache/ignite", input.inFile, input.outFile);
 			Input inputLucene = new Input("https://github.com/apache/lucene-solr", input.inFile, input.outFile);
 			Input inputZookeeper = new Input("https://github.com/apache/zookeeper", input.inFile, input.outFile);
@@ -35,6 +36,7 @@ public class Precfix {
 			Input inputIsis = new Input("https://github.com/apache/isis", input.inFile, input.outFile);
 			Input inputMahout = new Input("https://github.com/apache/mahout", input.inFile, input.outFile);
 			Input inputOozie = new Input("https://github.com/apache/oozie", input.inFile, input.outFile);
+			
 			for (int i = 0; i < bbics.size(); i++) {
 				DefectPatchPair dp;
 				if (i < igniteNum) {
@@ -52,8 +54,23 @@ public class Precfix {
 				} else {
 					dp = new DefectPatchPair(bbics.get(i), inputOozie);
 				}
+				
+				// if failed to retreive dp instance
+				if(dp.codeBIC.equals("")) continue;
+				
+				// if the change is too long, skip 
+				String[] tokens = dp.codeBIC.split(" ");
+				if(tokens.length > 1000) continue;
+				
+				
 				dps.add(dp);
+				newBeforeBICs.add(bbics.get(i));
+				
+				
+				//writing codeCommit
+				writer.write("<start>\n");
 				writer.write(dp.codeBIC);
+				writer.write("<end>\n");
 			}
 
 		} else {
@@ -83,6 +100,7 @@ public class Precfix {
 //		} else {
 //			writePrecfix(input, similarity);
 //		}
+		BeforeBIC.writeBBICsOnCSV(input, newBeforeBICs, "BBIC_train.csv");
 		System.out.println("done writing commits");
 		writer.close();
 	}
