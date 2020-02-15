@@ -74,14 +74,28 @@ public class Precfix {
 			}
 
 		} else {
+			int i = 0;
 			for (BeforeBIC bbic : bbics) {
 				DefectPatchPair dp = new DefectPatchPair(bbic, input);
 				dps.add(dp);
 
+				// if failed to retreive dp instance
+				if(dp.codeBIC.equals("")) continue;
+				
+				// if the change is too long, skip 
+				String[] tokens = dp.codeBIC.split(" ");
+				if(tokens.length > 1000) continue;
+				
+				
+				dps.add(dp);
+				newBeforeBICs.add(bbics.get(i));
+				
+				
 				//writing codeCommit
 				writer.write("<start>\n");
 				writer.write(dp.codeBIC);
 				writer.write("<end>\n");
+				i++;
 			}
 		}		
 
