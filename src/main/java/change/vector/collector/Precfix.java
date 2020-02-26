@@ -60,7 +60,7 @@ public class Precfix {
 				
 				// if the change is too long, skip 
 				String[] tokens = dp.codeBIC.split(" ");
-				if(tokens.length > 500) continue;
+				if(tokens.length > 100) continue;
 				
 				
 				dps.add(dp);
