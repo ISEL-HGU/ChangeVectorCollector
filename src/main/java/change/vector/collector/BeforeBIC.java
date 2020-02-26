@@ -36,7 +36,7 @@ public class BeforeBIC {
 	public static void writeBBICsOnCSV(Input input, ArrayList<BeforeBIC> bbics, String out_path) throws IOException {
 		
 		final String[] headers = { "index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix",
-				"key" };
+				"key", "url" };
 		File fileP = new File(input.outFile+out_path);
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
@@ -45,7 +45,7 @@ public class BeforeBIC {
 		for(BeforeBIC bbic: bbics) {
 			// writing the BBIC file
 			csvprinter.printRecord(input.projectName + index, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore,
-					bbic.shaBIC, bbic.pathFix, bbic.shaFix, bbic.key);
+					bbic.shaBIC, bbic.pathFix, bbic.shaFix, bbic.key, input.url);
 			csvprinter.flush();
 			index++;
 		}
