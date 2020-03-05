@@ -1,8 +1,5 @@
 package change.vector.collector;
 
-import change.vector.collector.Input;
-import change.vector.collector.Collector;
-import change.vector.collector.ChangeVector;
 import java.util.ArrayList;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

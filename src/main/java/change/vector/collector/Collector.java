@@ -1,6 +1,5 @@
 package change.vector.collector;
 
-import change.vector.collector.BeforeBIC;
 import java.io.File;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
