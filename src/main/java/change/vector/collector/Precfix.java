@@ -19,7 +19,7 @@ public class Precfix {
 	public static void runPrecfix(Input input, ArrayList<BeforeBIC> bbics) throws IOException, GitAPIException {
 		ArrayList<DefectPatchPair> dps = new ArrayList<DefectPatchPair>();
 		ArrayList<BeforeBIC> newBeforeBICs = new ArrayList<BeforeBIC>();
-		BufferedWriter writer = new BufferedWriter(new FileWriter("./assets/BIC_code_short.txt"));
+		BufferedWriter writer = new BufferedWriter(new FileWriter("./assets/code.txt"));
 		if (input.inFile.contains("combined")) {
 			// combined part
 			int igniteNum = 0;
@@ -55,7 +55,7 @@ public class Precfix {
 					dp = new DefectPatchPair(bbics.get(i), inputOozie);
 				}
 				
-				// if failed to retreive dp instance
+				// if failed to retrieve dp instance
 				if(dp.codeBIC.equals("")) continue;
 				
 				// if the change is too long, skip 
@@ -84,7 +84,7 @@ public class Precfix {
 				
 				// if the change is too long, skip 
 				String[] tokens = dp.codeBIC.split(" ");
-				if(tokens.length > 1000) continue;
+				if(tokens.length > 100) continue;
 				
 				
 				dps.add(dp);
@@ -114,7 +114,7 @@ public class Precfix {
 //		} else {
 //			writePrecfix(input, similarity);
 //		}
-		BeforeBIC.writeBBICsOnCSV(input, newBeforeBICs, "BBIC_train.csv");
+		BeforeBIC.writeBBICsOnCSV(input, newBeforeBICs, "label.csv");
 		System.out.println("done writing commits");
 		writer.close();
 	}

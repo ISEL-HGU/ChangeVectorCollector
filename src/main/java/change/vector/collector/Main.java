@@ -10,12 +10,13 @@ import org.apache.commons.cli.Options;
 
 public class Main {
 	Input input = null;
-	boolean help = false;
+	boolean is_help = false;
 	public static boolean is_repo = false;
 	public static boolean is_local = false;
 	public static boolean is_correlation = false;
 	public static boolean is_all = false;
 	public static boolean is_precfix = false;
+	public static boolean is_gumtree = false;
 
 	public static void main(String[] args) throws Exception {
 		Main cvc = new Main();
@@ -27,6 +28,8 @@ public class Main {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 
 		if (parseOptions(options, args)) {
+			if (is_help)
+				printHelp(options);
 
 			// collects all changes in a repository -a
 			if (is_all) {
@@ -45,27 +48,31 @@ public class Main {
 				bbics = Collector.rmDups(bbics, input);
 			}
 
-			// collect bbic from csv file -l
+			// collect bbic from .csv file -l
 			if (is_local) {
-				bbics = Collector.collectBeforeBICFromLocalFile(input);
-				bbics = Collector.rmDups(bbics, input);
-			}
-
-			// get precfix results -p
-			if (is_precfix) {
 				bbics = Collector.collectBeforeBICFromLocalFile(input);
 				Precfix.runPrecfix(input, bbics);
 				return;
 			}
 
+			// get Precfix results -p
+			if (is_precfix) {
+				bbics = Collector.collectBeforeBICFromLocalFile(input);
+				Precfix.runPrecfix(input, bbics);
+				return;
+			}
+			// get AST vectors with ordering using GumTree -g
+			if(is_gumtree) {
+				bbics = Collector.collectBeforeBIC(input);
+				Gumtree.runGumtree(input, bbics);
+				return;
+			}
+
 			// collect java files of bbic of bic
-			Collector.collectFiles(input, bbics);
+//			Collector.collectFiles(input, bbics);
 
 			// perform Gumtree to retrieve change vector
-			ChangeVector.runGumtreeDIST(input, bbics);
-
-			if (help)
-				printHelp(options);
+//			ChangeVector.runGumtreeDIST(input, bbics);
 		}
 	}
 
@@ -78,7 +85,6 @@ public class Main {
 		try {
 			CommandLine cmd = parser.parse(options, args);
 			try {
-
 				if (cmd.hasOption("c"))
 					is_correlation = true;
 				else if (cmd.hasOption("r"))
@@ -89,6 +95,8 @@ public class Main {
 					is_all = true;
 				else if (cmd.hasOption("p"))
 					is_precfix = true;
+				else if (cmd.hasOption("g"))
+					is_gumtree = true;
 
 				in = cmd.getOptionValue("i");
 				out = cmd.getOptionValue("o");
@@ -106,13 +114,14 @@ public class Main {
 			printHelp(options);
 			return false;
 		}
-
 		return true;
 	}
 
 	private Options createOptions() {
 		Options options = new Options();
 
+		options.addOption(Option.builder("g").longOpt("gumtree").desc("run Gumtree").build());
+		
 		options.addOption(Option.builder("p").longOpt("precfix").desc("run PRECFIX").build());
 
 		options.addOption(Option.builder("a").longOpt("all").desc("Collects all changes in a repo").build());

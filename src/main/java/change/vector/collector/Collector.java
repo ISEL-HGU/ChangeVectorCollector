@@ -72,10 +72,10 @@ public class Collector {
 			String pathBIC = record.get(1);
 			String pathFix = record.get(2);
 			String shaFix = record.get(3);
-			String lineNum = record.get(6);
-			String content = record.get(9);
+			String lineNum = record.get(4);
+			String content = record.get(6);
 
-			if (shaBIC.contains("BISha1"))
+			if (shaBIC.contains("BIShal1"))
 				continue; // skip the header
 			if (content.length() < 3)
 				continue; // skip really short ones
@@ -86,8 +86,20 @@ public class Collector {
 			ObjectId bicID = input.repo.resolve(shaBIC);
 			blamer.setStartCommit(bicID);
 			blamer.setFilePath(pathBIC);
-			BlameResult blame = blamer.call();
-			RevCommit commitBefore = blame.getSourceCommit(Integer.parseInt(lineNum) - 1);
+
+			BlameResult blame;
+			try {
+				blame = blamer.call();
+			} catch (Exception e) {
+				continue;
+			}
+
+			RevCommit commitBefore;
+			try{
+				commitBefore = blame.getSourceCommit(Integer.parseInt(lineNum) - 1);
+			} catch (Exception e) {
+				continue;
+			}
 
 			// retrieve SHA and path of before BIC
 			String pathBefore = blame.getSourcePath(Integer.parseInt(lineNum) - 1);
@@ -111,7 +123,7 @@ public class Collector {
 			}
 
 			String key = shaBefore + "\n" + shaBIC + "\n" + pathBefore + "\n" + pathBIC;
-			System.out.println(key);
+
 			// skip duplicates
 			for (int j = 0; j < bbics.size(); j++) {
 				if (bbics.get(j).key.equals(key)) {
@@ -130,16 +142,14 @@ public class Collector {
 					bbic.shaBIC, bbic.pathFix, bbic.shaFix, bbic.key);
 			csvprinter.flush();
 
-			System.out.println("#" + index);
-			System.out.println("dups: " + dups);
-			System.out.println(bbic.toString());
+			System.out.println(index + dups);
 			index++;
 			walk.close();
 		}
 
 		System.out.println("########### Finish collecting BBIC from repo! ###########");
 
-//		BeforeBIC.writeBBICsOnCSV(input, bbics);
+		BeforeBIC.writeBBICsOnCSV(input, bbics);
 		csvprinter.close();
 		return bbics;
 	}
