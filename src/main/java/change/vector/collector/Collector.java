@@ -63,6 +63,7 @@ public class Collector {
 
 		int index = 0;
 		for (CSVRecord record : records) {
+			System.out.println(index);
 
 			boolean isKeyDuplicate = false;
 			BlameCommand blamer = new BlameCommand(input.repo);
@@ -72,10 +73,10 @@ public class Collector {
 			String pathBIC = record.get(1);
 			String pathFix = record.get(2);
 			String shaFix = record.get(3);
-			String lineNum = record.get(4);
-			String content = record.get(6);
+			String lineNum = record.get(6);
+			String content = record.get(9);
 
-			if (shaBIC.contains("BIShal1"))
+			if (shaBIC.contains("BISha1"))
 				continue; // skip the header
 			if (content.length() < 3)
 				continue; // skip really short ones
