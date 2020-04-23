@@ -149,8 +149,6 @@ public class Collector {
 		}
 
 		System.out.println("########### Finish collecting BBIC from repo! ###########");
-
-		BeforeBIC.writeBBICsOnCSV(input, bbics);
 		csvprinter.close();
 		return bbics;
 	}
