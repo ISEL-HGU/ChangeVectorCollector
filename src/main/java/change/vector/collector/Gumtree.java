@@ -56,7 +56,7 @@ public class Gumtree {
 				String pathBIC = bbic.pathBIC;
 				String pathBBIC = bbic.pathBefore;
 				String pathFIX = bbic.pathFix;
-				String pathBFIX = "";
+				String pathBFIX = bbic.pathBFix;
 				
 
 				String srcBlobBIC = Utils.fetchBlob(repo, commitBBIC.getName(), pathBBIC);
