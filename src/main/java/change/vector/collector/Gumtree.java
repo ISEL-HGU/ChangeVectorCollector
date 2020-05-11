@@ -167,7 +167,6 @@ public class Gumtree {
 						bbic.shaBIC, bbic.pathFix, bbic.shaFix, bbic.key);
 				csvprinter_Y.flush();
 
-				csvprinter_GV.print(input.projectName + cnt);
 				for (Integer val : g_vec) {
 					csvprinter_GV.print(val);
 				}
