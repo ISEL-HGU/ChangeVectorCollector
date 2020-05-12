@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
@@ -107,12 +108,25 @@ public class Gumtree {
 
 				// retrieving the context vector in AST
 				ArrayList<Integer> cnt_vec = new ArrayList<Integer>();
+				HashMap<Integer, Boolean> map = new HashMap<Integer, Boolean>();
 				for (Action action : actionsBIC) {
-					List<ITree> children = action.getNode().getParent().getChildren();
-					for (ITree child : children) {
-						cnt_vec.add(child.getType());
+					int parent_hash = action.getNode().getParent().getHash();
+					if(map.containsKey(parent_hash)) {
+						continue;
+					} else {
+						map.put(parent_hash, true);
+						List<ITree> descendants = action.getNode().getParent().getDescendants();
+						for (ITree descendant : descendants) {
+							if(map.containsKey(descendant.getHash())) {
+								continue;
+							} else {
+								map.put(descendant.getHash(), true);
+								cnt_vec.add(descendant.getType());
+							}
+						}
 					}
 				}
+				
 
 //				// adding fix change
 //				ITree srcFIX;
