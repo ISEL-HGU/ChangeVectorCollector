@@ -2,14 +2,9 @@ package change.vector.collector;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Hashtable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
@@ -94,21 +89,6 @@ public class Utils {
 //		System.out.println(m.group(1));
 		return m.group(1);
 
-	}
-
-	public static int getLineNum(String blob, int position) {
-		@SuppressWarnings("deprecation")
-		ASTParser parser = ASTParser.newParser(AST.JLS9);
-		parser.setKind(ASTParser.K_COMPILATION_UNIT);
-		Hashtable<String, String> pOptions = JavaCore.getOptions();
-		pOptions.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_9);
-		pOptions.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_9);
-		pOptions.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_9);
-		pOptions.put(JavaCore.COMPILER_DOC_COMMENT_SUPPORT, JavaCore.ENABLED);
-		parser.setCompilerOptions(pOptions);
-		parser.setSource(blob.toCharArray());
-		CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-		return cu.getLineNumber(position);
 	}
 
 }

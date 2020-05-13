@@ -7,10 +7,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
@@ -106,12 +111,25 @@ public class Gumtree {
 					}
 				}
 
+				
+				// using JDT parser to get the line number of AST nodes
+				@SuppressWarnings("deprecation")
+				ASTParser parser = ASTParser.newParser(AST.JLS9);
+				parser.setKind(ASTParser.K_COMPILATION_UNIT);
+				Hashtable<String, String> pOptions = JavaCore.getOptions();
+				pOptions.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_9);
+				pOptions.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_9);
+				pOptions.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_9);
+				pOptions.put(JavaCore.COMPILER_DOC_COMMENT_SUPPORT, JavaCore.ENABLED);
+				parser.setCompilerOptions(pOptions);
+				parser.setSource(dstBlobBIC.toCharArray());
+				CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+				
 				// retrieving the context vector in AST
 				ArrayList<Integer> cnt_vec = new ArrayList<Integer>();
 				HashMap<Integer, Boolean> map = new HashMap<Integer, Boolean>();
 				for (Action action : actionsBIC) {
-					int lineNumOfBIC = Utils.getLineNum(dstBlobBIC, action.getNode().getPos());
-
+					int lineNumOfBIC = cu.getLineNumber(action.getNode().getPos());
 					int parent_hash = action.getNode().getParent().getHash();
 					if (map.containsKey(parent_hash)) {
 						continue;
@@ -122,7 +140,7 @@ public class Gumtree {
 							if (map.containsKey(descendant.getHash())) {
 								continue;
 							} else {
-								int lineNumOfDescendant = Utils.getLineNum(dstBlobBIC, descendant.getPos());
+								int lineNumOfDescendant = cu.getLineNumber(descendant.getPos());
 								if (Math.abs(lineNumOfBIC - lineNumOfDescendant) < 3) {
 									map.put(descendant.getHash(), true);
 									cnt_vec.add(descendant.getType());
