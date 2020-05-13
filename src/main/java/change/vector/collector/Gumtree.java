@@ -110,23 +110,27 @@ public class Gumtree {
 				ArrayList<Integer> cnt_vec = new ArrayList<Integer>();
 				HashMap<Integer, Boolean> map = new HashMap<Integer, Boolean>();
 				for (Action action : actionsBIC) {
+					int lineNumOfBIC = Utils.getLineNum(dstBlobBIC, action.getNode().getPos());
+
 					int parent_hash = action.getNode().getParent().getHash();
-					if(map.containsKey(parent_hash)) {
+					if (map.containsKey(parent_hash)) {
 						continue;
 					} else {
 						map.put(parent_hash, true);
 						List<ITree> descendants = action.getNode().getParent().getDescendants();
 						for (ITree descendant : descendants) {
-							if(map.containsKey(descendant.getHash())) {
+							if (map.containsKey(descendant.getHash())) {
 								continue;
 							} else {
-								map.put(descendant.getHash(), true);
-								cnt_vec.add(descendant.getType());
+								int lineNumOfDescendant = Utils.getLineNum(dstBlobBIC, descendant.getPos());
+								if (Math.abs(lineNumOfBIC - lineNumOfDescendant) < 3) {
+									map.put(descendant.getHash(), true);
+									cnt_vec.add(descendant.getType());
+								}
 							}
 						}
 					}
 				}
-				
 
 //				// adding fix change
 //				ITree srcFIX;

@@ -35,3 +35,5 @@ repositories/*
 # ignore data files
 *.csv
 *.arff
+/.gradle/
+/build/
