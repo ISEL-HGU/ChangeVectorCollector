@@ -62,6 +62,7 @@ public class Main {
 				Precfix.runPrecfix(input, bbics);
 				return;
 			}
+			
 			// get AST vectors with ordering using GumTree -g
 			if(is_gumtree) {
 				bbics = Collector.collectBeforeBIC(input);
