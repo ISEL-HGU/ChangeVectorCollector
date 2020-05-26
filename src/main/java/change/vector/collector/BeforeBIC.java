@@ -20,8 +20,8 @@ public class BeforeBIC {
 	public String shaFix;
 	public String key;
 
-	public BeforeBIC(String pathBefore, String pathBIC, String shaBefore, String shaBIC, String pathFix, String shaFix,
-			String pathBFix, String shaBfix, String key) {
+	public BeforeBIC(String pathBefore, String pathBIC, String shaBefore, String shaBIC, String pathFix, String pathBFix,
+			String shaBFix, String shaFix, String key) {
 		this.pathBefore = pathBefore;
 		this.pathBIC = pathBIC;
 		this.shaBefore = shaBefore;

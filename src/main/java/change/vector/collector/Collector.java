@@ -179,7 +179,7 @@ public class Collector {
 			bbics.add(bbic);
 
 			csvprinter.printRecord(input.projectName + index, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore,
-					bbic.shaBIC, bbic.pathFix, bbic.shaFix, bbic.pathBFix, bbic.shaBFix, bbic.key);
+					bbic.shaBIC, bbic.pathFix, bbic.pathBFix, bbic.shaBFix, bbic.shaFix, bbic.key);
 			csvprinter.flush();
 
 			index++;
@@ -203,15 +203,15 @@ public class Collector {
 			String pathBIC = record.get(2);
 			String shaBefore = record.get(3);
 			String shaBIC = record.get(4);
-			String path_fix = record.get(5);
-			String sha_fix = record.get(6);
-			String pathBFix = record.get(7);
-			String shaBFix = record.get(8);
+			String pathFix = record.get(5);
+			String pathBFix = record.get(6);
+			String shaBFix = record.get(7);
+			String shaFix = record.get(8);
 			String key = record.get(9);
 			if (pathBefore.contains("path_before"))
 				continue;
 
-			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, path_fix, sha_fix, pathBFix, shaBFix,
+			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, pathBFix, shaBFix, shaFix,
 					key);
 			bbics.add(bbic);
 		}

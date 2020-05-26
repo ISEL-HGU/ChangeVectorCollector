@@ -1,5 +1,6 @@
 package change.vector.collector;
 
+import java.io.File;
 import java.util.ArrayList;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -61,10 +62,15 @@ public class Main {
 				Precfix.runPrecfix(input, bbics);
 				return;
 			}
-			
+
 			// get AST vectors with ordering using GumTree -g
-			if(is_gumtree) {
-				bbics = Collector.collectBeforeBIC(input);
+			if (is_gumtree) {
+				File bbicFile = new File(input.outFile + "BBIC_" + input.projectName + ".csv");
+				if (bbicFile.exists()) {
+					bbics = Collector.collectBeforeBICFromLocalFile(input);
+				} else {
+					bbics = Collector.collectBeforeBIC(input);
+				}
 				Gumtree.runGumtree(input, bbics);
 				return;
 			}
@@ -122,7 +128,7 @@ public class Main {
 		Options options = new Options();
 
 		options.addOption(Option.builder("g").longOpt("gumtree").desc("run Gumtree").build());
-		
+
 		options.addOption(Option.builder("p").longOpt("precfix").desc("run PRECFIX").build());
 
 		options.addOption(Option.builder("a").longOpt("all").desc("Collects all changes in a repo").build());
