@@ -1,6 +1,5 @@
 package change.vector.collector;
 
-import change.vector.collector.Gumtree;
 import java.util.ArrayList;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

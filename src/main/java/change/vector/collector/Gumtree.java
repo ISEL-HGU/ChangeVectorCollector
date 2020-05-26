@@ -86,23 +86,33 @@ public class Gumtree {
 
 				List<Action> actionsBIC = gBIC.getActions();
 
-				if (actionsBIC.size() > MAX_SIZE)
-					continue;
+				
 				if (actionsBIC.size() <= 0)
 					continue;
 
 				ArrayList<Integer> g_vec = new ArrayList<Integer>();
 				for (Action action : actionsBIC) {
+					// if regards import, discard
+					if(action.getNode().getType() == 40) {
+						continue;
+					}
+					
 					if (action.getName().equals("INS")) {
 						g_vec.add(action.getNode().getType() + 1);
 					} else if (action.getName().equals("DEL")) {
 						g_vec.add(action.getNode().getType() + 85 + 1);
-					} else if (action.getName().equals("UPD")) {
-						g_vec.add(action.getNode().getType() + 85 * 2 + 1);
-					} else if (action.getName().equals("MOV")) {
-						g_vec.add(action.getNode().getType() + 85 * 3 + 1);
-					}
+					} 
+					// disregard move or update
+//					else if (action.getName().equals("UPD")) {
+//						g_vec.add(action.getNode().getType() + 85 * 2 + 1);
+//					} else if (action.getName().equals("MOV")) {
+//						g_vec.add(action.getNode().getType() + 85 * 3 + 1);
+//					}
 				}
+				
+				// if over max_size or zero, discard instance.
+				if(g_vec.size() > MAX_SIZE || g_vec.size() <= 0) 
+					continue;
 
 				// zero padding if less than MAX_SIZE
 				if (actionsBIC.size() < MAX_SIZE) {
@@ -111,7 +121,6 @@ public class Gumtree {
 					}
 				}
 
-				
 				// using JDT parser to get the line number of AST nodes
 				@SuppressWarnings("deprecation")
 				ASTParser parser = ASTParser.newParser(AST.JLS9);
@@ -124,9 +133,9 @@ public class Gumtree {
 				parser.setCompilerOptions(pOptions);
 				parser.setSource(dstBlobBIC.toCharArray());
 				CompilationUnit cu = (CompilationUnit) parser.createAST(null);
-				
+
 				// retrieving the context vector in AST
-				ArrayList<Integer> cnt_vec = new ArrayList<Integer>();
+				ArrayList<Integer> context_vec = new ArrayList<Integer>();
 				HashMap<Integer, Boolean> map = new HashMap<Integer, Boolean>();
 				for (Action action : actionsBIC) {
 					int lineNumOfBIC = cu.getLineNumber(action.getNode().getPos());
@@ -143,7 +152,7 @@ public class Gumtree {
 								int lineNumOfDescendant = cu.getLineNumber(descendant.getPos());
 								if (Math.abs(lineNumOfBIC - lineNumOfDescendant) < 3) {
 									map.put(descendant.getHash(), true);
-									cnt_vec.add(descendant.getType());
+									context_vec.add(descendant.getType());
 								}
 							}
 						}
@@ -193,7 +202,7 @@ public class Gumtree {
 
 				// adding the two lists
 
-				g_vec.addAll(cnt_vec);
+				g_vec.addAll(context_vec);
 				System.out.println(cnt + ": " + g_vec.size());
 
 				gumtree_vectors.add(g_vec);
