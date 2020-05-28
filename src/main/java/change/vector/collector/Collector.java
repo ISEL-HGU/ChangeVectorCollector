@@ -174,7 +174,7 @@ public class Collector {
 				continue;
 
 			// add BBIC when passed all of the above
-			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, shaFix, pathBFix, shaBFix,
+			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, pathBFix, shaBFix, shaFix,
 					key);
 			bbics.add(bbic);
 
@@ -191,6 +191,35 @@ public class Collector {
 		return bbics;
 	}
 
+	public static ArrayList<BeforeBIC> collectBeforeBICFromLocalFile(Input input, String inputFile)
+			throws FileNotFoundException, IOException {
+		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
+		Reader in = new FileReader(inputFile);
+
+		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
+
+		for (CSVRecord record : records) {
+			String pathBefore = record.get(1);
+			String pathBIC = record.get(2);
+			String shaBefore = record.get(3);
+			String shaBIC = record.get(4);
+			String pathFix = record.get(5);
+			String pathBFix = record.get(6);
+			String shaBFix = record.get(7);
+			String shaFix = record.get(8);
+			String key = record.get(9);
+			if (pathBefore.contains("path_before"))
+				continue;
+
+			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, pathBFix, shaBFix, shaFix,
+					key);
+			bbics.add(bbic);
+		}
+
+		System.out.println("########### Finish collecting BBIC from local file: " + bbics.size() + " ###########");
+		return bbics;
+	}
+	
 	public static ArrayList<BeforeBIC> collectBeforeBICFromLocalFile(Input input)
 			throws FileNotFoundException, IOException {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();

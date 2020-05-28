@@ -65,9 +65,10 @@ public class Main {
 
 			// get AST vectors with ordering using GumTree -g
 			if (is_gumtree) {
-				File bbicFile = new File(input.outFile + "BBIC_" + input.projectName + ".csv");
+				String inputFile = input.outFile + "BBIC_" + input.projectName + ".csv";
+				File bbicFile = new File(inputFile);
 				if (bbicFile.exists()) {
-					bbics = Collector.collectBeforeBICFromLocalFile(input);
+					bbics = Collector.collectBeforeBICFromLocalFile(input, inputFile);
 				} else {
 					bbics = Collector.collectBeforeBIC(input);
 				}

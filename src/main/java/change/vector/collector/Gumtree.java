@@ -86,22 +86,24 @@ public class Gumtree {
 
 				List<Action> actionsBIC = gBIC.getActions();
 
-				
 				if (actionsBIC.size() <= 0)
 					continue;
 
 				ArrayList<Integer> g_vec = new ArrayList<Integer>();
 				for (Action action : actionsBIC) {
+
+//					System.out.println(action.getNode().getType() + " " + action.getNode().getLabel() + " "
+//							+ action.getNode().toTreeString() + " " + action.getNode().toShortString() + " ");
 					// if regards import, discard
-					if(action.getNode().getType() == 40) {
+					if (action.getNode().getType() == 40) {
 						continue;
 					}
-					
+
 					if (action.getName().equals("INS")) {
 						g_vec.add(action.getNode().getType() + 1);
 					} else if (action.getName().equals("DEL")) {
 						g_vec.add(action.getNode().getType() + 85 + 1);
-					} 
+					}
 					// disregard move or update
 //					else if (action.getName().equals("UPD")) {
 //						g_vec.add(action.getNode().getType() + 85 * 2 + 1);
@@ -109,9 +111,9 @@ public class Gumtree {
 //						g_vec.add(action.getNode().getType() + 85 * 3 + 1);
 //					}
 				}
-				
+
 				// if over max_size or zero, discard instance.
-				if(g_vec.size() > MAX_SIZE || g_vec.size() <= 0) 
+				if (g_vec.size() > MAX_SIZE || g_vec.size() <= 0)
 					continue;
 
 				// zero padding if less than MAX_SIZE

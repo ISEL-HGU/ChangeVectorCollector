@@ -29,7 +29,7 @@ public class BeforeBIC {
 		this.pathFix = pathFix;
 		this.shaFix = shaFix;
 		this.pathBFix = pathBFix;
-		this.shaBFix = pathBFix;
+		this.shaBFix = shaBFix;
 		this.key = key;
 	}
 
