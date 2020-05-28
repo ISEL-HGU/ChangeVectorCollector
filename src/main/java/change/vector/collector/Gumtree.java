@@ -95,10 +95,10 @@ public class Gumtree {
 //					System.out.println(action.getNode().getType() + " " + action.getNode().getLabel() + " "
 //							+ action.getNode().toTreeString() + " " + action.getNode().toShortString() + " ");
 					// if regards import, discard
-					if (action.getNode().getType() == 40) {
+					if (action.getNode().getType() == 40 || action.getNode().getType() == 26) {
 						continue;
 					}
-
+					
 					if (action.getName().equals("INS")) {
 						g_vec.add(action.getNode().getType() + 1);
 					} else if (action.getName().equals("DEL")) {
