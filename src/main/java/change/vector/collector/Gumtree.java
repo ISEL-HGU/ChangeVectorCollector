@@ -40,13 +40,11 @@ public class Gumtree {
 		RevWalk walk = new RevWalk(repo);
 		ArrayList<ArrayList<Integer>> gumtree_vectors = new ArrayList<ArrayList<Integer>>();
 		ArrayList<BeforeBIC> new_bbics = new ArrayList<BeforeBIC>();
-		final String[] header_Y = { "index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix",
-				"key" };
 		File file_Y = new File(input.outFile + "Y_" + input.projectName + ".csv");
 		File file_GV = new File(input.outFile + "GVNC_" + input.projectName + ".csv");
 		BufferedWriter writer_Y = Files.newBufferedWriter(Paths.get(file_Y.getAbsolutePath()));
 		BufferedWriter writer_GV = Files.newBufferedWriter(Paths.get(file_GV.getAbsolutePath()));
-		CSVPrinter csvprinter_Y = new CSVPrinter(writer_Y, CSVFormat.DEFAULT.withHeader(header_Y));
+		CSVPrinter csvprinter_Y = new CSVPrinter(writer_Y, CSVFormat.DEFAULT);
 		CSVPrinter csvprinter_GV = new CSVPrinter(writer_GV, CSVFormat.DEFAULT);
 
 		try {
