@@ -1,6 +1,7 @@
 package change.vector.collector;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -18,6 +19,7 @@ public class Main {
 	public static boolean is_all = false;
 	public static boolean is_precfix = false;
 	public static boolean is_gumtree = false;
+	public static boolean is_string = false;
 
 	public static void main(String[] args) throws Exception {
 		Main cvc = new Main();
@@ -75,6 +77,30 @@ public class Main {
 				Gumtree.runGumtree(input, bbics);
 				return;
 			}
+			
+			//get string data of commit -s
+			if(is_string) {
+				FileWriter writer = new FileWriter(input.outFile + "S_"+input.projectName+"txt");
+				
+				String inputFile = input.outFile + "BBIC_" + input.projectName + ".csv";
+				File bbicFile = new File(inputFile);
+				if (bbicFile.exists()) {
+					bbics = Collector.collectBeforeBICFromLocalFile(input, inputFile);
+				} else {
+					bbics = Collector.collectBeforeBIC(input);
+				}
+				int cnt = 0;
+				for(BeforeBIC bbic: bbics) {
+					if (cnt > 1) break;
+					DefectPatchPair dp = new DefectPatchPair(bbic, input);
+					String bic = dp.getBICcode(input.repo, bbic, input);
+					writer.write(bic+"\n");
+					cnt++;
+				}
+				
+				writer.close();
+				return;
+			}
 
 			// collect java files of bbic of bic
 //			Collector.collectFiles(input, bbics);
@@ -105,6 +131,8 @@ public class Main {
 					is_precfix = true;
 				else if (cmd.hasOption("g"))
 					is_gumtree = true;
+				else if (cmd.hasOption("s"))
+					is_string = true;
 
 				in = cmd.getOptionValue("i");
 				out = cmd.getOptionValue("o");
@@ -128,6 +156,8 @@ public class Main {
 	private Options createOptions() {
 		Options options = new Options();
 
+		options.addOption(Option.builder("s").longOpt("string retrieval").desc("mining commit as string").build());
+			
 		options.addOption(Option.builder("g").longOpt("gumtree").desc("run Gumtree").build());
 
 		options.addOption(Option.builder("p").longOpt("precfix").desc("run PRECFIX").build());

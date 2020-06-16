@@ -23,31 +23,57 @@ public class DefectPatchPair {
 		shaBeforePatch = shaPatch + "^";
 		DiffEntry diff;
 		try {
-			 diff = Collector.runDiff(input.repo, shaBeforePatch, shaPatch, pathPatch);
-			 if (diff != null) {
-					pathBeforePatch = diff.getOldPath();
-				}
-				defectPatch = getDefectPatch(input.repo, diff, shaPatch, pathPatch);
-				codeDefect = getCodeDefect(defectPatch);
-				codePatch = getCodePatch(defectPatch);
-				codeBIC = getBICcode(input.repo, diff);
-		} catch(MissingObjectException moe) {
+			diff = Collector.runDiff(input.repo, shaBeforePatch, shaPatch, pathPatch);
+			if (diff != null) {
+				pathBeforePatch = diff.getOldPath();
+			}
+			defectPatch = getDefectPatch(input.repo, diff, shaPatch, pathPatch);
+			codeDefect = getCodeDefect(defectPatch);
+			codePatch = getCodePatch(defectPatch);
+			codeBIC = getBICcode(input.repo, diff);
+		} catch (MissingObjectException moe) {
 			System.out.println("moe: " + moe);
 		}
-		
+
 	}
 
-	public static String getBICcode(Repository repo, DiffEntry diff) throws IOException{
+	public static String getBICcode(Repository repo, BeforeBIC bbic, Input input) throws IOException, GitAPIException {
+		String codeBIC = "";
+		String BIC = "";
+		DiffEntry diff;
+		try {
+			diff = Collector.runDiff(input.repo, bbic.shaBefore, bbic.shaBIC, bbic.pathBIC);
+			codeBIC = getBICcode(input.repo, diff);
+		} catch (MissingObjectException moe) {
+			System.out.println("moe: " + moe);
+		}
+		String[] dpWithinScope = codeBIC.split("@@");
+		BIC += "<SOC>";
+		for (int i = 1; i < dpWithinScope.length; i++) {
+			// scope of interest
+			if (i % 2 == 0) {
+				String[] lineByLine = dpWithinScope[i].split("\n");
+				for (String oneLine : lineByLine) {
+					BIC += oneLine+"\n";
+				}
+			}
+		}
+		BIC += "<EOC>";
+		System.out.println(BIC);
+		return BIC;
+	}
+
+	public static String getBICcode(Repository repo, DiffEntry diff) throws IOException {
 		String codeBIC = Collector.getDiff(repo, diff);
 		// System.out.println(code);
 		return codeBIC;
 	}
-	
+
 	public static ArrayList<String> getDefectPatch(Repository repo, DiffEntry diff, String sha, String path)
 			throws IOException {
 		String code = Collector.getDiff(repo, diff);
 		ArrayList<String> defectPatch = new ArrayList<String>();
-		
+
 		// Divide code by @@ for scoping
 		String[] dpWithinScope = code.split("@@");
 		for (int i = 1; i < dpWithinScope.length; i++) {
@@ -100,11 +126,11 @@ public class DefectPatchPair {
 
 		return patches;
 	}
-	
+
 	@Override
 	public String toString() {
 		String string = "";
-		for(String str: defectPatch) {
+		for (String str : defectPatch) {
 			string += str;
 		}
 		return string;
