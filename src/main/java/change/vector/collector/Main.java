@@ -77,11 +77,12 @@ public class Main {
 				Gumtree.runGumtree(input, bbics);
 				return;
 			}
-			
-			//get string data of commit -s
-			if(is_string) {
-				FileWriter writer = new FileWriter(input.outFile + "S_"+input.projectName+"txt");
-				
+
+			// get string data of commit -s
+			if (is_string) {
+				ArrayList<BeforeBIC> new_bbics = new ArrayList<BeforeBIC>();
+				FileWriter writer = new FileWriter(input.outFile + "S_" + input.projectName + ".txt");
+
 				String inputFile = input.outFile + "BBIC_" + input.projectName + ".csv";
 				File bbicFile = new File(inputFile);
 				if (bbicFile.exists()) {
@@ -90,15 +91,21 @@ public class Main {
 					bbics = Collector.collectBeforeBIC(input);
 				}
 				int cnt = 0;
-				for(BeforeBIC bbic: bbics) {
-					if (cnt > 1) break;
+				for (BeforeBIC bbic : bbics) {
 					DefectPatchPair dp = new DefectPatchPair(bbic, input);
 					String bic = dp.getBICcode(input.repo, bbic, input);
-					writer.write(bic+"\n");
+					if (bic == null)
+						continue;
+					new_bbics.add(bbic);
+					writer.write(bic + "\n");
 					cnt++;
 				}
-				
+
+				BeforeBIC.writeBBICsOnCSV(input, new_bbics, "YS_" + input.projectName + ".csv");
+
 				writer.close();
+				
+				System.out.println("writing strings done");
 				return;
 			}
 
@@ -157,7 +164,7 @@ public class Main {
 		Options options = new Options();
 
 		options.addOption(Option.builder("s").longOpt("string retrieval").desc("mining commit as string").build());
-			
+
 		options.addOption(Option.builder("g").longOpt("gumtree").desc("run Gumtree").build());
 
 		options.addOption(Option.builder("p").longOpt("precfix").desc("run PRECFIX").build());

@@ -41,12 +41,12 @@ public class DefectPatchPair {
 		String codeBIC = "";
 		String BIC = "";
 		DiffEntry diff;
-		try {
-			diff = Collector.runDiff(input.repo, bbic.shaBefore, bbic.shaBIC, bbic.pathBIC);
-			codeBIC = getBICcode(input.repo, diff);
-		} catch (MissingObjectException moe) {
-			System.out.println("moe: " + moe);
-		}
+
+		diff = Collector.runDiff(input.repo, bbic.shaBefore, bbic.shaBIC, bbic.pathBIC);
+		if (diff != null)
+			codeBIC = Collector.getDiff(repo, diff);
+		else
+			return null;
 		String[] dpWithinScope = codeBIC.split("@@");
 		BIC += "<SOC>";
 		for (int i = 1; i < dpWithinScope.length; i++) {
@@ -54,12 +54,12 @@ public class DefectPatchPair {
 			if (i % 2 == 0) {
 				String[] lineByLine = dpWithinScope[i].split("\n");
 				for (String oneLine : lineByLine) {
-					BIC += oneLine+"\n";
+					BIC += oneLine + "\n";
 				}
 			}
 		}
 		BIC += "<EOC>";
-		System.out.println(BIC);
+//		System.out.println(BIC);
 		return BIC;
 	}
 

@@ -219,7 +219,7 @@ public class Collector {
 		System.out.println("########### Finish collecting BBIC from local file: " + bbics.size() + " ###########");
 		return bbics;
 	}
-	
+
 	public static ArrayList<BeforeBIC> collectBeforeBICFromLocalFile(Input input)
 			throws FileNotFoundException, IOException {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
@@ -277,7 +277,7 @@ public class Collector {
 					.setNewTree(prepareTreeParser(repo, newCommit)).setPathFilter(FollowFilter.create(path, diffConfig))
 					.call();
 			if (diffList.size() == 0)
-				return null;
+		        return null;
 			if (diffList.size() > 1)
 				throw new RuntimeException("invalid diff");
 			return diffList.get(0);
