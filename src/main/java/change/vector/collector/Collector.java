@@ -56,7 +56,7 @@ public class Collector {
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
 
 		final String[] headers = { "index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "path_BFix",
-				"sha_BFix", "sha_fix", "key" };
+				"sha_BFix", "sha_fix", "key", "project" };
 		File fileP = new File(input.outFile + "BBIC_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
@@ -175,11 +175,11 @@ public class Collector {
 
 			// add BBIC when passed all of the above
 			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, pathBFix, shaBFix, shaFix,
-					key);
+					key, input.projectName);
 			bbics.add(bbic);
 
 			csvprinter.printRecord(input.projectName + index, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore,
-					bbic.shaBIC, bbic.pathFix, bbic.pathBFix, bbic.shaBFix, bbic.shaFix, bbic.key);
+					bbic.shaBIC, bbic.pathFix, bbic.pathBFix, bbic.shaBFix, bbic.shaFix, bbic.key, input.projectName);
 			csvprinter.flush();
 
 			index++;
@@ -208,11 +208,11 @@ public class Collector {
 			String shaBFix = record.get(7);
 			String shaFix = record.get(8);
 			String key = record.get(9);
+			String project = record.get(10);
 			if (pathBefore.contains("path_before"))
 				continue;
-
 			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, pathBFix, shaBFix, shaFix,
-					key);
+					key, project);
 			bbics.add(bbic);
 		}
 
@@ -237,11 +237,12 @@ public class Collector {
 			String shaBFix = record.get(7);
 			String shaFix = record.get(8);
 			String key = record.get(9);
+			String project = record.get(10);
 			if (pathBefore.contains("path_before"))
 				continue;
 
 			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, pathBFix, shaBFix, shaFix,
-					key);
+					key, project);
 			bbics.add(bbic);
 		}
 
@@ -416,7 +417,7 @@ public class Collector {
 		for (BeforeBIC bbic : bbics) {
 			// writing the BBIC file
 			csvprinter.printRecord(input.projectName + index, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore,
-					bbic.shaBIC, bbic.pathFix, bbic.shaFix, bbic.key);
+					bbic.shaBIC, bbic.pathFix, bbic.shaFix, bbic.key, input.projectName);
 			csvprinter.flush();
 			index++;
 		}
@@ -473,9 +474,9 @@ public class Collector {
 				}
 
 				String key = shaBefore + "\n" + sha + "\n" + pathBefore + "\n" + path;
-				csvprinter.printRecord(input.projectName + count, pathBefore, path, shaBefore, sha, "-", "-", key);
+				csvprinter.printRecord(input.projectName + count, pathBefore, path, shaBefore, sha, "-", "-", key, input.projectName);
 				csvprinter.flush();
-				BeforeBIC bbic = new BeforeBIC(pathBefore, path, shaBefore, sha, "-", "-", "-", "-", key);
+				BeforeBIC bbic = new BeforeBIC(pathBefore, path, shaBefore, sha, "-", "-", "-", "-", key, input.projectName);
 				bbics.add(bbic);
 				System.out.println(key);
 				count++;

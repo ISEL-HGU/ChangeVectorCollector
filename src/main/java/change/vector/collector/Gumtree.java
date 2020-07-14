@@ -209,7 +209,7 @@ public class Gumtree {
 				new_bbics.add(bbic);
 
 				csvprinter_Y.printRecord(input.projectName + cnt, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore,
-						bbic.shaBIC, bbic.pathFix, bbic.shaFix, bbic.key);
+						bbic.shaBIC, bbic.pathFix, bbic.shaFix, bbic.key, input.projectName);
 				csvprinter_Y.flush();
 
 				for (Integer val : g_vec) {

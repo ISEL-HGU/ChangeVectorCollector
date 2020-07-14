@@ -19,9 +19,10 @@ public class BeforeBIC {
 	public String shaBFix;
 	public String shaFix;
 	public String key;
+	public String project;
 
 	public BeforeBIC(String pathBefore, String pathBIC, String shaBefore, String shaBIC, String pathFix, String pathBFix,
-			String shaBFix, String shaFix, String key) {
+			String shaBFix, String shaFix, String key, String project) {
 		this.pathBefore = pathBefore;
 		this.pathBIC = pathBIC;
 		this.shaBefore = shaBefore;
@@ -31,6 +32,7 @@ public class BeforeBIC {
 		this.pathBFix = pathBFix;
 		this.shaBFix = shaBFix;
 		this.key = key;
+		this.project = project;
 	}
 
 	public static void writeBBICsOnCSV(Input input, ArrayList<BeforeBIC> bbics) throws IOException {

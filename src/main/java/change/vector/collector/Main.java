@@ -90,15 +90,12 @@ public class Main {
 				} else {
 					bbics = Collector.collectBeforeBIC(input);
 				}
-				int cnt = 0;
 				for (BeforeBIC bbic : bbics) {
-					DefectPatchPair dp = new DefectPatchPair(bbic, input);
-					String bic = dp.getBICcode(input.repo, bbic, input);
+					String bic = DefectPatchPair.getBICcode(input.repo, bbic, input);
 					if (bic == null)
 						continue;
 					new_bbics.add(bbic);
 					writer.write(bic + "\n");
-					cnt++;
 				}
 
 				BeforeBIC.writeBBICsOnCSV(input, new_bbics, "YS_" + input.projectName + ".csv");
