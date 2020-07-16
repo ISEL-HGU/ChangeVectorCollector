@@ -14,8 +14,8 @@ public class BeforeBIC {
 	public String pathBIC;
 	public String shaBefore;
 	public String shaBIC;
-	public String pathBFix;
 	public String pathFix;
+	public String pathBFix;
 	public String shaBFix;
 	public String shaFix;
 	public String key;
@@ -28,9 +28,9 @@ public class BeforeBIC {
 		this.shaBefore = shaBefore;
 		this.shaBIC = shaBIC;
 		this.pathFix = pathFix;
-		this.shaFix = shaFix;
 		this.pathBFix = pathBFix;
 		this.shaBFix = shaBFix;
+		this.shaFix = shaFix;
 		this.key = key;
 		this.project = project;
 	}

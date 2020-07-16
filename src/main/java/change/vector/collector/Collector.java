@@ -141,7 +141,7 @@ public class Collector {
 				continue;
 			}
 
-			// retrieve SHA and path of before BIC
+			// retrieve SHA and path of before FIX
 			String pathBFix = blameFIX.getSourcePath(Integer.parseInt(lineFix) - 1);
 			String shaBFix = commitBeforeFix.getName();
 
@@ -157,7 +157,7 @@ public class Collector {
 					continue;
 				} else {
 					pathBFix = diff.getOldPath();
-					shaBFix = shaBIC + "^";
+					shaBFix = shaFix + "^";
 				}
 			}
 
