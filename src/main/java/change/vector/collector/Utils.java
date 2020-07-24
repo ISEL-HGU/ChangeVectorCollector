@@ -13,7 +13,6 @@ import org.eclipse.jgit.diff.DiffAlgorithm;
 import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
-import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
@@ -22,6 +21,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
+
 
 public class Utils {
 
@@ -58,27 +58,39 @@ public class Utils {
 
 	}
 
-	public static Git gitClone(String REMOTE_URI)
-			throws InvalidRemoteException, TransportException, GitAPIException, IOException {
-
-		File repositoriesDir = new File("repositories" + File.separator + getProjectName(REMOTE_URI));
-		Git git = null;
-		if (repositoriesDir.exists()) {
-			try {
-				git = Git.open(repositoriesDir);
-			} catch (RepositoryNotFoundException e) {
-				if (repositoriesDir.delete()) {
-					return gitClone(REMOTE_URI);
-				}
-			}
-		} else {
-			repositoriesDir.mkdirs();
-			System.out.println("cloning..");
-			git = Git.cloneRepository().setURI(REMOTE_URI).setDirectory(repositoriesDir)
-//				  .setBranch("refs/heads/master") // only master
-					.setCloneAllBranches(true).call();
-		}
-		return git;
+//	public static Git gitClone(String REMOTE_URI)
+//			throws InvalidRemoteException, TransportException, GitAPIException, IOException {
+//
+//		File repositoriesDir = new File("repositories" + File.separator + getProjectName(REMOTE_URI));
+//		Git git = null;
+//		if (repositoriesDir.exists()) {
+//			try {
+//				git = Git.open(repositoriesDir);
+//			} catch (RepositoryNotFoundException e) {
+//				if (repositoriesDir.delete()) {
+//					return gitClone(REMOTE_URI);
+//				}
+//			}
+//		} else {
+//			repositoriesDir.mkdirs();
+//			System.out.println("cloning..");
+//			git = Git.cloneRepository().setURI(REMOTE_URI).setDirectory(repositoriesDir)
+////				  .setBranch("refs/heads/master") // only master
+//					.setCloneAllBranches(true).call();
+//		}
+//		return git;
+//	}
+	
+	public static File GitClone(Input input) throws InvalidRemoteException, TransportException, GitAPIException {
+		String remoteURI = input.REMOTE_URI;
+		String projectName = input.projectName;
+		File clonedDirectory = getGitDirectory(input);
+		clonedDirectory.mkdirs();
+		System.out.println("cloning " + projectName + "...");
+		Git git = Git.cloneRepository().setURI(remoteURI).setDirectory(clonedDirectory).setCloneAllBranches(true)
+				.call();
+		System.out.println("done");
+		return git.getRepository().getDirectory();
 	}
 
 	public static String getProjectName(String URI) {
@@ -89,6 +101,22 @@ public class Utils {
 //		System.out.println(m.group(1));
 		return m.group(1);
 
+	}
+	
+	public static String getReferencePath(Input input) {
+		return input.outFile + File.separator + "reference";
+	}
+
+	public static File getGitDirectory(Input input) {
+		String referencePath = getReferencePath(input);
+		File clonedDirectory = new File(
+				referencePath + File.separator + "repositories" + File.separator + input.projectName);
+		return clonedDirectory;
+	}
+	
+	public static boolean isCloned(Input input) {
+		File clonedDirectory = getGitDirectory(input);
+		return clonedDirectory.exists();
 	}
 
 }

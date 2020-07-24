@@ -9,7 +9,7 @@ import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Repository;
 
 public class Input {
-	
+
 	public String url = "";
 	public String inFile = "";
 	public String outFile = "";
@@ -18,9 +18,10 @@ public class Input {
 	public final String REMOTE_URI;
 	public final String projectName;
 	public Git git;
-	
-	
-	public Input(String url, String inFile, String outFile)	throws InvalidRemoteException, TransportException, GitAPIException, IOException {
+	public File gitDir;
+
+	public Input(String url, String inFile, String outFile)
+			throws InvalidRemoteException, TransportException, GitAPIException, IOException {
 		this.url = url;
 		this.inFile = inFile;
 		this.outFile = outFile;
@@ -28,10 +29,16 @@ public class Input {
 		this.projectName = Utils.getProjectName(REMOTE_URI);
 		if (!outFile.endsWith(File.separator))
 			outFile += File.separator;
-		this.git = Utils.gitClone(REMOTE_URI);
+		if (Utils.isCloned(this)) {
+			this.gitDir = Utils.getGitDirectory(this);
+		} else {
+			this.gitDir = Utils.GitClone(this);
+		}
+		this.git = Git.open(gitDir);
 		this.repo = git.getRepository();
 		this.bbicFilePath = "./assets/BBIC_" + projectName + ".csv";
-		if(Main.is_all) this.bbicFilePath = "./assets/alls/BBIC_" + projectName + ".csv";
+		if (Main.is_all)
+			this.bbicFilePath = "./assets/alls/BBIC_" + projectName + ".csv";
 	}
 
 }
