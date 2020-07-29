@@ -21,8 +21,8 @@ public class BeforeBIC {
 	public String key;
 	public String project;
 
-	public BeforeBIC(String pathBefore, String pathBIC, String shaBefore, String shaBIC, String pathFix, String pathBFix,
-			String shaBFix, String shaFix, String key, String project) {
+	public BeforeBIC(String pathBefore, String pathBIC, String shaBefore, String shaBIC, String pathFix,
+			String pathBFix, String shaBFix, String shaFix, String key, String project) {
 		this.pathBefore = pathBefore;
 		this.pathBIC = pathBIC;
 		this.shaBefore = shaBefore;
@@ -62,6 +62,7 @@ public class BeforeBIC {
 
 	@Override
 	public String toString() {
-		return key + "\n";
+		return pathBefore + "\n" + pathBIC + "\n" + shaBefore + "\n" + shaBIC + "\n" + pathFix + "\n" + pathBFix + "\n"
+				+ shaBFix + "\n" + shaFix + "\n" + project;
 	}
 }

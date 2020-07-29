@@ -41,6 +41,41 @@ import com.github.gumtreediff.tree.ITree;
 
 public class Gumtree {
 
+	public static void runD4j2(Input input) throws IOException {
+		ArrayList<BeforeBIC> new_bbics = new ArrayList<BeforeBIC>();
+		Reader d4j_reader = new FileReader(input.inFile + "d4j_" + input.projectName + ".csv");
+		Reader bbic_reader = new FileReader(input.inFile + "BBIC_" + input.projectName + ".csv");
+		Iterable<CSVRecord> d4j_records = CSVFormat.RFC4180.parse(d4j_reader);
+		Iterable<CSVRecord> bbic_records = CSVFormat.RFC4180.parse(bbic_reader);
+		
+		ArrayList<String> sha_d4js = new ArrayList<String>();
+		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
+		for (CSVRecord record : d4j_records) {
+			sha_d4js.add(record.get(2));
+		}
+		for (CSVRecord record : bbic_records) {
+			BeforeBIC bbic = new BeforeBIC(record.get(1), record.get(2), record.get(3),
+					record.get(4), record.get(5), record.get(6), record.get(7),
+					record.get(8), record.get(9), record.get(10));
+			bbics.add(bbic);
+		}
+		
+		int match_cnt = 1;
+		for(int i = 0; i < sha_d4js.size(); i++) {
+			for(int j = 0; j < bbics.size(); j++) {
+				if(sha_d4js.get(i).equals(bbics.get(j).shaFix)) {
+					new_bbics.add(bbics.get(j));
+					match_cnt++;
+				}
+			}
+		}
+		
+		runGumtree(input, new_bbics);
+		System.out.println("match_cnt: " + match_cnt);
+		System.out.println("d4j: " + sha_d4js.size());
+		System.out.println("bbic: " + bbics.size());
+	}
+
 	public static void runD4j(Input input) throws IOException, GitAPIException {
 		int MAX_SIZE = 2000;
 		Reader in = new FileReader(input.inFile);
@@ -53,13 +88,11 @@ public class Gumtree {
 		CSVPrinter csvprinter_GV = new CSVPrinter(writer_GV, CSVFormat.DEFAULT);
 		RevWalk walk = new RevWalk(input.repo);
 
-
-
 		// for each line of records (e.g. 40)
 		int all_cnt = 0;
 		int record_idx = 0;
 		for (CSVRecord record : records) {
-			
+
 			String shaBeforeFIX = record.get(1);
 			String shaFIX = record.get(2);
 			String pathBeforeFIX = "";
@@ -116,7 +149,6 @@ public class Gumtree {
 					System.out.println("actionsFIX size < 0");
 					continue;
 				}
-					
 
 				// for each action node in a change
 				for (Action action : actionsFIX) {
@@ -130,7 +162,7 @@ public class Gumtree {
 				}
 
 				if (g_vec.size() > MAX_SIZE || g_vec.size() <= 0)
-					
+
 					continue;
 
 				if (actionsFIX.size() < MAX_SIZE) {
@@ -178,10 +210,9 @@ public class Gumtree {
 				}
 				g_vec.addAll(context_vec);
 
-				csvprinter_Y.printRecord(input.projectName + all_cnt, "-", "-", "-", "-", pathFIX, pathBeforeFIX, shaBeforeFIX, shaFIX,
-											pathFIX + pathBeforeFIX + shaBeforeFIX + shaFIX, input.projectName);
-				
-				
+				csvprinter_Y.printRecord(input.projectName + all_cnt, "-", "-", "-", "-", pathFIX, pathBeforeFIX,
+						shaBeforeFIX, shaFIX, pathFIX + pathBeforeFIX + shaBeforeFIX + shaFIX, input.projectName);
+
 				csvprinter_Y.flush();
 
 				for (Integer val : g_vec) {
@@ -190,17 +221,17 @@ public class Gumtree {
 				csvprinter_GV.println();
 				csvprinter_GV.flush();
 				all_cnt++;
-				
+
 			} // end of diff for
 			record_idx++;
 		} // end of record for
-		
+
 		csvprinter_Y.close();
 		csvprinter_GV.close();
 		walk.close();
 		System.out.println("record_cnt: " + record_idx);
 		System.out.println("all_cnt: " + all_cnt);
-		
+
 		System.out.println("writing gumvecs complete!");
 	}
 
@@ -212,8 +243,15 @@ public class Gumtree {
 		RevWalk walk = new RevWalk(repo);
 		ArrayList<ArrayList<Integer>> gumtree_vectors = new ArrayList<ArrayList<Integer>>();
 		ArrayList<BeforeBIC> new_bbics = new ArrayList<BeforeBIC>();
-		File file_Y = new File(input.outFile + "Y_" + input.projectName + ".csv");
-		File file_GV = new File(input.outFile + "GVNC_" + input.projectName + ".csv");
+		File file_Y;
+		File file_GV;
+		if (input.inFile.contains("d4j")) {
+			file_Y = new File(input.outFile + "Y_d4j_" + input.projectName + ".csv");
+			file_GV = new File(input.outFile + "GVNC_d4j_" + input.projectName + ".csv");
+		} else {
+			file_Y = new File(input.outFile + "Y_" + input.projectName + ".csv");
+			file_GV = new File(input.outFile + "GVNC_" + input.projectName + ".csv");
+		}
 		BufferedWriter writer_Y = Files.newBufferedWriter(Paths.get(file_Y.getAbsolutePath()));
 		BufferedWriter writer_GV = Files.newBufferedWriter(Paths.get(file_GV.getAbsolutePath()));
 		CSVPrinter csvprinter_Y = new CSVPrinter(writer_Y, CSVFormat.DEFAULT);
@@ -397,7 +435,7 @@ public class Gumtree {
 			}
 //			writeGumVecs(input, gumtree_vectors);
 //			BeforeBIC.writeBBICsOnCSV(input, new_bbics, "Y_" + input.projectName + ".csv");
-			System.out.println("wrting gumvecs complete!");
+			System.out.println("writing gumvecs complete!");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
