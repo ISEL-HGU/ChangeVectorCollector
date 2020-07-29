@@ -69,6 +69,10 @@ public class Main {
 			if (is_gumtree) {
 				String inputFile = input.outFile + "BBIC_" + input.projectName + ".csv";
 				File bbicFile = new File(inputFile);
+				if(input.inFile.contains("defects4j")) {
+					Gumtree.runD4j(input);
+					return;
+				}
 				if (bbicFile.exists()) {
 					bbics = Collector.collectBeforeBICFromLocalFile(input, inputFile);
 				} else {
