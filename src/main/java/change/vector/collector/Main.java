@@ -20,6 +20,7 @@ public class Main {
 	public static boolean is_precfix = false;
 	public static boolean is_gumtree = false;
 	public static boolean is_string = false;
+	public static boolean is_defects4j = false;
 
 	public static void main(String[] args) throws Exception {
 		Main cvc = new Main();
@@ -69,16 +70,27 @@ public class Main {
 			if (is_gumtree) {
 				String inputFile = input.outFile + "BBIC_" + input.projectName + ".csv";
 				File bbicFile = new File(inputFile);
-				if(input.inFile.contains("d4j")) {
-					Gumtree.runD4j2(input);
-					return;
-				}
+
 				if (bbicFile.exists()) {
 					bbics = Collector.collectBeforeBICFromLocalFile(input, inputFile);
 				} else {
 					bbics = Collector.collectBeforeBIC(input);
 				}
 				Gumtree.runGumtree(input, bbics);
+				return;
+			}
+
+			if (is_defects4j) {
+				File bbicFile = new File(input.inFile + "BBIC" + input.projectName + ".csv");
+				if (bbicFile.exists()) {
+					bbics = Collector.collectBeforeBICFromLocalFile(input,
+							input.inFile + "BBIC" + input.projectName + ".csv");
+				} else {
+					bbics = Collector.collectBeforeBIC(input);
+				}
+
+				Gumtree.runD4j2(input);
+
 				return;
 			}
 
@@ -105,7 +117,7 @@ public class Main {
 				BeforeBIC.writeBBICsOnCSV(input, new_bbics, "YS_" + input.projectName + ".csv");
 
 				writer.close();
-				
+
 				System.out.println("writing strings done");
 				return;
 			}
@@ -141,6 +153,8 @@ public class Main {
 					is_gumtree = true;
 				else if (cmd.hasOption("s"))
 					is_string = true;
+				else if (cmd.hasOption("d"))
+					is_defects4j = true;
 
 				in = cmd.getOptionValue("i");
 				out = cmd.getOptionValue("o");
@@ -165,6 +179,9 @@ public class Main {
 		Options options = new Options();
 
 		options.addOption(Option.builder("s").longOpt("string retrieval").desc("mining commit as string").build());
+
+		options.addOption(
+				Option.builder("d").longOpt("defects4j").desc("run Gumtree vectors for defects4j instances").build());
 
 		options.addOption(Option.builder("g").longOpt("gumtree").desc("run Gumtree").build());
 

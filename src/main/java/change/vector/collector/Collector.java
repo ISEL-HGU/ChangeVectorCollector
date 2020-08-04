@@ -73,14 +73,13 @@ public class Collector {
 			String shaFix = record.get(3);
 			String lineBIC = record.get(6);
 			String lineFix = record.get(7);
-			String content = record.get(9);
 
 			if (shaBIC.contains("BISha1"))
 				continue; // skip the header
-			if (content.length() < 3)
-				continue; // skip really short ones
-			if (shaBIC.equals(shaFix))
-				continue;// skip if BIC == FIX
+//			if (content.length() < 3)
+//				continue; // skip really short ones
+//			if (shaBIC.equals(shaFix))
+//				continue;// skip if BIC == FIX
 
 			// get before instance that has before instances by blaming
 			ObjectId bicID = input.repo.resolve(shaBIC);
@@ -91,6 +90,7 @@ public class Collector {
 			try {
 				blameBIC = blamer.call();
 			} catch (Exception e) {
+				System.out.println("BBIC collector from repo -> BIC blame result -> " + e);
 				continue;
 			}
 
@@ -98,6 +98,7 @@ public class Collector {
 			try {
 				commitBeforeBIC = blameBIC.getSourceCommit(Integer.parseInt(lineBIC) - 1);
 			} catch (Exception e) {
+				System.out.println("BBIC collector from repo -> BIC get source commit -> " + e);
 				continue;
 			}
 
@@ -110,11 +111,15 @@ public class Collector {
 			// get the path of BIC~1
 			RevWalk walk = new RevWalk(input.repo);
 			RevCommit commitBIC = walk.parseCommit(bicID);
-			if (commitBIC.getParentCount() == 0)
+			if (commitBIC.getParentCount() == 0) {
+				System.out.println("BBIC collector from repo -> BIC parent count == 0");
 				continue;
+			}
+
 			if (shaBefore.equals(shaBIC)) {
 				DiffEntry diff = runDiff(input.repo, shaBIC + "^", shaBIC, pathBIC);
 				if (diff == null) {
+					System.out.println("BBIC collector from repo -> BIC diff == null");
 					continue;
 				} else {
 					pathBefore = diff.getOldPath();
@@ -131,6 +136,7 @@ public class Collector {
 			try {
 				blameFIX = blamer.call();
 			} catch (Exception e) {
+				System.out.println("BBIC collector from repo -> BFC blame result -> " + e);
 				continue;
 			}
 
@@ -138,6 +144,7 @@ public class Collector {
 			try {
 				commitBeforeFix = blameFIX.getSourceCommit(Integer.parseInt(lineFix) - 1);
 			} catch (Exception e) {
+				System.out.println("BBIC collector from repo -> BFC get source commit -> " + e);
 				continue;
 			}
 
@@ -149,11 +156,14 @@ public class Collector {
 			// (blamed commit is equal to BIC)
 			// get the path of BIC~1
 			RevCommit commitFix = walk.parseCommit(fixID);
-			if (commitFix.getParentCount() == 0)
+			if (commitFix.getParentCount() == 0) {
+				System.out.println("BBIC collector from repo -> BFC parent count == 0");
 				continue;
+			}
 			if (shaBFix.equals(shaFix)) {
 				DiffEntry diff = runDiff(input.repo, shaFix + "^", shaFix, pathFix);
 				if (diff == null) {
+					System.out.println("BBIC collector from repo -> BFC diff == null");
 					continue;
 				} else {
 					pathBFix = diff.getOldPath();
@@ -161,7 +171,7 @@ public class Collector {
 				}
 			}
 
-			String key = shaBefore + "\n" + shaBIC + "\n" + pathBefore + "\n" + pathBIC;
+			String key = shaBIC + "\n" + shaFix + "\n" + pathBIC + "\n" + pathFix;
 
 			// skip duplicates
 			for (int j = 0; j < bbics.size(); j++) {
@@ -170,8 +180,10 @@ public class Collector {
 					dups++;
 				}
 			}
-			if (isKeyDuplicate)
+			if (isKeyDuplicate) {
+
 				continue;
+			}
 
 			// add BBIC when passed all of the above
 			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, pathBFix, shaBFix, shaFix,
@@ -186,7 +198,7 @@ public class Collector {
 			walk.close();
 		}
 
-		System.out.println("########### Finish collecting BBIC from repo! ###########");
+		System.out.println("########### Finish collecting " + index + " BBICs from repo! ###########");
 		csvprinter.close();
 		return bbics;
 	}
@@ -278,7 +290,7 @@ public class Collector {
 					.setNewTree(prepareTreeParser(repo, newCommit)).setPathFilter(FollowFilter.create(path, diffConfig))
 					.call();
 			if (diffList.size() == 0)
-		        return null;
+				return null;
 			if (diffList.size() > 1)
 				throw new RuntimeException("invalid diff");
 			return diffList.get(0);
@@ -474,9 +486,11 @@ public class Collector {
 				}
 
 				String key = shaBefore + "\n" + sha + "\n" + pathBefore + "\n" + path;
-				csvprinter.printRecord(input.projectName + count, pathBefore, path, shaBefore, sha, "-", "-", key, input.projectName);
+				csvprinter.printRecord(input.projectName + count, pathBefore, path, shaBefore, sha, "-", "-", key,
+						input.projectName);
 				csvprinter.flush();
-				BeforeBIC bbic = new BeforeBIC(pathBefore, path, shaBefore, sha, "-", "-", "-", "-", key, input.projectName);
+				BeforeBIC bbic = new BeforeBIC(pathBefore, path, shaBefore, sha, "-", "-", "-", "-", key,
+						input.projectName);
 				bbics.add(bbic);
 				System.out.println(key);
 				count++;

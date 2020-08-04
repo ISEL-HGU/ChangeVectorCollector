@@ -47,29 +47,28 @@ public class Gumtree {
 		Reader bbic_reader = new FileReader(input.inFile + "BBIC_" + input.projectName + ".csv");
 		Iterable<CSVRecord> d4j_records = CSVFormat.RFC4180.parse(d4j_reader);
 		Iterable<CSVRecord> bbic_records = CSVFormat.RFC4180.parse(bbic_reader);
-		
+
 		ArrayList<String> sha_d4js = new ArrayList<String>();
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 		for (CSVRecord record : d4j_records) {
 			sha_d4js.add(record.get(2));
 		}
 		for (CSVRecord record : bbic_records) {
-			BeforeBIC bbic = new BeforeBIC(record.get(1), record.get(2), record.get(3),
-					record.get(4), record.get(5), record.get(6), record.get(7),
-					record.get(8), record.get(9), record.get(10));
+			BeforeBIC bbic = new BeforeBIC(record.get(1), record.get(2), record.get(3), record.get(4), record.get(5),
+					record.get(6), record.get(7), record.get(8), record.get(9), record.get(10));
 			bbics.add(bbic);
 		}
-		
-		int match_cnt = 1;
-		for(int i = 0; i < sha_d4js.size(); i++) {
-			for(int j = 0; j < bbics.size(); j++) {
-				if(sha_d4js.get(i).equals(bbics.get(j).shaFix)) {
+
+		int match_cnt = 0;
+		for (int i = 0; i < sha_d4js.size(); i++) {
+			for (int j = 0; j < bbics.size(); j++) {
+				if (sha_d4js.get(i).equals(bbics.get(j).shaFix)) {
 					new_bbics.add(bbics.get(j));
 					match_cnt++;
 				}
 			}
 		}
-		
+
 		runGumtree(input, new_bbics);
 		System.out.println("match_cnt: " + match_cnt);
 		System.out.println("d4j: " + sha_d4js.size());
