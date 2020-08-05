@@ -52,7 +52,7 @@ public class Collector {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 
 		// load the prepared BIC file from BugPatchCollector
-		Reader in = new FileReader(input.inFile);
+		Reader in = new FileReader(input.inFile + "BIC_" + input.projectName + ".csv");
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
 
 		final String[] headers = { "index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "path_BFix",
@@ -91,6 +91,7 @@ public class Collector {
 				blameBIC = blamer.call();
 			} catch (Exception e) {
 				System.out.println("BBIC collector from repo -> BIC blame result -> " + e);
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
 				continue;
 			}
 
@@ -99,6 +100,7 @@ public class Collector {
 				commitBeforeBIC = blameBIC.getSourceCommit(Integer.parseInt(lineBIC) - 1);
 			} catch (Exception e) {
 				System.out.println("BBIC collector from repo -> BIC get source commit -> " + e);
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
 				continue;
 			}
 
@@ -113,6 +115,7 @@ public class Collector {
 			RevCommit commitBIC = walk.parseCommit(bicID);
 			if (commitBIC.getParentCount() == 0) {
 				System.out.println("BBIC collector from repo -> BIC parent count == 0");
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
 				continue;
 			}
 
@@ -120,6 +123,7 @@ public class Collector {
 				DiffEntry diff = runDiff(input.repo, shaBIC + "^", shaBIC, pathBIC);
 				if (diff == null) {
 					System.out.println("BBIC collector from repo -> BIC diff == null");
+					System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
 					continue;
 				} else {
 					pathBefore = diff.getOldPath();
@@ -137,6 +141,7 @@ public class Collector {
 				blameFIX = blamer.call();
 			} catch (Exception e) {
 				System.out.println("BBIC collector from repo -> BFC blame result -> " + e);
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
 				continue;
 			}
 
@@ -145,6 +150,7 @@ public class Collector {
 				commitBeforeFix = blameFIX.getSourceCommit(Integer.parseInt(lineFix) - 1);
 			} catch (Exception e) {
 				System.out.println("BBIC collector from repo -> BFC get source commit -> " + e);
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
 				continue;
 			}
 
@@ -158,12 +164,14 @@ public class Collector {
 			RevCommit commitFix = walk.parseCommit(fixID);
 			if (commitFix.getParentCount() == 0) {
 				System.out.println("BBIC collector from repo -> BFC parent count == 0");
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
 				continue;
 			}
 			if (shaBFix.equals(shaFix)) {
 				DiffEntry diff = runDiff(input.repo, shaFix + "^", shaFix, pathFix);
 				if (diff == null) {
 					System.out.println("BBIC collector from repo -> BFC diff == null");
+					System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
 					continue;
 				} else {
 					pathBFix = diff.getOldPath();
@@ -181,7 +189,8 @@ public class Collector {
 				}
 			}
 			if (isKeyDuplicate) {
-
+				System.out.println("is duplicate");
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
 				continue;
 			}
 

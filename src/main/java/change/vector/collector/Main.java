@@ -79,7 +79,8 @@ public class Main {
 				Gumtree.runGumtree(input, bbics);
 				return;
 			}
-
+			
+			// get gumtree vectors from defects4j instances -d
 			if (is_defects4j) {
 				File bbicFile = new File(input.inFile + "BBIC" + input.projectName + ".csv");
 				if (bbicFile.exists()) {
