@@ -10,27 +10,30 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
 public class BeforeBIC {
-	public String pathBefore;
+	public String pathBeforeBIC;
 	public String pathBIC;
-	public String shaBefore;
+	public String shaBeforeBIC;
 	public String shaBIC;
-	public String pathFix;
-	public String pathBFix;
-	public String shaBFix;
-	public String shaFix;
+	public String pathBeforeBFC;
+	public String pathBFC;
+	public String shaBeforeBFC;
+	public String shaBFC;
 	public String key;
 	public String project;
 
-	public BeforeBIC(String pathBefore, String pathBIC, String shaBefore, String shaBIC, String pathFix,
-			String pathBFix, String shaBFix, String shaFix, String key, String project) {
-		this.pathBefore = pathBefore;
+	public BeforeBIC(String pathBeforeBIC, String pathBIC, 
+					 String shaBeforeBIC, String shaBIC,
+					 String pathBeforeBFC, String pathBFC,
+					 String shaBeforeBFC, String shaBFC,
+					 String key, String project) {
+		this.pathBeforeBIC = pathBeforeBIC;
 		this.pathBIC = pathBIC;
-		this.shaBefore = shaBefore;
+		this.shaBeforeBIC = shaBeforeBIC;
 		this.shaBIC = shaBIC;
-		this.pathFix = pathFix;
-		this.pathBFix = pathBFix;
-		this.shaBFix = shaBFix;
-		this.shaFix = shaFix;
+		this.pathBeforeBFC = pathBeforeBFC;
+		this.pathBFC = pathBFC;
+		this.shaBeforeBFC = shaBeforeBFC;
+		this.shaBFC = shaBFC;
 		this.key = key;
 		this.project = project;
 	}
@@ -41,8 +44,12 @@ public class BeforeBIC {
 
 	public static void writeBBICsOnCSV(Input input, ArrayList<BeforeBIC> bbics, String out_path) throws IOException {
 
-		final String[] headers = { "index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix",
-				"key" };
+		final String[] headers = { "index",
+								   "path_bbic", "path_bic",
+								   "sha_bbic", "sha_bic",
+								   "path_bbfc", "path_bfc",
+								   "sha_bbfc", "sha_bfc",
+								   "key", "project" };
 		File fileP = new File(input.outFile + out_path);
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
@@ -50,8 +57,12 @@ public class BeforeBIC {
 		int index = 0;
 		for (BeforeBIC bbic : bbics) {
 			// writing the BBIC file
-			csvprinter.printRecord(input.projectName + index, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore,
-					bbic.shaBIC, bbic.pathFix, bbic.shaFix, bbic.key);
+			csvprinter.printRecord(input.projectName + index,
+								   bbic.pathBeforeBIC, bbic.pathBIC,
+								   bbic.shaBeforeBIC, bbic.shaBIC,
+								   bbic.pathBeforeBFC, bbic.pathBFC,
+								   bbic.shaBeforeBFC, bbic.shaBFC,
+								   bbic.key, bbic.project);
 			csvprinter.flush();
 			index++;
 		}
@@ -62,7 +73,9 @@ public class BeforeBIC {
 
 	@Override
 	public String toString() {
-		return pathBefore + "\n" + pathBIC + "\n" + shaBefore + "\n" + shaBIC + "\n" + pathFix + "\n" + pathBFix + "\n"
-				+ shaBFix + "\n" + shaFix + "\n" + project;
+		return pathBeforeBIC + "\n" + pathBIC + "\n" +
+			   shaBeforeBIC + "\n" + shaBIC + "\n" +
+			   pathBeforeBIC + "\n" + pathBFC + "\n" +
+			   shaBeforeBFC + "\n" + shaBFC + "\n" + project;
 	}
 }

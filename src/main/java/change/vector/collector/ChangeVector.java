@@ -92,8 +92,8 @@ public class ChangeVector {
 			// adding some preliminary infos in change vector
 			changeVector.name = input.projectName + i;
 			changeVector.bic = bbics.get(i).shaBIC;
-			changeVector.fix = bbics.get(i).shaFix;
-			String[] tmps = bbics.get(i).pathFix.split("/");
+			changeVector.fix = bbics.get(i).shaBFC;
+			String[] tmps = bbics.get(i).pathBFC.split("/");
 
 			// if pathFix is - get pathBIC (-a case)
 			if (tmps[tmps.length - 1].equals("-")) {

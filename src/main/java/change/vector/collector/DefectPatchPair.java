@@ -18,8 +18,8 @@ public class DefectPatchPair {
 	ArrayList<String> defectPatch = new ArrayList<String>();
 
 	public DefectPatchPair(BeforeBIC bbic, Input input) throws IOException, GitAPIException {
-		shaPatch = bbic.shaFix;
-		pathPatch = bbic.pathFix;
+		shaPatch = bbic.shaBFC;
+		pathPatch = bbic.pathBFC;
 		shaBeforePatch = shaPatch + "^";
 		DiffEntry diff;
 		try {
@@ -42,7 +42,7 @@ public class DefectPatchPair {
 		String BIC = "";
 		DiffEntry diff;
 
-		diff = Collector.runDiff(input.repo, bbic.shaBefore, bbic.shaBIC, bbic.pathBIC);
+		diff = Collector.runDiff(input.repo, bbic.shaBeforeBIC, bbic.shaBIC, bbic.pathBIC);
 		if (diff != null)
 			codeBIC = Collector.getDiff(repo, diff);
 		else

@@ -79,19 +79,24 @@ public class Main {
 				Gumtree.runGumtree(input, bbics);
 				return;
 			}
-			
+
 			// get gumtree vectors from defects4j instances -d
 			if (is_defects4j) {
-				File bbicFile = new File(input.inFile + "BBIC" + input.projectName + ".csv");
+				File bicFile = new File(input.inputDirectory + "BIC_d4j_" + input.projectName + ".csv");
+				if (!bicFile.exists()) {
+					Gumtree.runD4j3(input);
+				}
+
+				File bbicFile = new File(input.inputDirectory + "BBIC_d4j_" + input.projectName + ".csv");
 				if (bbicFile.exists()) {
 					bbics = Collector.collectBeforeBICFromLocalFile(input,
-							input.inFile + "BBIC" + input.projectName + ".csv");
+							input.inputDirectory + "BBIC_d4j_" + input.projectName + ".csv");
 				} else {
 					bbics = Collector.collectBeforeBIC(input);
 				}
-
-				Gumtree.runD4j2(input);
-
+				Gumtree.runGumtree(input, bbics);
+				
+				System.out.println("run d4j complete!");
 				return;
 			}
 

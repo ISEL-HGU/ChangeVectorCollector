@@ -52,11 +52,18 @@ public class Collector {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 
 		// load the prepared BIC file from BugPatchCollector
-		Reader in = new FileReader(input.inFile + "BIC_" + input.projectName + ".csv");
+		Reader in;
+		if (input.inputDirectory.contains("d4j")) {
+			in = new FileReader(input.inputDirectory + "BIC_d4j_" + input.projectName + ".csv");
+		} else {
+			in = new FileReader(input.inputDirectory + "BIC_" + input.projectName + ".csv");
+		}
+
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
 
-		final String[] headers = { "index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "path_BFix",
-				"sha_BFix", "sha_fix", "key", "project" };
+		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
+				"sha_bbfc", "sha_bfc", "key", "project" };
+
 		File fileP = new File(input.outFile + "BBIC_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
@@ -69,10 +76,10 @@ public class Collector {
 			// retrieve the record we need
 			String shaBIC = record.get(0);
 			String pathBIC = record.get(1);
-			String pathFix = record.get(2);
-			String shaFix = record.get(3);
+			String pathBFC = record.get(2);
+			String shaBFC = record.get(3);
 			String lineBIC = record.get(6);
-			String lineFix = record.get(7);
+			String lineBFC = record.get(7);
 
 			if (shaBIC.contains("BISha1"))
 				continue; // skip the header
@@ -91,7 +98,7 @@ public class Collector {
 				blameBIC = blamer.call();
 			} catch (Exception e) {
 				System.out.println("BBIC collector from repo -> BIC blame result -> " + e);
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 				continue;
 			}
 
@@ -100,13 +107,13 @@ public class Collector {
 				commitBeforeBIC = blameBIC.getSourceCommit(Integer.parseInt(lineBIC) - 1);
 			} catch (Exception e) {
 				System.out.println("BBIC collector from repo -> BIC get source commit -> " + e);
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 				continue;
 			}
 
 			// retrieve SHA and path of before BIC
-			String pathBefore = blameBIC.getSourcePath(Integer.parseInt(lineBIC) - 1);
-			String shaBefore = commitBeforeBIC.getName();
+			String pathBeforeBIC = blameBIC.getSourcePath(Integer.parseInt(lineBIC) - 1);
+			String shaBeforeBIC = commitBeforeBIC.getName();
 
 			// if there are no before instances
 			// (blamed commit is equal to BIC)
@@ -115,48 +122,48 @@ public class Collector {
 			RevCommit commitBIC = walk.parseCommit(bicID);
 			if (commitBIC.getParentCount() == 0) {
 				System.out.println("BBIC collector from repo -> BIC parent count == 0");
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 				continue;
 			}
 
-			if (shaBefore.equals(shaBIC)) {
+			if (shaBeforeBIC.equals(shaBIC)) {
 				DiffEntry diff = runDiff(input.repo, shaBIC + "^", shaBIC, pathBIC);
 				if (diff == null) {
 					System.out.println("BBIC collector from repo -> BIC diff == null");
-					System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
+					System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 					continue;
 				} else {
-					pathBefore = diff.getOldPath();
-					shaBefore = shaBIC + "^";
+					pathBeforeBIC = diff.getOldPath();
+					shaBeforeBIC = shaBIC + "^";
 				}
 			}
 
 			// get before instance of fix as well.
-			ObjectId fixID = input.repo.resolve(shaFix);
+			ObjectId fixID = input.repo.resolve(shaBFC);
 			blamer.setStartCommit(fixID);
-			blamer.setFilePath(pathFix);
+			blamer.setFilePath(pathBFC);
 
 			BlameResult blameFIX;
 			try {
 				blameFIX = blamer.call();
 			} catch (Exception e) {
 				System.out.println("BBIC collector from repo -> BFC blame result -> " + e);
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 				continue;
 			}
 
 			RevCommit commitBeforeFix;
 			try {
-				commitBeforeFix = blameFIX.getSourceCommit(Integer.parseInt(lineFix) - 1);
+				commitBeforeFix = blameFIX.getSourceCommit(Integer.parseInt(lineBFC) - 1);
 			} catch (Exception e) {
 				System.out.println("BBIC collector from repo -> BFC get source commit -> " + e);
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 				continue;
 			}
 
 			// retrieve SHA and path of before FIX
-			String pathBFix = blameFIX.getSourcePath(Integer.parseInt(lineFix) - 1);
-			String shaBFix = commitBeforeFix.getName();
+			String pathBeforeBFC = blameFIX.getSourcePath(Integer.parseInt(lineBFC) - 1);
+			String shaBeforeBFC = commitBeforeFix.getName();
 
 			// if there are no before instances
 			// (blamed commit is equal to BIC)
@@ -164,22 +171,22 @@ public class Collector {
 			RevCommit commitFix = walk.parseCommit(fixID);
 			if (commitFix.getParentCount() == 0) {
 				System.out.println("BBIC collector from repo -> BFC parent count == 0");
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
+				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 				continue;
 			}
-			if (shaBFix.equals(shaFix)) {
-				DiffEntry diff = runDiff(input.repo, shaFix + "^", shaFix, pathFix);
+			if (shaBeforeBFC.equals(shaBFC)) {
+				DiffEntry diff = runDiff(input.repo, shaBFC + "^", shaBFC, pathBFC);
 				if (diff == null) {
 					System.out.println("BBIC collector from repo -> BFC diff == null");
-					System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
+					System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 					continue;
 				} else {
-					pathBFix = diff.getOldPath();
-					shaBFix = shaFix + "^";
+					pathBeforeBFC = diff.getOldPath();
+					shaBeforeBFC = shaBFC + "^";
 				}
 			}
 
-			String key = shaBIC + "\n" + shaFix + "\n" + pathBIC + "\n" + pathFix;
+			String key = pathBIC + "\n" + shaBIC + pathBFC + "\n" + shaBFC + "\n";
 
 			// skip duplicates
 			for (int j = 0; j < bbics.size(); j++) {
@@ -190,17 +197,18 @@ public class Collector {
 			}
 			if (isKeyDuplicate) {
 				System.out.println("is duplicate");
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaFix + "\n" + pathFix);
+				System.out.println(key);
 				continue;
 			}
 
 			// add BBIC when passed all of the above
-			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, pathBFix, shaBFix, shaFix,
-					key, input.projectName);
+			BeforeBIC bbic = new BeforeBIC(pathBeforeBIC, pathBIC, shaBeforeBIC, shaBIC, pathBeforeBFC, pathBFC,
+					shaBeforeBFC, shaBFC, key, input.projectName);
 			bbics.add(bbic);
 
-			csvprinter.printRecord(input.projectName + index, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore,
-					bbic.shaBIC, bbic.pathFix, bbic.pathBFix, bbic.shaBFix, bbic.shaFix, bbic.key, input.projectName);
+			csvprinter.printRecord(input.projectName + index, bbic.pathBeforeBIC, bbic.pathBIC, bbic.shaBeforeBIC,
+					bbic.shaBIC, bbic.pathBeforeBFC, bbic.pathBFC, bbic.shaBeforeBFC, bbic.shaBFC, bbic.key,
+					input.projectName);
 			csvprinter.flush();
 
 			index++;
@@ -220,20 +228,20 @@ public class Collector {
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
 
 		for (CSVRecord record : records) {
-			String pathBefore = record.get(1);
+			String pathBeforeBIC = record.get(1);
 			String pathBIC = record.get(2);
-			String shaBefore = record.get(3);
+			String shaBeforeBIC = record.get(3);
 			String shaBIC = record.get(4);
-			String pathFix = record.get(5);
-			String pathBFix = record.get(6);
-			String shaBFix = record.get(7);
-			String shaFix = record.get(8);
+			String pathBeforeBFC = record.get(5);
+			String pathBFC = record.get(6);
+			String shaBeforeBFC = record.get(7);
+			String shaBFC = record.get(8);
 			String key = record.get(9);
 			String project = record.get(10);
-			if (pathBefore.contains("path_before"))
+			if (pathBeforeBIC.contains("path_bbic"))
 				continue;
-			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, pathBFix, shaBFix, shaFix,
-					key, project);
+			BeforeBIC bbic = new BeforeBIC(pathBeforeBIC, pathBIC, shaBeforeBIC, shaBIC, pathBeforeBFC, pathBFC,
+					shaBeforeBFC, shaBFC, key, project);
 			bbics.add(bbic);
 		}
 
@@ -243,32 +251,7 @@ public class Collector {
 
 	public static ArrayList<BeforeBIC> collectBeforeBICFromLocalFile(Input input)
 			throws FileNotFoundException, IOException {
-		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
-		Reader in = new FileReader(input.inFile);
-
-		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
-
-		for (CSVRecord record : records) {
-			String pathBefore = record.get(1);
-			String pathBIC = record.get(2);
-			String shaBefore = record.get(3);
-			String shaBIC = record.get(4);
-			String pathFix = record.get(5);
-			String pathBFix = record.get(6);
-			String shaBFix = record.get(7);
-			String shaFix = record.get(8);
-			String key = record.get(9);
-			String project = record.get(10);
-			if (pathBefore.contains("path_before"))
-				continue;
-
-			BeforeBIC bbic = new BeforeBIC(pathBefore, pathBIC, shaBefore, shaBIC, pathFix, pathBFix, shaBFix, shaFix,
-					key, project);
-			bbics.add(bbic);
-		}
-
-		System.out.println("########### Finish collecting BBIC from local file: " + bbics.size() + " ###########");
-		return bbics;
+		return collectBeforeBICFromLocalFile(input, input.inputDirectory);
 	}
 
 	public static String getDiff(Repository repo, DiffEntry diff) throws IOException {
@@ -298,10 +281,14 @@ public class Collector {
 			List<DiffEntry> diffList = git.diff().setOldTree(prepareTreeParser(repo, oldCommit))
 					.setNewTree(prepareTreeParser(repo, newCommit)).setPathFilter(FollowFilter.create(path, diffConfig))
 					.call();
-			if (diffList.size() == 0)
+			if (diffList.size() == 0) {
+				System.out.println("diffList.size() == 0");
 				return null;
-			if (diffList.size() > 1)
+			}
+
+			if (diffList.size() > 1) {
 				throw new RuntimeException("invalid diff");
+			}
 			return diffList.get(0);
 		}
 	}
@@ -347,7 +334,7 @@ public class Collector {
 			try (RevWalk revWalk = new RevWalk(repo)) {
 				int i = 0;
 				for (BeforeBIC bbic : bbics) {
-					ObjectId beforeId = repo.resolve(bbic.shaBefore);
+					ObjectId beforeId = repo.resolve(bbic.shaBeforeBIC);
 					ObjectId bicId = repo.resolve(bbic.shaBIC);
 
 					RevCommit beforeCommit = revWalk.parseCommit(beforeId);
@@ -363,9 +350,9 @@ public class Collector {
 					try (TreeWalk treeWalk = new TreeWalk(repo)) {
 						treeWalk.addTree(beforeTree);
 						treeWalk.setRecursive(true);
-						treeWalk.setFilter(PathFilter.create(bbic.pathBefore));
+						treeWalk.setFilter(PathFilter.create(bbic.pathBeforeBIC));
 						if (!treeWalk.next()) {
-							throw new IllegalStateException("Did not find expected file " + bbic.pathBefore);
+							throw new IllegalStateException("Did not find expected file " + bbic.pathBeforeBIC);
 						}
 
 						ObjectId objectId = treeWalk.getObjectId(0);
@@ -405,8 +392,8 @@ public class Collector {
 	// removes instances that
 	public static ArrayList<BeforeBIC> rmDups(ArrayList<BeforeBIC> bbics, Input input) throws IOException {
 
-		final String[] headers = { "index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix",
-				"key" };
+		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
+				"sha_bbfc", "sha_bfc", "key", "project" };
 		File fileP = new File(input.bbicFilePath);
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
@@ -414,7 +401,7 @@ public class Collector {
 
 		// put bbics in a hashmap w.r.t. shaFix
 		for (BeforeBIC bbic : bbics) {
-			String key = bbic.shaFix + bbic.pathFix;
+			String key = bbic.pathBFC + bbic.shaBFC;
 
 			MutableInt count = dupMap.get(key);
 			if (count == null) {
@@ -426,7 +413,7 @@ public class Collector {
 
 		// if an instance count is greater than 1, remove
 		for (int i = 0; i < bbics.size(); i++) {
-			String key = bbics.get(i).shaFix + bbics.get(i).pathFix;
+			String key = bbics.get(i).pathBFC + bbics.get(i).shaBFC;
 			if (dupMap.get(key).value > 1) {
 				bbics.remove(i);
 				i--;
@@ -437,8 +424,9 @@ public class Collector {
 		int index = 0;
 		for (BeforeBIC bbic : bbics) {
 			// writing the BBIC file
-			csvprinter.printRecord(input.projectName + index, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore,
-					bbic.shaBIC, bbic.pathFix, bbic.shaFix, bbic.key, input.projectName);
+			csvprinter.printRecord(input.projectName + index, bbic.pathBeforeBIC, bbic.pathBIC, bbic.shaBeforeBIC,
+					bbic.shaBIC, bbic.pathBeforeBFC, bbic.pathBFC, bbic.shaBeforeBFC, bbic.shaBFC, bbic.key,
+					input.projectName);
 			csvprinter.flush();
 			index++;
 		}
@@ -450,8 +438,8 @@ public class Collector {
 	public static ArrayList<BeforeBIC> getAllCommits(Input input) throws NoHeadException, GitAPIException, IOException {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 
-		final String[] headers = { "index", "path_before", "path_BIC", "sha_before", "sha_BIC", "path_fix", "sha_fix",
-				"key" };
+		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
+				"sha_bbfc", "sha_bfc", "key", "project" };
 		File fileP = new File(input.bbicFilePath);
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
@@ -494,9 +482,9 @@ public class Collector {
 					shaBefore = sha + "^";
 				}
 
-				String key = shaBefore + "\n" + sha + "\n" + pathBefore + "\n" + path;
-				csvprinter.printRecord(input.projectName + count, pathBefore, path, shaBefore, sha, "-", "-", key,
-						input.projectName);
+				String key = pathBefore + "\n" + path + shaBefore + "\n" + sha + "\n";
+				csvprinter.printRecord(input.projectName + count, pathBefore, path, shaBefore, sha, "-", "-", "-", "-",
+						key, input.projectName);
 				csvprinter.flush();
 				BeforeBIC bbic = new BeforeBIC(pathBefore, path, shaBefore, sha, "-", "-", "-", "-", key,
 						input.projectName);

@@ -11,7 +11,7 @@ import org.eclipse.jgit.lib.Repository;
 public class Input {
 
 	public String url = "";
-	public String inFile = "";
+	public String inputDirectory = "";
 	public String outFile = "";
 	public String bbicFilePath = "";
 	public Repository repo = null;
@@ -20,10 +20,10 @@ public class Input {
 	public Git git;
 	public File gitDir;
 
-	public Input(String url, String inFile, String outFile)
+	public Input(String url, String inputDirectory, String outFile)
 			throws InvalidRemoteException, TransportException, GitAPIException, IOException {
 		this.url = url;
-		this.inFile = inFile;
+		this.inputDirectory = inputDirectory;
 		this.outFile = outFile;
 		this.REMOTE_URI = url + ".git";
 		this.projectName = Utils.getProjectName(REMOTE_URI);

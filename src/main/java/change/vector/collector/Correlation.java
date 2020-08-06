@@ -26,7 +26,7 @@ public class Correlation {
 
 	// runner for all
 	public static void computeAll(Input input) throws Exception {
-		if (input.inFile.contains("test_")) {
+		if (input.inputDirectory.contains("test_")) {
 			calcCorrelationAxB(input, mode.MY);
 			System.out.println("testing all correlations done!");
 		} else {
@@ -39,7 +39,7 @@ public class Correlation {
 	@SuppressWarnings("incomplete-switch")
 	public static void calcCorrelationAxB(Input input, mode mode) throws Exception {
 		String trainPath = "./assets/test/database3.arff";
-		String testPath = input.inFile;
+		String testPath = input.inputDirectory;
 
 		DataSource trainSource = new DataSource(trainPath);
 		DataSource testSource = new DataSource(testPath);
@@ -138,7 +138,7 @@ public class Correlation {
 	@SuppressWarnings("incomplete-switch")
 	public static void calcCorrelationAxA(Input input, mode mode) throws Exception {
 
-		String filePath = input.inFile;
+		String filePath = input.inputDirectory;
 		DataSource source = new DataSource(filePath);
 		Instances dataset = source.getDataSet();
 
@@ -187,7 +187,7 @@ public class Correlation {
 		}
 
 		// writing files
-		if (input.inFile.contains("combined")) {
+		if (input.inputDirectory.contains("combined")) {
 			writeMultiAxA(input, mode, dataset, cor);
 		} else {
 			writeSingleAxA(input, mode, dataset, cor);

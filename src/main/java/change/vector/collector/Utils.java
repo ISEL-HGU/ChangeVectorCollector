@@ -2,17 +2,27 @@ package change.vector.collector;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.jdt.core.dom.Comment;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffAlgorithm;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.EditList;
+import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.diff.RawTextComparator;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
@@ -21,7 +31,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
-
+import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 public class Utils {
 
@@ -58,29 +68,34 @@ public class Utils {
 
 	}
 
-//	public static Git gitClone(String REMOTE_URI)
-//			throws InvalidRemoteException, TransportException, GitAPIException, IOException {
-//
-//		File repositoriesDir = new File("repositories" + File.separator + getProjectName(REMOTE_URI));
-//		Git git = null;
-//		if (repositoriesDir.exists()) {
-//			try {
-//				git = Git.open(repositoriesDir);
-//			} catch (RepositoryNotFoundException e) {
-//				if (repositoriesDir.delete()) {
-//					return gitClone(REMOTE_URI);
-//				}
-//			}
-//		} else {
-//			repositoriesDir.mkdirs();
-//			System.out.println("cloning..");
-//			git = Git.cloneRepository().setURI(REMOTE_URI).setDirectory(repositoriesDir)
-////				  .setBranch("refs/heads/master") // only master
-//					.setCloneAllBranches(true).call();
-//		}
-//		return git;
-//	}
-	
+	public static boolean isBFC(RevCommit commit, List<String> bfcList) {
+
+		return bfcList.contains(commit.getId().getName());
+	}
+
+	public static Git gitClone1(String REMOTE_URI)
+			throws InvalidRemoteException, TransportException, GitAPIException, IOException {
+
+		File repositoriesDir = new File("repositories" + File.separator + getProjectName(REMOTE_URI));
+		Git git = null;
+		if (repositoriesDir.exists()) {
+			try {
+				git = Git.open(repositoriesDir);
+			} catch (RepositoryNotFoundException e) {
+				if (repositoriesDir.delete()) {
+					return gitClone1(REMOTE_URI);
+				}
+			}
+		} else {
+			repositoriesDir.mkdirs();
+			System.out.println("cloning..");
+			git = Git.cloneRepository().setURI(REMOTE_URI).setDirectory(repositoriesDir)
+//				  .setBranch("refs/heads/master") // only master
+					.setCloneAllBranches(true).call();
+		}
+		return git;
+	}
+
 	public static File GitClone(Input input) throws InvalidRemoteException, TransportException, GitAPIException {
 		String remoteURI = input.REMOTE_URI;
 		String projectName = input.projectName;
@@ -102,7 +117,7 @@ public class Utils {
 		return m.group(1);
 
 	}
-	
+
 	public static String getReferencePath(Input input) {
 		return input.outFile + File.separator + "reference";
 	}
@@ -113,10 +128,76 @@ public class Utils {
 				referencePath + File.separator + "repositories" + File.separator + input.projectName);
 		return clonedDirectory;
 	}
-	
+
 	public static boolean isCloned(Input input) {
 		File clonedDirectory = getGitDirectory(input);
 		return clonedDirectory.exists();
+	}
+
+	public static String removeComments(String code) {
+
+		JavaASTParser codeAST = new JavaASTParser(code);
+		@SuppressWarnings("unchecked")
+		List<Comment> lstComments = codeAST.cUnit.getCommentList();
+		for (Comment comment : lstComments) {
+			code = replaceCommentsWithWS(code, comment.getStartPosition(), comment.getLength());
+		}
+
+		return code;
+	}
+
+	private static String replaceCommentsWithWS(String code, int startPosition, int length) {
+
+		String pre = code.substring(0, startPosition);
+		String post = code.substring(startPosition + length, code.length());
+
+		String comments = code.substring(startPosition, startPosition + length);
+
+		comments = comments.replaceAll("\\S", " ");
+
+		code = pre + comments + post;
+
+		return code;
+	}
+
+	public static List<DiffEntry> diff(RevCommit parent, RevCommit commit, Repository repo) {
+
+		DiffFormatter df = new DiffFormatter(DisabledOutputStream.INSTANCE);
+		df.setRepository(repo);
+		df.setDiffAlgorithm(diffAlgorithm);
+		df.setDiffComparator(diffComparator);
+		df.setDetectRenames(true);
+		List<DiffEntry> diffs = null;
+		try {
+			diffs = df.scan(parent.getTree(), commit.getTree());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			df.close();
+		}
+
+		return diffs;
+	}
+
+	static public EditList getEditListFromDiff(String file1, String file2) {
+		RawText rt1 = new RawText(file1.getBytes());
+		RawText rt2 = new RawText(file2.getBytes());
+		EditList diffList = new EditList();
+
+		diffList.addAll(diffAlgorithm.diff(diffComparator, rt1, rt2));
+		return diffList;
+	}
+
+	public static String getStringDateTimeFromCommit(RevCommit commit) {
+
+		SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date commitDate = commit.getAuthorIdent().getWhen();
+
+		TimeZone GMT = commit.getCommitterIdent().getTimeZone();
+		ft.setTimeZone(GMT);
+
+		return ft.format(commitDate);
 	}
 
 }

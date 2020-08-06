@@ -20,9 +20,11 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
@@ -41,10 +43,38 @@ import com.github.gumtreediff.tree.ITree;
 
 public class Gumtree {
 
+	public static void runD4j3(Input input)
+			throws IOException, RevisionSyntaxException, NoHeadException, GitAPIException {
+
+		ArrayList<String> bfcList = new ArrayList<String>();
+		Reader d4j_reader = new FileReader(input.inputDirectory + "d4j_" + input.projectName + ".csv");
+		Iterable<CSVRecord> d4j_records = CSVFormat.RFC4180.parse(d4j_reader);
+
+		for (CSVRecord record : d4j_records) {
+			bfcList.add(record.get(2));
+		}
+
+		ArrayList<BICInfo> bicLists = BICInfo.collectFrom(input, bfcList);
+
+		// writing BIC_.csv for d4j instance.
+		final String[] headers = BICInfo.headers;
+		File file_BIC = new File(input.outFile + "BIC_d4j_" + input.projectName + ".csv");
+		BufferedWriter writer_BIC = Files.newBufferedWriter(Paths.get(file_BIC.getAbsolutePath()));
+		CSVPrinter csvprinter_BIC = new CSVPrinter(writer_BIC, CSVFormat.DEFAULT.withHeader(headers));
+
+		for (BICInfo bic : bicLists) {
+			csvprinter_BIC.printRecord(bic.getBISha1(), bic.getBIPath(), bic.getPath(), bic.getFixSha1(),
+					bic.getBIDate(), bic.getFixDate(), bic.getLineNum(), bic.getLineNumInPrevFixRev(),
+					bic.getIsAddedLine(), bic.getLine());
+			csvprinter_BIC.flush();
+		}
+		csvprinter_BIC.close();
+	}
+
 	public static void runD4j2(Input input) throws IOException {
 		ArrayList<BeforeBIC> new_bbics = new ArrayList<BeforeBIC>();
-		Reader d4j_reader = new FileReader(input.inFile + "d4j_" + input.projectName + ".csv");
-		Reader bbic_reader = new FileReader(input.inFile + "BBIC_" + input.projectName + ".csv");
+		Reader d4j_reader = new FileReader(input.inputDirectory + "d4j_" + input.projectName + ".csv");
+		Reader bbic_reader = new FileReader(input.inputDirectory + "BBIC_" + input.projectName + ".csv");
 		Iterable<CSVRecord> d4j_records = CSVFormat.RFC4180.parse(d4j_reader);
 		Iterable<CSVRecord> bbic_records = CSVFormat.RFC4180.parse(bbic_reader);
 
@@ -62,7 +92,7 @@ public class Gumtree {
 		int match_cnt = 0;
 		for (int i = 0; i < sha_d4js.size(); i++) {
 			for (int j = 0; j < bbics.size(); j++) {
-				if (sha_d4js.get(i).equals(bbics.get(j).shaFix)) {
+				if (sha_d4js.get(i).equals(bbics.get(j).shaBFC)) {
 					new_bbics.add(bbics.get(j));
 					match_cnt++;
 				}
@@ -77,7 +107,7 @@ public class Gumtree {
 
 	public static void runD4j(Input input) throws IOException, GitAPIException {
 		int MAX_SIZE = 2000;
-		Reader in = new FileReader(input.inFile);
+		Reader in = new FileReader(input.inputDirectory);
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
 		File file_Y = new File(input.outFile + "Y_defects4j.csv");
 		File file_GV = new File(input.outFile + "GVNC_defects4j.csv");
@@ -92,65 +122,66 @@ public class Gumtree {
 		int record_idx = 0;
 		for (CSVRecord record : records) {
 
-			String shaBeforeFIX = record.get(1);
-			String shaFIX = record.get(2);
-			String pathBeforeFIX = "";
-			String pathFIX = "";
+			String shaBeforeBFC = record.get(1);
+			String shaBFC = record.get(2);
+			String pathBeforeBFC = "";
+			String pathBFC = "";
 
-			if (shaFIX.equals("revision.id.fixed"))
+			// skip header
+			if (shaBFC.equals("revision.id.fixed"))
 				continue;
 
-			ObjectId bFix = input.repo.resolve(shaBeforeFIX);
-			ObjectId fix = input.repo.resolve(shaFIX);
-			RevCommit commitBFIX = walk.parseCommit(bFix);
-			RevCommit commitFIX = walk.parseCommit(fix);
-			RevTree treeBFIX = walk.parseTree(bFix);
-			RevTree treeFIX = walk.parseTree(fix);
+			ObjectId beforeBFC = input.repo.resolve(shaBeforeBFC);
+			ObjectId bfc = input.repo.resolve(shaBFC);
+			RevCommit commitBBFC = walk.parseCommit(beforeBFC);
+			RevCommit commitBFC = walk.parseCommit(bfc);
+			RevTree treeBBFC = walk.parseTree(beforeBFC);
+			RevTree treeBFC = walk.parseTree(bfc);
 
 			ObjectReader reader = input.repo.newObjectReader();
 			CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
-			oldTreeIter.reset(reader, treeBFIX);
+			oldTreeIter.reset(reader, treeBBFC);
 			CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
-			newTreeIter.reset(reader, treeFIX);
+			newTreeIter.reset(reader, treeBFC);
 
 			List<DiffEntry> diffs = input.git.diff().setNewTree(newTreeIter).setOldTree(oldTreeIter).call();
 
 			// for each files in a commit (1 ~ 3)
 			for (DiffEntry entry : diffs) {
 				ArrayList<Integer> g_vec = new ArrayList<Integer>();
-				pathBeforeFIX = entry.getOldPath();
-				pathFIX = entry.getNewPath();
+				pathBeforeBFC = entry.getOldPath();
+				pathBFC = entry.getNewPath();
 
-				String srcBlobFIX = Utils.fetchBlob(input.repo, commitBFIX.getName(), pathBeforeFIX);
-				String dstBlobFIX = Utils.fetchBlob(input.repo, commitFIX.getName(), pathFIX);
+				String srcBlobBFC = Utils.fetchBlob(input.repo, commitBBFC.getName(), pathBeforeBFC);
+				String dstBlobBFC = Utils.fetchBlob(input.repo, commitBFC.getName(), pathBFC);
 
 				Run.initGenerators();
 
-				ITree srcFIX;
-				ITree dstFIX;
+				ITree srcBFC;
+				ITree dstBFC;
 
 				try {
-					srcFIX = new JdtTreeGenerator().generateFromString(srcBlobFIX).getRoot();
-					dstFIX = new JdtTreeGenerator().generateFromString(dstBlobFIX).getRoot();
+					srcBFC = new JdtTreeGenerator().generateFromString(srcBlobBFC).getRoot();
+					dstBFC = new JdtTreeGenerator().generateFromString(dstBlobBFC).getRoot();
 				} catch (Exception e) {
 					System.out.println("excetion: " + e);
 					continue;
 				}
-				Matcher matchFIX = Matchers.getInstance().getMatcher(srcFIX, dstFIX);
-				matchFIX.match();
+				Matcher matchBFC = Matchers.getInstance().getMatcher(srcBFC, dstBFC);
+				matchBFC.match();
 
-				ActionGenerator gFIX = new ActionGenerator(srcFIX, dstFIX, matchFIX.getMappings());
-				gFIX.generate();
+				ActionGenerator gBFC = new ActionGenerator(srcBFC, dstBFC, matchBFC.getMappings());
+				gBFC.generate();
 
-				List<Action> actionsFIX = gFIX.getActions();
+				List<Action> actionsBFC = gBFC.getActions();
 
-				if (actionsFIX.size() <= 0) {
+				if (actionsBFC.size() <= 0) {
 					System.out.println("actionsFIX size < 0");
 					continue;
 				}
 
 				// for each action node in a change
-				for (Action action : actionsFIX) {
+				for (Action action : actionsBFC) {
 					if (action.getNode().getType() == 40 || action.getNode().getType() == 26) {
 						continue;
 					}
@@ -164,8 +195,8 @@ public class Gumtree {
 
 					continue;
 
-				if (actionsFIX.size() < MAX_SIZE) {
-					for (int i = 0; i < MAX_SIZE - actionsFIX.size(); i++) {
+				if (actionsBFC.size() < MAX_SIZE) {
+					for (int i = 0; i < MAX_SIZE - actionsBFC.size(); i++) {
 						g_vec.add(0);
 					}
 				}
@@ -179,14 +210,14 @@ public class Gumtree {
 				pOptions.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_9);
 				pOptions.put(JavaCore.COMPILER_DOC_COMMENT_SUPPORT, JavaCore.ENABLED);
 				parser.setCompilerOptions(pOptions);
-				parser.setSource(dstBlobFIX.toCharArray());
+				parser.setSource(dstBlobBFC.toCharArray());
 				CompilationUnit cu = (CompilationUnit) parser.createAST(null);
 
 				ArrayList<Integer> context_vec = new ArrayList<Integer>();
 				HashMap<Integer, Boolean> map = new HashMap<Integer, Boolean>();
 
 				// adding context vectors
-				for (Action action : actionsFIX) {
+				for (Action action : actionsBFC) {
 					int lineNumOfBIC = cu.getLineNumber(action.getNode().getPos());
 					int parent_hash = action.getNode().getParent().getHash();
 					if (map.containsKey(parent_hash)) {
@@ -208,9 +239,9 @@ public class Gumtree {
 					}
 				}
 				g_vec.addAll(context_vec);
-
-				csvprinter_Y.printRecord(input.projectName + all_cnt, "-", "-", "-", "-", pathFIX, pathBeforeFIX,
-						shaBeforeFIX, shaFIX, pathFIX + pathBeforeFIX + shaBeforeFIX + shaFIX, input.projectName);
+				String key = pathBeforeBFC + pathBFC + shaBeforeBFC + shaBFC;
+				csvprinter_Y.printRecord(input.projectName + all_cnt, "-", "-", "-", "-", pathBeforeBFC, pathBFC,
+						shaBeforeBFC, shaBFC, key, input.projectName);
 
 				csvprinter_Y.flush();
 
@@ -237,14 +268,14 @@ public class Gumtree {
 	public static void runGumtree(Input input, ArrayList<BeforeBIC> bbics)
 			throws MissingObjectException, IncorrectObjectTypeException, IOException {
 
-		int MAX_SIZE = 500;
+		int MAX_SIZE = 0;
 		Repository repo = input.repo;
 		RevWalk walk = new RevWalk(repo);
 		ArrayList<ArrayList<Integer>> gumtree_vectors = new ArrayList<ArrayList<Integer>>();
 		ArrayList<BeforeBIC> new_bbics = new ArrayList<BeforeBIC>();
 		File file_Y;
 		File file_GV;
-		if (input.inFile.contains("d4j")) {
+		if (input.inputDirectory.contains("d4j")) {
 			file_Y = new File(input.outFile + "Y_d4j_" + input.projectName + ".csv");
 			file_GV = new File(input.outFile + "GVNC_d4j_" + input.projectName + ".csv");
 		} else {
@@ -256,188 +287,176 @@ public class Gumtree {
 		CSVPrinter csvprinter_Y = new CSVPrinter(writer_Y, CSVFormat.DEFAULT);
 		CSVPrinter csvprinter_GV = new CSVPrinter(writer_GV, CSVFormat.DEFAULT);
 
-		try {
-			int cnt = 0;
-			for (BeforeBIC bbic : bbics) {
-				RevCommit commitBIC = walk.parseCommit(repo.resolve(bbic.shaBIC));
-				RevCommit commitBBIC = walk.parseCommit(repo.resolve(bbic.shaBefore));
-//				RevCommit commitFIX = walk.parseCommit(repo.resolve(bbic.shaFix));
-//				RevCommit commitBFIX = walk.parseCommit(repo.resolve(bbic.shaFix + "^"));
+		// get the max length of changes
+		for (BeforeBIC bbic : bbics) {
+			RevCommit commitBIC = walk.parseCommit(repo.resolve(bbic.shaBIC));
+			RevCommit commitBBIC = walk.parseCommit(repo.resolve(bbic.shaBeforeBIC));
 
-				String pathBIC = bbic.pathBIC;
-				String pathBBIC = bbic.pathBefore;
-//				String pathFIX = bbic.pathFix;
-//				String pathBFIX = bbic.pathBFix;
+			String pathBIC = bbic.pathBIC;
+			String pathBBIC = bbic.pathBeforeBIC;
+			String srcBlobBIC = Utils.fetchBlob(repo, commitBBIC.getName(), pathBBIC);
+			String dstBlobBIC = Utils.fetchBlob(repo, commitBIC.getName(), pathBIC);
+			Run.initGenerators();
+			ITree srcBIC;
+			ITree dstBIC;
+			try {
+				srcBIC = new JdtTreeGenerator().generateFromString(srcBlobBIC).getRoot();
+				dstBIC = new JdtTreeGenerator().generateFromString(dstBlobBIC).getRoot();
+			} catch (Exception e) {
+				continue;
+			}
+			Matcher matchBIC = Matchers.getInstance().getMatcher(srcBIC, dstBIC);
+			matchBIC.match();
 
-				String srcBlobBIC = Utils.fetchBlob(repo, commitBBIC.getName(), pathBBIC);
-				String dstBlobBIC = Utils.fetchBlob(repo, commitBIC.getName(), pathBIC);
-//				String srcBlobFIX = Utils.fetchBlob(repo, commitBFIX.getName(), pathBFIX);
-//				String dstBlobFIX = Utils.fetchBlob(repo, commitFIX.getName(), pathFIX);
+			ActionGenerator gBIC = new ActionGenerator(srcBIC, dstBIC, matchBIC.getMappings());
+			gBIC.generate();
 
-				Run.initGenerators();
-
-				// for BIC
-				ITree srcBIC;
-				ITree dstBIC;
-				try {
-					srcBIC = new JdtTreeGenerator().generateFromString(srcBlobBIC).getRoot();
-					dstBIC = new JdtTreeGenerator().generateFromString(dstBlobBIC).getRoot();
-				} catch (Exception e) {
+			List<Action> actionsBIC = gBIC.getActions();
+			int max = 0;
+			for (Action action : actionsBIC) {
+				if (action.getNode().getType() == 40 || action.getNode().getType() == 26) {
 					continue;
 				}
-				Matcher matchBIC = Matchers.getInstance().getMatcher(srcBIC, dstBIC);
-				matchBIC.match();
+				if (action.getName().equals("INS")) {
+					max++;
+				} else if (action.getName().equals("DEL")) {
+					max++;
+				}
+			}
 
-				ActionGenerator gBIC = new ActionGenerator(srcBIC, dstBIC, matchBIC.getMappings());
-				gBIC.generate();
+			if (max > MAX_SIZE) {
+				MAX_SIZE = max;
+			}
+		}
+		System.out.println("maxsize of gumvec: " + MAX_SIZE);
 
-				List<Action> actionsBIC = gBIC.getActions();
+		int cnt = 0;
+		for (BeforeBIC bbic : bbics) {
+			RevCommit commitBIC = walk.parseCommit(repo.resolve(bbic.shaBIC));
+			RevCommit commitBBIC = walk.parseCommit(repo.resolve(bbic.shaBeforeBIC));
+			// RevCommit commitFIX = walk.parseCommit(repo.resolve(bbic.shaFix));
+			// RevCommit commitBFIX = walk.parseCommit(repo.resolve(bbic.shaFix + "^"));
 
-				if (actionsBIC.size() <= 0)
+			String pathBIC = bbic.pathBIC;
+			String pathBBIC = bbic.pathBeforeBIC;
+			// String pathFIX = bbic.pathFix;
+			// String pathBFIX = bbic.pathBFix;
+
+			String srcBlobBIC = Utils.fetchBlob(repo, commitBBIC.getName(), pathBBIC);
+			String dstBlobBIC = Utils.fetchBlob(repo, commitBIC.getName(), pathBIC);
+			// String srcBlobFIX = Utils.fetchBlob(repo, commitBFIX.getName(), pathBFIX);
+			// String dstBlobFIX = Utils.fetchBlob(repo, commitFIX.getName(), pathFIX);
+
+			Run.initGenerators();
+
+			// for BIC
+			ITree srcBIC;
+			ITree dstBIC;
+			try {
+				srcBIC = new JdtTreeGenerator().generateFromString(srcBlobBIC).getRoot();
+				dstBIC = new JdtTreeGenerator().generateFromString(dstBlobBIC).getRoot();
+			} catch (Exception e) {
+				continue;
+			}
+			Matcher matchBIC = Matchers.getInstance().getMatcher(srcBIC, dstBIC);
+			matchBIC.match();
+
+			ActionGenerator gBIC = new ActionGenerator(srcBIC, dstBIC, matchBIC.getMappings());
+			gBIC.generate();
+
+			List<Action> actionsBIC = gBIC.getActions();
+
+
+			ArrayList<Integer> g_vec = new ArrayList<Integer>();
+			for (Action action : actionsBIC) {
+				// if regards import, discard
+				if (action.getNode().getType() == 40 || action.getNode().getType() == 26) {
 					continue;
-
-				ArrayList<Integer> g_vec = new ArrayList<Integer>();
-				for (Action action : actionsBIC) {
-
-//					System.out.println(action.getNode().getType() + " " + action.getNode().getLabel() + " "
-//							+ action.getNode().toTreeString() + " " + action.getNode().toShortString() + " ");
-					// if regards import, discard
-					if (action.getNode().getType() == 40 || action.getNode().getType() == 26) {
-						continue;
-					}
-
-					if (action.getName().equals("INS")) {
-						g_vec.add(action.getNode().getType() + 1);
-					} else if (action.getName().equals("DEL")) {
-						g_vec.add(action.getNode().getType() + 85 + 1);
-					}
-					// disregard move or update
-//					else if (action.getName().equals("UPD")) {
-//						g_vec.add(action.getNode().getType() + 85 * 2 + 1);
-//					} else if (action.getName().equals("MOV")) {
-//						g_vec.add(action.getNode().getType() + 85 * 3 + 1);
-//					}
 				}
 
-				// if over max_size or zero, discard instance.
-				if (g_vec.size() > MAX_SIZE || g_vec.size() <= 0)
-					continue;
-
-				// zero padding if less than MAX_SIZE
-				if (actionsBIC.size() < MAX_SIZE) {
-					for (int i = 0; i < MAX_SIZE - actionsBIC.size(); i++) {
-						g_vec.add(0);
-					}
+				if (action.getName().equals("INS")) {
+					g_vec.add(action.getNode().getType() + 1);
+				} else if (action.getName().equals("DEL")) {
+					g_vec.add(action.getNode().getType() + 85 + 1);
 				}
+				// disregard move or update
+				// else if (action.getName().equals("UPD")) {
+				// g_vec.add(action.getNode().getType() + 85 * 2 + 1);
+				// } else if (action.getName().equals("MOV")) {
+				// g_vec.add(action.getNode().getType() + 85 * 3 + 1);
+				// }
+			}
 
-				// using JDT parser to get the line number of AST nodes
-				@SuppressWarnings("deprecation")
-				ASTParser parser = ASTParser.newParser(AST.JLS9);
-				parser.setKind(ASTParser.K_COMPILATION_UNIT);
-				Hashtable<String, String> pOptions = JavaCore.getOptions();
-				pOptions.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_9);
-				pOptions.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_9);
-				pOptions.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_9);
-				pOptions.put(JavaCore.COMPILER_DOC_COMMENT_SUPPORT, JavaCore.ENABLED);
-				parser.setCompilerOptions(pOptions);
-				parser.setSource(dstBlobBIC.toCharArray());
-				CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+			// zero padding if less than MAX_SIZE
+			if (actionsBIC.size() < MAX_SIZE) {
+				for (int i = 0; i < MAX_SIZE - actionsBIC.size(); i++) {
+					g_vec.add(0);
+				}
+			}
 
-				// retrieving the context vector in AST
-				ArrayList<Integer> context_vec = new ArrayList<Integer>();
-				HashMap<Integer, Boolean> map = new HashMap<Integer, Boolean>();
-				for (Action action : actionsBIC) {
-					int lineNumOfBIC = cu.getLineNumber(action.getNode().getPos());
-					int parent_hash = action.getNode().getParent().getHash();
-					if (map.containsKey(parent_hash)) {
-						continue;
-					} else {
-						map.put(parent_hash, true);
-						List<ITree> descendants = action.getNode().getParent().getDescendants();
-						for (ITree descendant : descendants) {
-							if (map.containsKey(descendant.getHash())) {
-								continue;
-							} else {
-								int lineNumOfDescendant = cu.getLineNumber(descendant.getPos());
-								if (Math.abs(lineNumOfBIC - lineNumOfDescendant) < 3) {
-									map.put(descendant.getHash(), true);
-									context_vec.add(descendant.getType());
-								}
+			// using JDT parser to get the line number of AST nodes
+			@SuppressWarnings("deprecation")
+			ASTParser parser = ASTParser.newParser(AST.JLS9);
+			parser.setKind(ASTParser.K_COMPILATION_UNIT);
+			Hashtable<String, String> pOptions = JavaCore.getOptions();
+			pOptions.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_9);
+			pOptions.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_9);
+			pOptions.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_9);
+			pOptions.put(JavaCore.COMPILER_DOC_COMMENT_SUPPORT, JavaCore.ENABLED);
+			parser.setCompilerOptions(pOptions);
+			parser.setSource(dstBlobBIC.toCharArray());
+			CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+
+			// retrieving the context vector in AST
+			ArrayList<Integer> context_vec = new ArrayList<Integer>();
+			HashMap<Integer, Boolean> map = new HashMap<Integer, Boolean>();
+			for (Action action : actionsBIC) {
+				int lineNumOfBIC = cu.getLineNumber(action.getNode().getPos());
+				int parent_hash = action.getNode().getParent().getHash();
+				if (map.containsKey(parent_hash)) {
+					continue;
+				} else {
+					map.put(parent_hash, true);
+					List<ITree> descendants = action.getNode().getParent().getDescendants();
+					for (ITree descendant : descendants) {
+						if (map.containsKey(descendant.getHash())) {
+							continue;
+						} else {
+							int lineNumOfDescendant = cu.getLineNumber(descendant.getPos());
+							if (Math.abs(lineNumOfBIC - lineNumOfDescendant) < 3) {
+								map.put(descendant.getHash(), true);
+								context_vec.add(descendant.getType());
 							}
 						}
 					}
 				}
-
-//				// adding fix change
-//				ITree srcFIX;
-//				ITree dstFIX;
-//				try {
-//					srcFIX = new JdtTreeGenerator().generateFromString(srcBlobFIX).getRoot();
-//					dstFIX = new JdtTreeGenerator().generateFromString(dstBlobFIX).getRoot();
-//				} catch (Exception e) {
-//					continue;
-//				}
-//				Matcher matchFIX = Matchers.getInstance().getMatcher(srcFIX, dstFIX);
-//				matchFIX.match();
-//
-//				ActionGenerator gFIX = new ActionGenerator(srcFIX, dstFIX, matchFIX.getMappings());
-//				gFIX.generate();
-//
-//				List<Action> actionsFIX = gFIX.getActions();
-//
-//				if (actionsFIX.size() > MAX_SIZE)
-//					continue;
-//				if (actionsFIX.size() <= 0)
-//					continue;
-//
-//				for (Action action : actionsBIC) {
-//					if (action.getName().equals("INS")) {
-//						g_vec.add(action.getNode().getType() + 1);
-//					} else if (action.getName().equals("DEL")) {
-//						g_vec.add(action.getNode().getType() + 85 + 1);
-//					} else if (action.getName().equals("UPD")) {
-//						g_vec.add(action.getNode().getType() + 85 * 2 + 1);
-//					} else if (action.getName().equals("MOV")) {
-//						g_vec.add(action.getNode().getType() + 85 * 3 + 1);
-//					}
-//				}
-//
-//				// zero padding if less than MAX_SIZE
-//				if (g_vec.size() < MAX_SIZE * 2) {
-//					for (int i = 0; i < (MAX_SIZE * 2) - g_vec.size() + MAX_SIZE; i++) {
-//						g_vec.add(0);
-//					}
-//				}
-
-				// adding the two lists
-
-				g_vec.addAll(context_vec);
-				System.out.println(cnt + ": " + g_vec.size());
-
-				gumtree_vectors.add(g_vec);
-				new_bbics.add(bbic);
-
-				csvprinter_Y.printRecord(input.projectName + cnt, bbic.pathBefore, bbic.pathBIC, bbic.shaBefore,
-						bbic.shaBIC, bbic.pathFix, bbic.pathBFix, bbic.shaBFix, bbic.shaFix, bbic.key,
-						input.projectName);
-
-				csvprinter_Y.flush();
-
-				for (Integer val : g_vec) {
-					csvprinter_GV.print(val);
-				}
-				csvprinter_GV.println();
-				csvprinter_GV.flush();
-
-				System.out.println(cnt + "/" + bbics.size());
-				cnt++;
 			}
-//			writeGumVecs(input, gumtree_vectors);
-//			BeforeBIC.writeBBICsOnCSV(input, new_bbics, "Y_" + input.projectName + ".csv");
-			System.out.println("writing gumvecs complete!");
-		} catch (Exception e) {
-			e.printStackTrace();
+
+			// adding the two lists
+			g_vec.addAll(context_vec);
+			System.out.println(cnt + ": " + g_vec.size());
+
+			gumtree_vectors.add(g_vec);
+			new_bbics.add(bbic);
+
+			csvprinter_Y.printRecord(input.projectName + cnt, bbic.pathBeforeBIC, bbic.pathBIC, bbic.shaBeforeBIC,
+					bbic.shaBIC, bbic.pathBeforeBFC, bbic.pathBFC, bbic.shaBeforeBFC, bbic.shaBFC, bbic.key,
+					input.projectName);
+
+			csvprinter_Y.flush();
+
+			for (Integer val : g_vec) {
+				csvprinter_GV.print(val);
+			}
+			csvprinter_GV.println();
+			csvprinter_GV.flush();
+
+			System.out.println(cnt + "/" + bbics.size());
+			cnt++;
 		}
+
+		System.out.println("writing gumvecs complete!");
+
 		csvprinter_Y.close();
 		csvprinter_GV.close();
 		walk.close();

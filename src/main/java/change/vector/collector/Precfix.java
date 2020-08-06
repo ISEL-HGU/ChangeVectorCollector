@@ -20,7 +20,7 @@ public class Precfix {
 		ArrayList<DefectPatchPair> dps = new ArrayList<DefectPatchPair>();
 		ArrayList<BeforeBIC> newBeforeBICs = new ArrayList<BeforeBIC>();
 		BufferedWriter writer = new BufferedWriter(new FileWriter("./assets/code.txt"));
-		if (input.inFile.contains("combined")) {
+		if (input.inputDirectory.contains("combined")) {
 			// combined part
 			int igniteNum = 0;
 			int luceneNum = 2273;
@@ -29,13 +29,13 @@ public class Precfix {
 			int isisNum = 1365;
 			int mahoutNum = 5240;
 			// int oozieNum = 1124;
-			Input inputIgnite = new Input("https://github.com/apache/ignite", input.inFile, input.outFile);
-			Input inputLucene = new Input("https://github.com/apache/lucene-solr", input.inFile, input.outFile);
-			Input inputZookeeper = new Input("https://github.com/apache/zookeeper", input.inFile, input.outFile);
-			Input inputFlink = new Input("https://github.com/apache/flink", input.inFile, input.outFile);
-			Input inputIsis = new Input("https://github.com/apache/isis", input.inFile, input.outFile);
-			Input inputMahout = new Input("https://github.com/apache/mahout", input.inFile, input.outFile);
-			Input inputOozie = new Input("https://github.com/apache/oozie", input.inFile, input.outFile);
+			Input inputIgnite = new Input("https://github.com/apache/ignite", input.inputDirectory, input.outFile);
+			Input inputLucene = new Input("https://github.com/apache/lucene-solr", input.inputDirectory, input.outFile);
+			Input inputZookeeper = new Input("https://github.com/apache/zookeeper", input.inputDirectory, input.outFile);
+			Input inputFlink = new Input("https://github.com/apache/flink", input.inputDirectory, input.outFile);
+			Input inputIsis = new Input("https://github.com/apache/isis", input.inputDirectory, input.outFile);
+			Input inputMahout = new Input("https://github.com/apache/mahout", input.inputDirectory, input.outFile);
+			Input inputOozie = new Input("https://github.com/apache/oozie", input.inputDirectory, input.outFile);
 			
 			for (int i = 0; i < bbics.size(); i++) {
 				DefectPatchPair dp;
