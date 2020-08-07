@@ -199,7 +199,7 @@ public class Correlation {
 	// writing the result of correlation computation on csv
 	public static void writeSingleAxA(Input input, mode mode, Instances dataset, ArrayList<ArrayList<Double>> cor)
 			throws IOException {
-		File outFile = new File(input.outFile + mode.toString() + "_" + input.projectName + ".csv");
+		File outFile = new File(input.outDirectory + mode.toString() + "_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 
@@ -223,7 +223,7 @@ public class Correlation {
 	// writing the result of correlation computation on csv
 	public static void writeMultiAxA(Input input, mode mode, Instances dataset, ArrayList<ArrayList<Double>> cor)
 			throws IOException {
-		File outFile = new File(input.outFile + mode.toString() + "_combined" + ".csv");
+		File outFile = new File(input.outDirectory + mode.toString() + "_combined" + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 
@@ -321,7 +321,7 @@ public class Correlation {
 	// writing the result of correlation computation on csv
 	public static void writeMultiAxB(Input input, mode mode, int trainSize, int testSize,
 			ArrayList<ArrayList<Double>> cor) throws IOException {
-		File outFile = new File(input.outFile + mode.toString() + "_test_database" + ".csv");
+		File outFile = new File(input.outDirectory + mode.toString() + "_test_database" + ".csv");
 
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);

@@ -31,7 +31,6 @@ import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.ObjectReader;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.FollowFilter;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -62,9 +61,9 @@ public class Collector {
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
 
 		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
-				"sha_bbfc", "sha_bfc", "key", "project" };
+				"sha_bbfc", "sha_bfc", "key", "project", "label" };
 
-		File fileP = new File(input.outFile + "BBIC_" + input.projectName + ".csv");
+		File fileP = new File(input.outDirectory + "BBIC_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
 
@@ -203,7 +202,7 @@ public class Collector {
 
 			// add BBIC when passed all of the above
 			BeforeBIC bbic = new BeforeBIC(pathBeforeBIC, pathBIC, shaBeforeBIC, shaBIC, pathBeforeBFC, pathBFC,
-					shaBeforeBFC, shaBFC, key, input.projectName);
+					shaBeforeBFC, shaBFC, key, input.projectName, "0");
 			bbics.add(bbic);
 
 			csvprinter.printRecord(input.projectName + index, bbic.pathBeforeBIC, bbic.pathBIC, bbic.shaBeforeBIC,
@@ -241,7 +240,7 @@ public class Collector {
 			if (pathBeforeBIC.contains("path_bbic"))
 				continue;
 			BeforeBIC bbic = new BeforeBIC(pathBeforeBIC, pathBIC, shaBeforeBIC, shaBIC, pathBeforeBFC, pathBFC,
-					shaBeforeBFC, shaBFC, key, project);
+					shaBeforeBFC, shaBFC, key, project, "0");
 			bbics.add(bbic);
 		}
 
@@ -393,7 +392,7 @@ public class Collector {
 	public static ArrayList<BeforeBIC> rmDups(ArrayList<BeforeBIC> bbics, Input input) throws IOException {
 
 		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
-				"sha_bbfc", "sha_bfc", "key", "project" };
+				"sha_bbfc", "sha_bfc", "key", "project", "label" };
 		File fileP = new File(input.bbicFilePath);
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
@@ -437,69 +436,68 @@ public class Collector {
 
 	public static ArrayList<BeforeBIC> getAllCommits(Input input) throws NoHeadException, GitAPIException, IOException {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
-
-		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
-				"sha_bbfc", "sha_bfc", "key", "project" };
-		File fileP = new File(input.bbicFilePath);
-		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
-		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
-
 		RevWalk walk = new RevWalk(input.repo);
 		TreeWalk treeWalk = new TreeWalk(input.repo);
+		Map<String, MutableInt> bicList = new HashMap<String, MutableInt>();
 
-		for (Map.Entry<String, Ref> entry : input.repo.getAllRefs().entrySet()) {
-			if (entry.getKey().contains("refs/heads/master")) { // only master
-				Ref ref = entry.getValue();
-				RevCommit commit = walk.parseCommit(ref.getObjectId());
-				walk.markStart(commit);
+		Reader in = new FileReader(input.inputDirectory + "BIC_" + input.projectName + ".csv");
+
+		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
+
+		for (CSVRecord record : records) {
+			String key = record.get(1) + record.get(0);
+			MutableInt count = bicList.get(key);
+			if (count == null) {
+				bicList.put(key, new MutableInt());
+			} else {
+				count.increment();
 			}
 		}
 
+		Iterable<RevCommit> all_commits = input.git.log().all().call();
 		int count = 0;
-		for (RevCommit commit : walk) {
-			RevTree tree = commit.getTree();
-
-			treeWalk.addTree(tree);
-			treeWalk.setRecursive(true);
-			while (treeWalk.next()) {
-				String sha = commit.getName();
-				String path = treeWalk.getPathString();
-				String pathBefore = "";
-				String shaBefore = "";
-
-				// skip if not java file
-				if (!path.endsWith(".java"))
-					continue;
-				if (path.contains("/test/"))
-					continue;
-				System.out.println(sha + path);
-
-				DiffEntry diff = runDiff(input.repo, sha + "^", sha, path);
-				if (diff == null) {
-					continue;
-				} else {
-					pathBefore = diff.getOldPath();
-					shaBefore = sha + "^";
-				}
-
-				String key = pathBefore + "\n" + path + shaBefore + "\n" + sha + "\n";
-				csvprinter.printRecord(input.projectName + count, pathBefore, path, shaBefore, sha, "-", "-", "-", "-",
-						key, input.projectName);
-				csvprinter.flush();
-				BeforeBIC bbic = new BeforeBIC(pathBefore, path, shaBefore, sha, "-", "-", "-", "-", key,
-						input.projectName);
-				bbics.add(bbic);
-				System.out.println(key);
-				count++;
-
+		for (RevCommit commit : all_commits) {
+			if (commit.getParentCount() < 1) {
+				continue;
 			}
+			String cur_sha = commit.getName();
+			String prev_sha = cur_sha + "~1";
+
+			RevCommit prev_commit = walk.parseCommit(input.repo.resolve(prev_sha));
+
+			RevTree prev_tree = walk.parseTree(prev_commit);
+			RevTree cur_tree = walk.parseTree(commit);
+
+			ObjectReader reader = input.repo.newObjectReader();
+			CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
+			oldTreeIter.reset(reader, prev_tree);
+			CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
+			newTreeIter.reset(reader, cur_tree);
+
+			List<DiffEntry> diffs = input.git.diff().setNewTree(newTreeIter).setOldTree(oldTreeIter).call();
+
+			for (DiffEntry entry : diffs) {
+				String prev_path = entry.getOldPath();
+				String cur_path = entry.getNewPath();
+				String key = prev_path + cur_path + prev_sha + cur_sha;
+				String label = "0";
+				if (bicList.containsKey(cur_path + cur_sha)) {
+					label = "1";
+				}
+				if (prev_path.contains("/dev/null") || cur_path.indexOf("Test") >= 0 || !cur_path.endsWith(".java")) {
+					continue;
+				}
+				BeforeBIC bbic = new BeforeBIC(prev_path, cur_path, prev_sha, cur_sha, "-", "-", "-", "-", key,
+						input.projectName, label);
+				bbics.add(bbic);
+			}
+			count++;
 		}
 
 		System.out.println(count);
 		System.out.println("All collected!");
 		walk.close();
 		treeWalk.close();
-		csvprinter.close();
 
 		return bbics;
 	}

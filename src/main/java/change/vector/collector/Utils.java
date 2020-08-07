@@ -119,7 +119,7 @@ public class Utils {
 	}
 
 	public static String getReferencePath(Input input) {
-		return input.outFile + File.separator + "reference";
+		return input.outDirectory + File.separator + "reference";
 	}
 
 	public static File getGitDirectory(Input input) {

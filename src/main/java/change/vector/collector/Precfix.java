@@ -29,13 +29,13 @@ public class Precfix {
 			int isisNum = 1365;
 			int mahoutNum = 5240;
 			// int oozieNum = 1124;
-			Input inputIgnite = new Input("https://github.com/apache/ignite", input.inputDirectory, input.outFile);
-			Input inputLucene = new Input("https://github.com/apache/lucene-solr", input.inputDirectory, input.outFile);
-			Input inputZookeeper = new Input("https://github.com/apache/zookeeper", input.inputDirectory, input.outFile);
-			Input inputFlink = new Input("https://github.com/apache/flink", input.inputDirectory, input.outFile);
-			Input inputIsis = new Input("https://github.com/apache/isis", input.inputDirectory, input.outFile);
-			Input inputMahout = new Input("https://github.com/apache/mahout", input.inputDirectory, input.outFile);
-			Input inputOozie = new Input("https://github.com/apache/oozie", input.inputDirectory, input.outFile);
+			Input inputIgnite = new Input("https://github.com/apache/ignite", input.inputDirectory, input.outDirectory);
+			Input inputLucene = new Input("https://github.com/apache/lucene-solr", input.inputDirectory, input.outDirectory);
+			Input inputZookeeper = new Input("https://github.com/apache/zookeeper", input.inputDirectory, input.outDirectory);
+			Input inputFlink = new Input("https://github.com/apache/flink", input.inputDirectory, input.outDirectory);
+			Input inputIsis = new Input("https://github.com/apache/isis", input.inputDirectory, input.outDirectory);
+			Input inputMahout = new Input("https://github.com/apache/mahout", input.inputDirectory, input.outDirectory);
+			Input inputOozie = new Input("https://github.com/apache/oozie", input.inputDirectory, input.outDirectory);
 			
 			for (int i = 0; i < bbics.size(); i++) {
 				DefectPatchPair dp;
@@ -246,7 +246,7 @@ public class Precfix {
 	}
 	
 	public static void writePrecfixMulti(Input input, double[][] similarity) throws IOException {
-		File outFile = new File(input.outFile + "prec_combined7" + ".csv");
+		File outFile = new File(input.outDirectory + "prec_combined7" + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 
@@ -342,7 +342,7 @@ public class Precfix {
 	}
 	
 	public static void writePrecfix(Input input, double[][] similarity) throws IOException {
-		File outFile = new File(input.outFile + "test_" + input.projectName + ".csv");
+		File outFile = new File(input.outDirectory + "test_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(outFile.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 

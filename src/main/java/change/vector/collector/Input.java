@@ -12,7 +12,7 @@ public class Input {
 
 	public String url = "";
 	public String inputDirectory = "";
-	public String outFile = "";
+	public String outDirectory = "";
 	public String bbicFilePath = "";
 	public Repository repo = null;
 	public final String REMOTE_URI;
@@ -24,7 +24,7 @@ public class Input {
 			throws InvalidRemoteException, TransportException, GitAPIException, IOException {
 		this.url = url;
 		this.inputDirectory = inputDirectory;
-		this.outFile = outFile;
+		this.outDirectory = outFile;
 		this.REMOTE_URI = url + ".git";
 		this.projectName = Utils.getProjectName(REMOTE_URI);
 		if (!outFile.endsWith(File.separator))
