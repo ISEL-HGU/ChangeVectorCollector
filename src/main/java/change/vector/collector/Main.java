@@ -74,7 +74,7 @@ public class Main {
 				File bbicFile = new File(inputFile);
 
 				if (bbicFile.exists()) {
-					bbics = Collector.collectBeforeBICFromLocalFile(input, inputFile);
+					bbics = Collector.collectBeforeBICFromLocalFile(input);
 				} else {
 					bbics = Collector.collectBeforeBIC(input);
 				}
