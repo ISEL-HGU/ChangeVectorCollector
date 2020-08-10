@@ -38,7 +38,7 @@ public class Main {
 			// collects all changes in a repository -a
 			if (is_all) {
 				bbics = Collector.getAllCommits(input);
-				BeforeBIC.writeBBICsOnCSV(input, bbics, "BBIC_all_" + input.projectName + ".csv");
+				BeforeBIC.writeBBICsOnCSV(input, bbics, "BBIC_" + input.projectName + ".csv");
 				return;
 			}
 
