@@ -268,7 +268,7 @@ public class Gumtree {
 	public static void runGumtree(Input input, ArrayList<BeforeBIC> bbics)
 			throws MissingObjectException, IncorrectObjectTypeException, IOException {
 
-		int MAX_SIZE = 500;
+//		int MAX_SIZE = 500;
 		Repository repo = input.repo;
 		RevWalk walk = new RevWalk(repo);
 		ArrayList<ArrayList<Integer>> gumtree_vectors = new ArrayList<ArrayList<Integer>>();
@@ -386,12 +386,12 @@ public class Gumtree {
 				// }
 			}
 
-			// zero padding if less than MAX_SIZE
-			if (actionsBIC.size() < MAX_SIZE) {
-				for (int i = 0; i < MAX_SIZE - actionsBIC.size(); i++) {
-					g_vec.add(0);
-				}
-			}
+//			// zero padding if less than MAX_SIZE
+//			if (actionsBIC.size() < MAX_SIZE) {
+//				for (int i = 0; i < MAX_SIZE - actionsBIC.size(); i++) {
+//					g_vec.add(0);
+//				}
+//			}
 
 			// using JDT parser to get the line number of AST nodes
 			@SuppressWarnings("deprecation")

@@ -498,7 +498,7 @@ public class Collector {
 			count++;
 		}
 		System.out.println(count);
-		System.out.println("All commis collected and merged!");
+		System.out.println("All commits collected and merged!");
 		walk.close();
 		treeWalk.close();
 
