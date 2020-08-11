@@ -81,13 +81,14 @@ public class Collector {
 			String shaBFC = record.get(3);
 			String lineBIC = record.get(6);
 			String lineBFC = record.get(7);
-
+			String content = record.get(10);
+			
 			if (shaBIC.contains("BISha1"))
 				continue; // skip the header
-//			if (content.length() < 3)
-//				continue; // skip really short ones
-//			if (shaBIC.equals(shaFix))
-//				continue;// skip if BIC == FIX
+			if (content.length() < 3)
+				continue; // skip really short ones
+			if (shaBIC.equals(shaBFC))
+				continue;// skip if BIC == FIX
 
 			// get before instance that has before instances by blaming
 			ObjectId bicID = input.repo.resolve(shaBIC);

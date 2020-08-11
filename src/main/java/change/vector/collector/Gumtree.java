@@ -268,7 +268,7 @@ public class Gumtree {
 	public static void runGumtree(Input input, ArrayList<BeforeBIC> bbics)
 			throws MissingObjectException, IncorrectObjectTypeException, IOException {
 
-		int MAX_SIZE = 0;
+		int MAX_SIZE = 500;
 		Repository repo = input.repo;
 		RevWalk walk = new RevWalk(repo);
 		ArrayList<ArrayList<Integer>> gumtree_vectors = new ArrayList<ArrayList<Integer>>();
@@ -287,48 +287,48 @@ public class Gumtree {
 		CSVPrinter csvprinter_Y = new CSVPrinter(writer_Y, CSVFormat.DEFAULT);
 		CSVPrinter csvprinter_GV = new CSVPrinter(writer_GV, CSVFormat.DEFAULT);
 
-		// get the max length of changes
-		for (BeforeBIC bbic : bbics) {
-			RevCommit commitBIC = walk.parseCommit(repo.resolve(bbic.shaBIC));
-			RevCommit commitBBIC = walk.parseCommit(repo.resolve(bbic.shaBeforeBIC));
-
-			String pathBIC = bbic.pathBIC;
-			String pathBBIC = bbic.pathBeforeBIC;
-			String srcBlobBIC = Utils.fetchBlob(repo, commitBBIC.getName(), pathBBIC);
-			String dstBlobBIC = Utils.fetchBlob(repo, commitBIC.getName(), pathBIC);
-			Run.initGenerators();
-			ITree srcBIC;
-			ITree dstBIC;
-			try {
-				srcBIC = new JdtTreeGenerator().generateFromString(srcBlobBIC).getRoot();
-				dstBIC = new JdtTreeGenerator().generateFromString(dstBlobBIC).getRoot();
-			} catch (Exception e) {
-				continue;
-			}
-			Matcher matchBIC = Matchers.getInstance().getMatcher(srcBIC, dstBIC);
-			matchBIC.match();
-
-			ActionGenerator gBIC = new ActionGenerator(srcBIC, dstBIC, matchBIC.getMappings());
-			gBIC.generate();
-
-			List<Action> actionsBIC = gBIC.getActions();
-			int max = 0;
-			for (Action action : actionsBIC) {
-				if (action.getNode().getType() == 40 || action.getNode().getType() == 26) {
-					continue;
-				}
-				if (action.getName().equals("INS")) {
-					max++;
-				} else if (action.getName().equals("DEL")) {
-					max++;
-				}
-			}
-
-			if (max > MAX_SIZE) {
-				MAX_SIZE = max;
-			}
-		}
-		System.out.println("maxsize of gumvec: " + MAX_SIZE);
+//		// get the max length of changes
+//		for (BeforeBIC bbic : bbics) {
+//			RevCommit commitBIC = walk.parseCommit(repo.resolve(bbic.shaBIC));
+//			RevCommit commitBBIC = walk.parseCommit(repo.resolve(bbic.shaBeforeBIC));
+//
+//			String pathBIC = bbic.pathBIC;
+//			String pathBBIC = bbic.pathBeforeBIC;
+//			String srcBlobBIC = Utils.fetchBlob(repo, commitBBIC.getName(), pathBBIC);
+//			String dstBlobBIC = Utils.fetchBlob(repo, commitBIC.getName(), pathBIC);
+//			Run.initGenerators();
+//			ITree srcBIC;
+//			ITree dstBIC;
+//			try {
+//				srcBIC = new JdtTreeGenerator().generateFromString(srcBlobBIC).getRoot();
+//				dstBIC = new JdtTreeGenerator().generateFromString(dstBlobBIC).getRoot();
+//			} catch (Exception e) {
+//				continue;
+//			}
+//			Matcher matchBIC = Matchers.getInstance().getMatcher(srcBIC, dstBIC);
+//			matchBIC.match();
+//
+//			ActionGenerator gBIC = new ActionGenerator(srcBIC, dstBIC, matchBIC.getMappings());
+//			gBIC.generate();
+//
+//			List<Action> actionsBIC = gBIC.getActions();
+//			int max = 0;
+//			for (Action action : actionsBIC) {
+//				if (action.getNode().getType() == 40 || action.getNode().getType() == 26) {
+//					continue;
+//				}
+//				if (action.getName().equals("INS")) {
+//					max++;
+//				} else if (action.getName().equals("DEL")) {
+//					max++;
+//				}
+//			}
+//
+//			if (max > MAX_SIZE) {
+//				MAX_SIZE = max;
+//			}
+//		}
+//		System.out.println("maxsize of gumvec: " + MAX_SIZE);
 
 		int cnt = 0;
 		for (BeforeBIC bbic : bbics) {
