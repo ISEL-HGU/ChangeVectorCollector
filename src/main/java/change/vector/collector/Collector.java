@@ -98,8 +98,6 @@ public class Collector {
 			try {
 				blameBIC = blamer.call();
 			} catch (Exception e) {
-				System.out.println("BBIC collector from repo -> BIC blame result -> " + e);
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 				continue;
 			}
 
@@ -107,8 +105,6 @@ public class Collector {
 			try {
 				commitBeforeBIC = blameBIC.getSourceCommit(Integer.parseInt(lineBIC) - 1);
 			} catch (Exception e) {
-				System.out.println("BBIC collector from repo -> BIC get source commit -> " + e);
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 				continue;
 			}
 
@@ -122,16 +118,12 @@ public class Collector {
 			RevWalk walk = new RevWalk(input.repo);
 			RevCommit commitBIC = walk.parseCommit(bicID);
 			if (commitBIC.getParentCount() == 0) {
-				System.out.println("BBIC collector from repo -> BIC parent count == 0");
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 				continue;
 			}
 
 			if (shaBeforeBIC.equals(shaBIC)) {
 				DiffEntry diff = runDiff(input.repo, shaBIC + "^", shaBIC, pathBIC);
 				if (diff == null) {
-					System.out.println("BBIC collector from repo -> BIC diff == null");
-					System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 					continue;
 				} else {
 					pathBeforeBIC = diff.getOldPath();
@@ -148,8 +140,6 @@ public class Collector {
 			try {
 				blameFIX = blamer.call();
 			} catch (Exception e) {
-				System.out.println("BBIC collector from repo -> BFC blame result -> " + e);
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 				continue;
 			}
 
@@ -157,8 +147,6 @@ public class Collector {
 			try {
 				commitBeforeFix = blameFIX.getSourceCommit(Integer.parseInt(lineBFC) - 1);
 			} catch (Exception e) {
-				System.out.println("BBIC collector from repo -> BFC get source commit -> " + e);
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 				continue;
 			}
 
@@ -171,15 +159,11 @@ public class Collector {
 			// get the path of BIC~1
 			RevCommit commitFix = walk.parseCommit(fixID);
 			if (commitFix.getParentCount() == 0) {
-				System.out.println("BBIC collector from repo -> BFC parent count == 0");
-				System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 				continue;
 			}
 			if (shaBeforeBFC.equals(shaBFC)) {
 				DiffEntry diff = runDiff(input.repo, shaBFC + "^", shaBFC, pathBFC);
 				if (diff == null) {
-					System.out.println("BBIC collector from repo -> BFC diff == null");
-					System.out.println(shaBIC + "\n" + pathBIC + "\n" + shaBFC + "\n" + pathBFC);
 					continue;
 				} else {
 					pathBeforeBFC = diff.getOldPath();
@@ -197,14 +181,12 @@ public class Collector {
 				}
 			}
 			if (isKeyDuplicate) {
-				System.out.println("is duplicate");
-				System.out.println(key);
 				continue;
 			}
 
 			// add BBIC when passed all of the above
 			BeforeBIC bbic = new BeforeBIC(pathBeforeBIC, pathBIC, shaBeforeBIC, shaBIC, pathBeforeBFC, pathBFC,
-					shaBeforeBFC, shaBFC, key, input.projectName, "0");
+					shaBeforeBFC, shaBFC, key, input.projectName, "1");
 			bbics.add(bbic);
 
 			csvprinter.printRecord(input.projectName + index, bbic.pathBeforeBIC, bbic.pathBIC, bbic.shaBeforeBIC,
@@ -213,6 +195,7 @@ public class Collector {
 			csvprinter.flush();
 
 			index++;
+			System.out.println(index);
 			walk.close();
 		}
 
@@ -284,7 +267,7 @@ public class Collector {
 					.setNewTree(prepareTreeParser(repo, newCommit)).setPathFilter(FollowFilter.create(path, diffConfig))
 					.call();
 			if (diffList.size() == 0) {
-				System.out.println("diffList.size() == 0");
+//				System.out.println("diffList.size() == 0");
 				return null;
 			}
 
@@ -469,14 +452,14 @@ public class Collector {
 		// for each of all the commit
 		int count = 0;
 		for (RevCommit commit : all_commits) {
+			
 			if (commit.getParentCount() < 1) {
 				continue;
 			}
 			String cur_sha = commit.getName();
 			String prev_sha = cur_sha + "~1";
-
+			
 			RevCommit prev_commit = walk.parseCommit(input.repo.resolve(prev_sha));
-
 			RevTree prev_tree = walk.parseTree(prev_commit);
 			RevTree cur_tree = walk.parseTree(commit);
 
@@ -513,9 +496,8 @@ public class Collector {
 			}
 			count++;
 		}
-
 		System.out.println(count);
-		System.out.println("All collected!");
+		System.out.println("All commis collected and merged!");
 		walk.close();
 		treeWalk.close();
 
