@@ -81,7 +81,7 @@ public class Collector {
 			String shaBFC = record.get(3);
 			String lineBIC = record.get(6);
 			String lineBFC = record.get(7);
-			String content = record.get(10);
+			String content = record.get(9);
 			
 			if (shaBIC.contains("BISha1"))
 				continue; // skip the header
