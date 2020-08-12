@@ -39,8 +39,7 @@ public class Main {
 			// colllect all clean changes in a repository -c
 			if (is_clean) {
 				bbics = Collector.getAllCleanCommits(input);
-				
-				
+				BeforeBIC.writeBBICsOnCSV(input, bbics);
 				return;
 			}
 
