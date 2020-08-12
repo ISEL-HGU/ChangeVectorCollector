@@ -54,18 +54,14 @@ public class Collector {
 
 		// load the prepared BIC file from BugPatchCollector
 		Reader in;
-		if (input.inputDirectory.contains("d4j")) {
-			in = new FileReader(input.inputDirectory + "BIC_d4j_" + input.projectName + ".csv");
-		} else {
-			in = new FileReader(input.inputDirectory + "BIC_" + input.projectName + ".csv");
-		}
+		in = new FileReader(Input.bicFilePath + "BIC_" + input.projectName + ".csv");
 
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
 
 		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
 				"sha_bbfc", "sha_bfc", "key", "project", "label" };
 
-		File fileP = new File(input.outDirectory + "BBIC_" + input.projectName + ".csv");
+		File fileP = new File(Input.bbicFilePath + "BBIC_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
 
@@ -205,10 +201,10 @@ public class Collector {
 		return bbics;
 	}
 
-	public static ArrayList<BeforeBIC> collectBeforeBICFromLocalFile(Input input, String inputFile)
+	public static ArrayList<BeforeBIC> collectBeforeBICFromLocalFile(Input input)
 			throws FileNotFoundException, IOException {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
-		Reader in = new FileReader(inputFile + "BBIC_" + input.projectName + ".csv");
+		Reader in = new FileReader(Input.bbicFilePath + "BBIC_" + input.projectName + ".csv");
 
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
 
@@ -233,11 +229,6 @@ public class Collector {
 
 		System.out.println("########### Finish collecting BBIC from local file: " + bbics.size() + " ###########");
 		return bbics;
-	}
-
-	public static ArrayList<BeforeBIC> collectBeforeBICFromLocalFile(Input input)
-			throws FileNotFoundException, IOException {
-		return collectBeforeBICFromLocalFile(input, input.inputDirectory);
 	}
 
 	public static String getDiff(Repository repo, DiffEntry diff) throws IOException {
@@ -380,7 +371,7 @@ public class Collector {
 
 		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
 				"sha_bbfc", "sha_bfc", "key", "project", "label" };
-		File fileP = new File(input.bbicFilePath);
+		File fileP = new File(Input.bbicFilePath + "BBIC_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
 		Map<String, MutableInt> dupMap = new HashMap<String, MutableInt>();
@@ -427,7 +418,7 @@ public class Collector {
 		RevWalk walk = new RevWalk(input.repo);
 		TreeWalk treeWalk = new TreeWalk(input.repo);
 		Iterable<RevCommit> all_commits = input.git.log().all().call();
-		Reader in = new FileReader(input.inputDirectory + "BIC_" + input.projectName + ".csv");
+		Reader in = new FileReader(Input.bicFilePath + "BIC_" + input.projectName + ".csv");
 		Iterable<CSVRecord> records_iter = CSVFormat.RFC4180.parse(in);
 		Iterator<CSVRecord> iter = records_iter.iterator();
 		List<CSVRecord> records = new ArrayList<CSVRecord>();
@@ -500,7 +491,7 @@ public class Collector {
 	public static ArrayList<BeforeBIC> getAllCommits(Input input) throws NoHeadException, GitAPIException, IOException {
 		ArrayList<BeforeBIC> bbics;
 		// load bbic from repo or local
-		if (new File(input.inputDirectory + "BBIC_" + input.projectName + ".csv").exists()) {
+		if (new File(Input.bbicFilePath + "BBIC_" + input.projectName + ".csv").exists()) {
 			bbics = collectBeforeBICFromLocalFile(input);
 
 		} else {
@@ -510,7 +501,7 @@ public class Collector {
 		RevWalk walk = new RevWalk(input.repo);
 		TreeWalk treeWalk = new TreeWalk(input.repo);
 		Iterable<RevCommit> all_commits = input.git.log().all().call();
-		Reader in = new FileReader(input.inputDirectory + "BIC_" + input.projectName + ".csv");
+		Reader in = new FileReader(Input.bicFilePath + "BIC_" + input.projectName + ".csv");
 		Iterable<CSVRecord> records_iter = CSVFormat.RFC4180.parse(in);
 		Iterator<CSVRecord> iter = records_iter.iterator();
 		List<CSVRecord> records = new ArrayList<CSVRecord>();

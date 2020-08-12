@@ -47,7 +47,7 @@ public class Gumtree {
 			throws IOException, RevisionSyntaxException, NoHeadException, GitAPIException {
 
 		ArrayList<String> bfcList = new ArrayList<String>();
-		Reader d4j_reader = new FileReader(input.inputDirectory + "d4j_" + input.projectName + ".csv");
+		Reader d4j_reader = new FileReader(Input.d4jFilePath + "d4j_" + input.projectName + ".csv");
 		Iterable<CSVRecord> d4j_records = CSVFormat.RFC4180.parse(d4j_reader);
 
 		for (CSVRecord record : d4j_records) {
@@ -58,7 +58,7 @@ public class Gumtree {
 
 		// writing BIC_.csv for d4j instance.
 		final String[] headers = BICInfo.headers;
-		File file_BIC = new File(input.outDirectory + "BIC_d4j_" + input.projectName + ".csv");
+		File file_BIC = new File(Input.bicFilePath + "BIC_d4j_" + input.projectName + ".csv");
 		BufferedWriter writer_BIC = Files.newBufferedWriter(Paths.get(file_BIC.getAbsolutePath()));
 		CSVPrinter csvprinter_BIC = new CSVPrinter(writer_BIC, CSVFormat.DEFAULT.withHeader(headers));
 
@@ -73,8 +73,8 @@ public class Gumtree {
 
 	public static void runD4j2(Input input) throws IOException {
 		ArrayList<BeforeBIC> new_bbics = new ArrayList<BeforeBIC>();
-		Reader d4j_reader = new FileReader(input.inputDirectory + "d4j_" + input.projectName + ".csv");
-		Reader bbic_reader = new FileReader(input.inputDirectory + "BBIC_" + input.projectName + ".csv");
+		Reader d4j_reader = new FileReader(Input.d4jFilePath + "d4j_" + input.projectName + ".csv");
+		Reader bbic_reader = new FileReader(Input.bbicFilePath + "BBIC_" + input.projectName + ".csv");
 		Iterable<CSVRecord> d4j_records = CSVFormat.RFC4180.parse(d4j_reader);
 		Iterable<CSVRecord> bbic_records = CSVFormat.RFC4180.parse(bbic_reader);
 
@@ -107,10 +107,10 @@ public class Gumtree {
 
 	public static void runD4j(Input input) throws IOException, GitAPIException {
 		int MAX_SIZE = 2000;
-		Reader in = new FileReader(input.inputDirectory);
+		Reader in = new FileReader(Input.d4jFilePath + "d4j_" + input.projectName + ".csv");
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
-		File file_Y = new File(input.outDirectory + "Y_defects4j.csv");
-		File file_GV = new File(input.outDirectory + "GVNC_defects4j.csv");
+		File file_Y = new File(Input.gumvecFilePath + "Y_defects4j.csv");
+		File file_GV = new File(Input.gumvecFilePath + "GVNC_defects4j.csv");
 		BufferedWriter writer_Y = Files.newBufferedWriter(Paths.get(file_Y.getAbsolutePath()));
 		BufferedWriter writer_GV = Files.newBufferedWriter(Paths.get(file_GV.getAbsolutePath()));
 		CSVPrinter csvprinter_Y = new CSVPrinter(writer_Y, CSVFormat.DEFAULT);
@@ -275,13 +275,10 @@ public class Gumtree {
 		ArrayList<BeforeBIC> new_bbics = new ArrayList<BeforeBIC>();
 		File file_Y;
 		File file_GV;
-		if (input.inputDirectory.contains("d4j")) {
-			file_Y = new File(input.outDirectory + "Y_d4j_" + input.projectName + ".csv");
-			file_GV = new File(input.outDirectory + "GVNC_d4j_" + input.projectName + ".csv");
-		} else {
-			file_Y = new File(input.outDirectory + "Y_" + input.projectName + ".csv");
-			file_GV = new File(input.outDirectory + "GVNC_" + input.projectName + ".csv");
-		}
+
+		file_Y = new File(Input.gumvecFilePath + "Y_" + input.projectName + ".csv");
+		file_GV = new File(Input.gumvecFilePath + "GVNC_" + input.projectName + ".csv");
+
 		BufferedWriter writer_Y = Files.newBufferedWriter(Paths.get(file_Y.getAbsolutePath()));
 		BufferedWriter writer_GV = Files.newBufferedWriter(Paths.get(file_GV.getAbsolutePath()));
 		CSVPrinter csvprinter_Y = new CSVPrinter(writer_Y, CSVFormat.DEFAULT);
@@ -462,7 +459,7 @@ public class Gumtree {
 	}
 
 	public static void writeGumVecs(Input input, ArrayList<ArrayList<Integer>> gumtree_vectors) throws IOException {
-		File fileP = new File(input.outDirectory + "GV_" + input.projectName + ".csv");
+		File fileP = new File(Input.gumvecFilePath + "GV_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
 

@@ -52,7 +52,7 @@ public class BeforeBIC {
 								   "path_bbfc", "path_bfc",
 								   "sha_bbfc", "sha_bfc",
 								   "key", "project", "label" };
-		File fileP = new File(input.outDirectory + outFile);
+		File fileP = new File(Input.bbicFilePath + outFile);
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
 
