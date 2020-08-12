@@ -82,7 +82,7 @@ public class Collector {
 			String lineBIC = record.get(6);
 			String lineBFC = record.get(7);
 			String content = record.get(9);
-			
+
 			if (shaBIC.contains("BISha1"))
 				continue; // skip the header
 			if (content.length() < 3)
@@ -421,6 +421,82 @@ public class Collector {
 		return bbics;
 	}
 
+	public static ArrayList<BeforeBIC> getAllCleanCommits(Input input)
+			throws NoHeadException, GitAPIException, IOException {
+		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
+		RevWalk walk = new RevWalk(input.repo);
+		TreeWalk treeWalk = new TreeWalk(input.repo);
+		Iterable<RevCommit> all_commits = input.git.log().all().call();
+		Reader in = new FileReader(input.inputDirectory + "BIC_" + input.projectName + ".csv");
+		Iterable<CSVRecord> records_iter = CSVFormat.RFC4180.parse(in);
+		Iterator<CSVRecord> iter = records_iter.iterator();
+		List<CSVRecord> records = new ArrayList<CSVRecord>();
+		while (iter.hasNext()) {
+			records.add(iter.next());
+		}
+		Map<String, Boolean> bic_map = new HashMap<String, Boolean>();
+
+		// make hashmap of bic
+		for (CSVRecord record : records) {
+			String pathBIC = record.get(1);
+			String shaBIC = record.get(0);
+			if (!bic_map.containsKey(pathBIC + shaBIC)) {
+				bic_map.put(pathBIC + shaBIC, true);
+			}
+		}
+
+		int count = 0;
+		for (RevCommit commit : all_commits) {
+
+			if (commit.getParentCount() < 1) {
+				continue;
+			}
+			String cur_sha = commit.getName();
+			String prev_sha = cur_sha + "~1";
+
+			RevCommit prev_commit = walk.parseCommit(input.repo.resolve(prev_sha));
+			RevTree prev_tree = walk.parseTree(prev_commit);
+			RevTree cur_tree = walk.parseTree(commit);
+
+			ObjectReader reader = input.repo.newObjectReader();
+			CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
+			oldTreeIter.reset(reader, prev_tree);
+			CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
+			newTreeIter.reset(reader, cur_tree);
+
+			List<DiffEntry> diffs = input.git.diff().setNewTree(newTreeIter).setOldTree(oldTreeIter).call();
+
+			// for all the file paths in each commit
+			for (DiffEntry entry : diffs) {
+				String prev_path = entry.getOldPath();
+				String cur_path = entry.getNewPath();
+				String key = prev_path + cur_path + prev_sha + cur_sha;
+
+				if (prev_path.contains("/dev/null") || cur_path.indexOf("Test") >= 0 || !cur_path.endsWith(".java")) {
+					continue;
+				}
+
+				// if it is a bic retrieve the full bbic with bfc
+				BeforeBIC bbic;
+				if (bic_map.containsKey(cur_path + cur_sha)) {
+					continue;
+				}
+				// else get only the commit itself because there is no fix for non-buggy commit
+
+				bbic = new BeforeBIC(prev_path, cur_path, prev_sha, cur_sha, "-", "-", "-", "-", key, input.projectName,
+						"0");
+				bbics.add(bbic);
+			}
+			count++;
+		}
+		System.out.println(count);
+		System.out.println("All clean commits collected!");
+		walk.close();
+		treeWalk.close();
+
+		return bbics;
+	}
+
 	public static ArrayList<BeforeBIC> getAllCommits(Input input) throws NoHeadException, GitAPIException, IOException {
 		ArrayList<BeforeBIC> bbics;
 		// load bbic from repo or local
@@ -449,17 +525,17 @@ public class Collector {
 				bic_map.put(bbic.pathBIC + bbic.shaBIC, bbic);
 			}
 		}
- 
+
 		// for each of all the commit
 		int count = 0;
 		for (RevCommit commit : all_commits) {
-			
+
 			if (commit.getParentCount() < 1) {
 				continue;
 			}
 			String cur_sha = commit.getName();
 			String prev_sha = cur_sha + "~1";
-			
+
 			RevCommit prev_commit = walk.parseCommit(input.repo.resolve(prev_sha));
 			RevTree prev_tree = walk.parseTree(prev_commit);
 			RevTree cur_tree = walk.parseTree(commit);
@@ -481,12 +557,12 @@ public class Collector {
 				if (prev_path.contains("/dev/null") || cur_path.indexOf("Test") >= 0 || !cur_path.endsWith(".java")) {
 					continue;
 				}
-				
+
 				// if it is a bic retrieve the full bbic with bfc
 				BeforeBIC bbic;
 				if (bic_map.containsKey(cur_path + cur_sha)) {
 					bbic = bic_map.get(cur_path + cur_sha);
-				} 
+				}
 				// else get only the commit itself because there is no fix for non-buggy commit
 				else {
 					bbic = new BeforeBIC(prev_path, cur_path, prev_sha, cur_sha, "-", "-", "-", "-", key,

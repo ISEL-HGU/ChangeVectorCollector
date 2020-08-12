@@ -21,6 +21,7 @@ public class Main {
 	public static boolean is_gumtree = false;
 	public static boolean is_string = false;
 	public static boolean is_defects4j = false;
+	public static boolean is_clean = false;
 
 	public static void main(String[] args) throws Exception {
 		Main cvc = new Main();
@@ -34,6 +35,14 @@ public class Main {
 		if (parseOptions(options, args)) {
 			if (is_help)
 				printHelp(options);
+			
+			// colllect all clean changes in a repository -c
+			if (is_clean) {
+				bbics = Collector.getAllCleanCommits(input);
+				
+				
+				return;
+			}
 
 			// collects all changes in a repository -a
 			if (is_all) {
@@ -129,12 +138,6 @@ public class Main {
 				System.out.println("writing strings done");
 				return;
 			}
-
-			// collect java files of bbic of bic
-//			Collector.collectFiles(input, bbics);
-
-			// perform Gumtree to retrieve change vector
-//			ChangeVector.runGumtreeDIST(input, bbics);
 		}
 	}
 
@@ -163,6 +166,8 @@ public class Main {
 					is_string = true;
 				else if (cmd.hasOption("d"))
 					is_defects4j = true;
+				else if (cmd.hasOption("q"))
+					is_clean = true;
 
 				in = cmd.getOptionValue("i");
 				out = cmd.getOptionValue("o");
@@ -186,74 +191,38 @@ public class Main {
 	private Options createOptions() {
 		Options options = new Options();
 
-		options.addOption(Option.builder("s")
-					  			.longOpt("string retrieval")
-					  			.desc("mining commit as string")
-					  			.build());
+		options.addOption(Option.builder("q").longOpt("clean").desc("get all clean commits").build());
 
-		options.addOption(Option.builder("d")
-					  			.longOpt("defects4j")
-					  			.desc("run Gumtree vectors for defects4j instances")
-					  			.build());
+		options.addOption(Option.builder("s").longOpt("string retrieval").desc("mining commit as string").build());
 
-		options.addOption(Option.builder("g")
-					  			.longOpt("gumtree")
-					  			.desc("run Gumtree")
-					  			.build());
+		options.addOption(
+				Option.builder("d").longOpt("defects4j").desc("run Gumtree vectors for defects4j instances").build());
 
-		options.addOption(Option.builder("p")
-								.longOpt("precfix")
-								.desc("run PRECFIX")
-								.build());
+		options.addOption(Option.builder("g").longOpt("gumtree").desc("run Gumtree").build());
 
-		options.addOption(Option.builder("a")
-								.longOpt("all")
-								.desc("Collects all changes in a repo")
-								.build());
+		options.addOption(Option.builder("p").longOpt("precfix").desc("run PRECFIX").build());
 
-		options.addOption(Option.builder("c")
-								.longOpt("correlation")
-								.desc("Computes correlation of each vectors")
-								.build());
+		options.addOption(Option.builder("a").longOpt("all").desc("Collects all changes in a repo").build());
 
-		options.addOption(Option.builder("r")
-								.longOpt("repo")
-								.desc("Collect change vectors straight from Git repository")
-								.build());
+		options.addOption(
+				Option.builder("c").longOpt("correlation").desc("Computes correlation of each vectors").build());
 
-		options.addOption(Option.builder("l")
-								.longOpt("local")
-								.desc("Collect change vectors with BBIC file in local")
-								.build());
+		options.addOption(Option.builder("r").longOpt("repo")
+				.desc("Collect change vectors straight from Git repository").build());
 
-		options.addOption(Option.builder("u")
-								.longOpt("url")
-								.desc("url of the git repo")
-								.hasArg()
-								.argName("git_url")
-								.required()
-								.build());
+		options.addOption(
+				Option.builder("l").longOpt("local").desc("Collect change vectors with BBIC file in local").build());
 
-		options.addOption(Option.builder("i")
-								.longOpt("input")
-								.desc("directory of the input file to parse")
-								.hasArg()
-								.argName("input_path")
-								.required()
-								.build());
+		options.addOption(Option.builder("u").longOpt("url").desc("url of the git repo").hasArg().argName("git_url")
+				.required().build());
 
-		options.addOption(Option.builder("o")
-								.longOpt("output")
-								.desc("directory will have result file")
-								.hasArg()
-								.argName("output_path")
-								.required()
-								.build());
+		options.addOption(Option.builder("i").longOpt("input").desc("directory of the input file to parse").hasArg()
+				.argName("input_path").required().build());
 
-		options.addOption(Option.builder("h")
-								.longOpt("help")
-								.desc("Help")
-								.build());
+		options.addOption(Option.builder("o").longOpt("output").desc("directory will have result file").hasArg()
+				.argName("output_path").required().build());
+
+		options.addOption(Option.builder("h").longOpt("help").desc("Help").build());
 
 		return options;
 	}
