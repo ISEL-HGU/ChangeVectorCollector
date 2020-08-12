@@ -36,7 +36,7 @@ public class Main {
 			if (is_help)
 				printHelp(options);
 
-			// colllect all clean changes in a repository -c
+			// colllect all clean changes in a repository -q
 			if (is_clean) {
 				bbics = Collector.getAllCleanCommits(input);
 				BeforeBIC.writeBBICsOnCSV(input, bbics);
@@ -46,7 +46,7 @@ public class Main {
 			// collects all changes in a repository -a
 			if (is_all) {
 				bbics = Collector.getAllCommits(input);
-				BeforeBIC.writeBBICsOnCSV(input, bbics, "BBIC_" + input.projectName + ".csv");
+				BeforeBIC.writeBBICsOnCSV(input, bbics);
 				return;
 			}
 
@@ -129,7 +129,7 @@ public class Main {
 					writer.write(bic + "\n");
 				}
 
-				BeforeBIC.writeBBICsOnCSV(input, new_bbics, "YS_" + input.projectName + ".csv");
+				BeforeBIC.writeBBICsOnCSV(input, new_bbics);
 
 				writer.close();
 
