@@ -351,7 +351,7 @@ public class ChangeVector {
 
 		ArffSaver arffSaverInstance = new ArffSaver();
 		arffSaverInstance.setInstances(sparseDataset);
-		String outFile = Input.changevecFilePath + "CVC_" + input.projectName + ".arff";
+		String outFile = input.outputDir + "CVC_" + input.projectName + ".arff";
 		arffSaverInstance.setFile(new File(outFile));
 		arffSaverInstance.writeBatch();
 	}

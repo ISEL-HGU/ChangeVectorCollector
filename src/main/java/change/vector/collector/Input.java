@@ -10,14 +10,8 @@ import org.eclipse.jgit.lib.Repository;
 
 public class Input {
 	
-	public static String bicFilePath = "./data/SimFin/BIC/";
-	public static String bbicFilePath = "./data/SimFin/BBIC/";
-	public static String allFilePath = "./data/SimFin/All/";
-	public static String cleanFilePath = "./data/SimFin/Clean/";
-	public static String gumvecFilePath = "./data/SimFin/GumVecs/";
-	public static String stringFilePath = "./data/SimFin/String/";
-	public static String changevecFilePath = "./data/SimFin/String/";
-	public static String d4jFilePath = "./data/SimFin/d4j/";
+	public String inputDir = "";
+	public String outputDir = "";
 	
 	public String url = "";
 	public Repository repo = null;
@@ -26,7 +20,7 @@ public class Input {
 	public Git git;
 	public File gitDir;
 
-	public Input(String url)
+	public Input(String url, String in, String out)
 			throws InvalidRemoteException, TransportException, GitAPIException, IOException {
 		this.url = url;
 		this.REMOTE_URI = url + ".git";
@@ -38,6 +32,8 @@ public class Input {
 		}
 		this.git = Git.open(gitDir);
 		this.repo = git.getRepository();
+		this.inputDir = in;
+		this.outputDir = out;
 	}
 
 }

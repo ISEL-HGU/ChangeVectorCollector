@@ -78,7 +78,7 @@ public class Main {
 
 			// get AST vectors with ordering using GumTree -g
 			if (is_gumtree) {
-				String bbic_F = Input.bbicFilePath + "BBIC_" + input.projectName + ".csv";
+				String bbic_F = input.inputDir + "BBIC_" + input.projectName + ".csv";
 				File bbicFile = new File(bbic_F);
 
 				if (bbicFile.exists()) {
@@ -92,12 +92,12 @@ public class Main {
 
 			// get gumtree vectors from defects4j instances -d
 			if (is_defects4j) {
-				File bicFile = new File(Input.bicFilePath + "BIC_d4j_" + input.projectName + ".csv");
+				File bicFile = new File(input.inputDir + "BIC_d4j_" + input.projectName + ".csv");
 				if (!bicFile.exists()) {
 					Gumtree.runD4j3(input);
 				}
 
-				File bbicFile = new File(Input.bbicFilePath + "BBIC_d4j_" + input.projectName + ".csv");
+				File bbicFile = new File(input.inputDir + "BBIC_d4j_" + input.projectName + ".csv");
 				if (bbicFile.exists()) {
 					bbics = Collector.collectBeforeBICFromLocalFile(input);
 				} else {
@@ -112,9 +112,9 @@ public class Main {
 			// get string data of commit -s
 			if (is_string) {
 				ArrayList<BeforeBIC> new_bbics = new ArrayList<BeforeBIC>();
-				FileWriter writer = new FileWriter(Input.stringFilePath + "S_" + input.projectName + ".txt");
+				FileWriter writer = new FileWriter(input.outputDir + "S_" + input.projectName + ".txt");
 
-				String inputFile = Input.bbicFilePath + "BBIC_" + input.projectName + ".csv";
+				String inputFile = input.inputDir + "BBIC_" + input.projectName + ".csv";
 				File bbicFile = new File(inputFile);
 				if (bbicFile.exists()) {
 					bbics = Collector.collectBeforeBICFromLocalFile(input);
@@ -141,8 +141,8 @@ public class Main {
 
 	private boolean parseOptions(Options options, String[] args) {
 		CommandLineParser parser = new DefaultParser();
-//		String in;
-//		String out;
+		String in;
+		String out;
 		String url;
 
 		try {
@@ -167,8 +167,8 @@ public class Main {
 				else if (cmd.hasOption("q"))
 					is_clean = true;
 
-//				in = cmd.getOptionValue("i");
-//				out = cmd.getOptionValue("o");
+				in = cmd.getOptionValue("i");
+				out = cmd.getOptionValue("o");
 				url = cmd.getOptionValue("u");
 
 			} catch (Exception e) {
@@ -177,7 +177,7 @@ public class Main {
 				return false;
 			}
 
-			input = new Input(url);
+			input = new Input(url, in, out);
 		} catch (Exception e) {
 			e.printStackTrace();
 			printHelp(options);
@@ -211,11 +211,11 @@ public class Main {
 		options.addOption(
 				Option.builder("l").longOpt("local").desc("Collect change vectors with BBIC file in local").build());
 
-//		options.addOption(Option.builder("u").longOpt("url").desc("url of the git repo").hasArg().argName("git_url")
-//				.required().build());
-//
-//		options.addOption(Option.builder("i").longOpt("input").desc("directory of the input file to parse").hasArg()
-//				.argName("input_path").required().build());
+		options.addOption(Option.builder("u").longOpt("url").desc("url of the git repo").hasArg().argName("git_url")
+				.required().build());
+
+		options.addOption(Option.builder("i").longOpt("input").desc("directory of the input file to parse").hasArg()
+				.argName("input_path").required().build());
 
 		options.addOption(Option.builder("o").longOpt("output").desc("directory will have result file").hasArg()
 				.argName("output_path").required().build());

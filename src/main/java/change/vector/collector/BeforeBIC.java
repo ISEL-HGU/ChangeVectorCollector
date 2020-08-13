@@ -43,9 +43,9 @@ public class BeforeBIC {
 				"sha_bbfc", "sha_bfc", "key", "project", "label" };
 		File fileP;
 		if (Main.is_clean) {
-			fileP = new File(Input.cleanFilePath + "BBIC_" + input.projectName + ".csv");
+			fileP = new File(input.outputDir + "BBIC_" + input.projectName + ".csv");
 		} else {
-			fileP = new File(Input.bbicFilePath + "BBIC_" + input.projectName + ".csv");
+			fileP = new File(input.outputDir + "BBIC_" + input.projectName + ".csv");
 		}
 
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
