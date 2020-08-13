@@ -44,6 +44,7 @@ import com.github.gumtreediff.tree.ITree;
 
 public class Gumtree {
 
+	@SuppressWarnings("deprecation")
 	public static void runGumtree(Input input, ArrayList<BeforeBIC> bbics)
 			throws MissingObjectException, IncorrectObjectTypeException, IOException {
 
@@ -116,38 +117,50 @@ public class Gumtree {
 				}
 			}
 
-			// using JDT parser to get the line number of AST nodes
-			@SuppressWarnings("deprecation")
-			ASTParser parser = ASTParser.newParser(AST.JLS9);
-			parser.setKind(ASTParser.K_COMPILATION_UNIT);
+			// create AST parser to get lineNum of src and dst codes.
+			ASTParser parser_dst = ASTParser.newParser(AST.JLS9);
+
+			parser_dst.setKind(ASTParser.K_COMPILATION_UNIT);
+
 			Hashtable<String, String> pOptions = JavaCore.getOptions();
 			pOptions.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_9);
 			pOptions.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_9);
 			pOptions.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_9);
 			pOptions.put(JavaCore.COMPILER_DOC_COMMENT_SUPPORT, JavaCore.ENABLED);
-			parser.setCompilerOptions(pOptions);
-			parser.setSource(dstBlobBIC.toCharArray());
-			CompilationUnit cu = (CompilationUnit) parser.createAST(null);
+
+			parser_dst.setCompilerOptions(pOptions);
+			parser_dst.setSource(dstBlobBIC.toCharArray());
+
+			CompilationUnit cu_dst = (CompilationUnit) parser_dst.createAST(null);
 
 			// retrieving the context vector in AST
 			ArrayList<Integer> context_vec = new ArrayList<Integer>();
+			// create a map to remember context and disregard duplication.
 			HashMap<Integer, Boolean> map = new HashMap<Integer, Boolean>();
+
+			// for all the changed nodes:
 			for (Action action : actionsBIC) {
-				int lineNumOfBIC = cu.getLineNumber(action.getNode().getPos());
-				int parent_hash = action.getNode().getParent().getHash();
-				if (map.containsKey(parent_hash)) {
-					continue;
-				} else {
-					map.put(parent_hash, true);
-					List<ITree> descendants = action.getNode().getParent().getDescendants();
-					for (ITree descendant : descendants) {
-						if (map.containsKey(descendant.getHash())) {
-							continue;
-						} else {
-							int lineNumOfDescendant = cu.getLineNumber(descendant.getPos());
-							if (Math.abs(lineNumOfBIC - lineNumOfDescendant) < 3) {
-								map.put(descendant.getHash(), true);
-								context_vec.add(descendant.getType() + 85 * 2 + 1);
+				// if it is INS, look for context in dst
+				if (action.getName().equals("INS")) {
+					// get the line number of changed node
+					int lineNumOfBIC = cu_dst.getLineNumber(action.getNode().getPos());
+					// put each changed nodes parent's hashNum without duplication using hashmap
+					int parent_hash = action.getNode().getParent().getHash();
+					if (map.containsKey(parent_hash)) {
+						continue;
+					} else {
+						map.put(parent_hash, true);
+						// get all the descendants of the parent witout duplication using hashmap
+						List<ITree> descendants = action.getNode().getParent().getDescendants();
+						for (ITree descendant : descendants) {
+							if (map.containsKey(descendant.getHash())) {
+								continue;
+							} else {
+								int lineNumOfDescendant = cu_dst.getLineNumber(descendant.getPos());
+								if (Math.abs(lineNumOfBIC - lineNumOfDescendant) < 3) {
+									map.put(descendant.getHash(), true);
+									context_vec.add(descendant.getType() + 85 * 2 + 1);
+								}
 							}
 						}
 					}
