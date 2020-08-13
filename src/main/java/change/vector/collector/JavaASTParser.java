@@ -1,6 +1,5 @@
 package change.vector.collector;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -39,7 +38,6 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 import org.eclipse.jgit.errors.RevisionSyntaxException;
 import org.eclipse.jgit.lib.Repository;
-
 
 public class JavaASTParser {
 	public CompilationUnit cUnit;

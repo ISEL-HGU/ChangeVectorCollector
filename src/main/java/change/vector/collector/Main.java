@@ -39,7 +39,7 @@ public class Main {
 			// colllect all clean changes in a repository -q
 			if (is_clean) {
 				bbics = Collector.getAllCleanCommits(input);
-				BeforeBIC.writeBBICsOnCSV(input, bbics);
+				Gumtree.runGumtree(input, bbics);
 				return;
 			}
 

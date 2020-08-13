@@ -22,7 +22,6 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 
-
 public class BICInfo implements Comparable<BICInfo> {
 	public final static String[] headers = { "BISha1", "oldPath", "Path", "FixSha1", "BIDate", "FixDate", "LineNumInBI",
 			"LineNumInPreFix", "isAddedLine", "Line" };
@@ -43,7 +42,8 @@ public class BICInfo implements Comparable<BICInfo> {
 
 	String filteredDueTo;
 
-	public static ArrayList<BICInfo> collectFrom(Input input, ArrayList<String> bfcList) throws RevisionSyntaxException, AmbiguousObjectException, IncorrectObjectTypeException, IOException, NoHeadException, GitAPIException {
+	public static ArrayList<BICInfo> collectFrom(Input input, ArrayList<String> bfcList) throws RevisionSyntaxException,
+			AmbiguousObjectException, IncorrectObjectTypeException, IOException, NoHeadException, GitAPIException {
 		List<RevCommit> commitList = getCommitListFrom(input.gitDir);
 		Git git = input.git;
 		Repository repo = git.getRepository();

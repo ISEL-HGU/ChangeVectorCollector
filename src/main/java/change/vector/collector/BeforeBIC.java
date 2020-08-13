@@ -42,12 +42,12 @@ public class BeforeBIC {
 		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
 				"sha_bbfc", "sha_bfc", "key", "project", "label" };
 		File fileP;
-		if(Main.is_clean) {
+		if (Main.is_clean) {
 			fileP = new File(Input.cleanFilePath + "BBIC_" + input.projectName + ".csv");
 		} else {
 			fileP = new File(Input.bbicFilePath + "BBIC_" + input.projectName + ".csv");
 		}
-		
+
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers));
 
