@@ -524,6 +524,7 @@ public class Collector {
 			if (commit.getParentCount() < 1) {
 				continue;
 			}
+			
 			String cur_sha = commit.getName();
 			String prev_sha = cur_sha + "~1";
 

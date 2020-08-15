@@ -47,7 +47,7 @@ public class Gumtree {
 	@SuppressWarnings("deprecation")
 	public static void runGumtree(Input input, ArrayList<BeforeBIC> bbics)
 			throws MissingObjectException, IncorrectObjectTypeException, IOException {
-
+		int max_change_length = 100;
 		Repository repo = input.repo;
 		RevWalk walk = new RevWalk(repo);
 		ArrayList<ArrayList<Integer>> gumtree_vectors = new ArrayList<ArrayList<Integer>>();
@@ -115,6 +115,11 @@ public class Gumtree {
 				} else if (action.getName().equals("DEL")) {
 					g_vec.add(action.getNode().getType() + 85 + 1);
 				}
+			}
+			
+			// ignore changes greater than max length
+			if(max_change_length < actionsBIC.size()) {
+				continue;
 			}
 
 			// create AST parser to get lineNum of src and dst codes.
