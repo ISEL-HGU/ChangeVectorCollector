@@ -17,7 +17,7 @@ public class DefectPatchPair {
 	ArrayList<String> codePatch = new ArrayList<String>();
 	ArrayList<String> defectPatch = new ArrayList<String>();
 
-	public DefectPatchPair(BeforeBIC bbic, Input input) throws IOException, GitAPIException {
+	public DefectPatchPair(BeforeBIC bbic, CLIOptions input) throws IOException, GitAPIException {
 		shaPatch = bbic.shaBFC;
 		pathPatch = bbic.pathBFC;
 		shaBeforePatch = shaPatch + "^";
@@ -37,7 +37,7 @@ public class DefectPatchPair {
 
 	}
 
-	public static String getBICcode(Repository repo, BeforeBIC bbic, Input input) throws IOException, GitAPIException {
+	public static String getBICcode(Repository repo, BeforeBIC bbic, CLIOptions input) throws IOException, GitAPIException {
 		String codeBIC = "";
 		String BIC = "";
 		DiffEntry diff;

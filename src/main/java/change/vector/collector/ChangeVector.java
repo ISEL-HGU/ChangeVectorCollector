@@ -48,7 +48,7 @@ public class ChangeVector {
 	public Map<String, MutableInt> updates = null;
 	public Map<String, MutableInt> moves = null;
 
-	public static ArrayList<ChangeVector> runGumtreeDIST(Input input, ArrayList<BeforeBIC> bbics) throws Exception {
+	public static ArrayList<ChangeVector> runGumtreeDIST(CLIOptions input, ArrayList<BeforeBIC> bbics) throws Exception {
 		ArrayList<ChangeVector> changeVectors = new ArrayList<ChangeVector>();
 		String gumtree = "./gumtree/bin/gumtree";
 		String com = " jsondiff ";
@@ -260,7 +260,7 @@ public class ChangeVector {
 		return changeVectors;
 	}
 
-	public static void writeARFF(ArrayList<ChangeVector> CVS, Input input) throws Exception {
+	public static void writeARFF(ArrayList<ChangeVector> CVS, CLIOptions input) throws Exception {
 		ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 		Instances dataSet;
 

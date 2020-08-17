@@ -45,7 +45,7 @@ import com.github.gumtreediff.tree.ITree;
 public class Gumtree {
 
 	@SuppressWarnings("deprecation")
-	public static void runGumtree(Input input, ArrayList<BeforeBIC> bbics)
+	public static void runGumtree(CLIOptions input, ArrayList<BeforeBIC> bbics)
 			throws MissingObjectException, IncorrectObjectTypeException, IOException {
 		int max_change_length = 100;
 		Repository repo = input.repo;
@@ -202,7 +202,7 @@ public class Gumtree {
 		walk.close();
 	}
 
-	public static void writeGumVecs(Input input, ArrayList<ArrayList<Integer>> gumtree_vectors) throws IOException {
+	public static void writeGumVecs(CLIOptions input, ArrayList<ArrayList<Integer>> gumtree_vectors) throws IOException {
 		File fileP = new File(input.outputDir + "GV_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
@@ -223,7 +223,7 @@ public class Gumtree {
 		return;
 	}
 
-	public static int getMaxASTLenth(ArrayList<BeforeBIC> bbics, Input input) throws RevisionSyntaxException,
+	public static int getMaxASTLenth(ArrayList<BeforeBIC> bbics, CLIOptions input) throws RevisionSyntaxException,
 			MissingObjectException, IncorrectObjectTypeException, AmbiguousObjectException, IOException {
 		Repository repo = input.repo;
 		RevWalk walk = new RevWalk(repo);
@@ -273,7 +273,7 @@ public class Gumtree {
 		return max_size;
 	}
 
-	public static void runD4j3(Input input)
+	public static void runD4j3(CLIOptions input)
 			throws IOException, RevisionSyntaxException, NoHeadException, GitAPIException {
 
 		ArrayList<String> bfcList = new ArrayList<String>();
@@ -301,7 +301,7 @@ public class Gumtree {
 		csvprinter_BIC.close();
 	}
 
-	public static void runD4j2(Input input) throws IOException {
+	public static void runD4j2(CLIOptions input) throws IOException {
 		ArrayList<BeforeBIC> new_bbics = new ArrayList<BeforeBIC>();
 		Reader d4j_reader = new FileReader(input.inputDir + "d4j_" + input.projectName + ".csv");
 		Reader bbic_reader = new FileReader(input.inputDir + "BBIC_" + input.projectName + ".csv");
@@ -335,7 +335,7 @@ public class Gumtree {
 		System.out.println("bbic: " + bbics.size());
 	}
 
-	public static void runD4j(Input input) throws IOException, GitAPIException {
+	public static void runD4j(CLIOptions input) throws IOException, GitAPIException {
 		int MAX_SIZE = 2000;
 		Reader in = new FileReader(input.inputDir + "d4j_" + input.projectName + ".csv");
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);

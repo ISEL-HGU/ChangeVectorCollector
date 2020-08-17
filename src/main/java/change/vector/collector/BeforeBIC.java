@@ -37,7 +37,7 @@ public class BeforeBIC {
 		this.label = label;
 	}
 
-	public static void writeBBICsOnCSV(Input input, ArrayList<BeforeBIC> bbics) throws IOException {
+	public static void writeBBICsOnCSV(CLIOptions input, ArrayList<BeforeBIC> bbics) throws IOException {
 
 		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
 				"sha_bbfc", "sha_bfc", "key", "project", "label" };

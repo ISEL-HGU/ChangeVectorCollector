@@ -96,7 +96,7 @@ public class Utils {
 		return git;
 	}
 
-	public static File GitClone(Input input) throws InvalidRemoteException, TransportException, GitAPIException {
+	public static File GitClone(CLIOptions input) throws InvalidRemoteException, TransportException, GitAPIException {
 		String remoteURI = input.REMOTE_URI;
 		String projectName = input.projectName;
 		File clonedDirectory = getGitDirectory(input);
@@ -118,18 +118,18 @@ public class Utils {
 
 	}
 
-	public static String getReferencePath(Input input) {
+	public static String getReferencePath(CLIOptions input) {
 		return "/data/SimFin" + File.separator + "reference";
 	}
 
-	public static File getGitDirectory(Input input) {
+	public static File getGitDirectory(CLIOptions input) {
 		String referencePath = getReferencePath(input);
 		File clonedDirectory = new File(
 				referencePath + File.separator + "repositories" + File.separator + input.projectName);
 		return clonedDirectory;
 	}
 
-	public static boolean isCloned(Input input) {
+	public static boolean isCloned(CLIOptions input) {
 		File clonedDirectory = getGitDirectory(input);
 		return clonedDirectory.exists();
 	}

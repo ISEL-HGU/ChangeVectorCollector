@@ -42,7 +42,7 @@ public class BICInfo implements Comparable<BICInfo> {
 
 	String filteredDueTo;
 
-	public static ArrayList<BICInfo> collectFrom(Input input, ArrayList<String> bfcList) throws RevisionSyntaxException,
+	public static ArrayList<BICInfo> collectFrom(CLIOptions input, ArrayList<String> bfcList) throws RevisionSyntaxException,
 			AmbiguousObjectException, IncorrectObjectTypeException, IOException, NoHeadException, GitAPIException {
 		List<RevCommit> commitList = getCommitListFrom(input.gitDir);
 		Git git = input.git;
@@ -126,7 +126,7 @@ public class BICInfo implements Comparable<BICInfo> {
 	}
 
 	private static ArrayList<BICInfo> getBIChangesFromBILineIndices(String fixSha1, RevCommit fixCommit, String path,
-			String prevPath, String prevFileSource, ArrayList<Integer> lstIdxOfDeletedLinesInPrevFixFile, Input input) {
+			String prevPath, String prevFileSource, ArrayList<Integer> lstIdxOfDeletedLinesInPrevFixFile, CLIOptions input) {
 		Repository repo = input.repo;
 		ArrayList<BICInfo> biChanges = new ArrayList<BICInfo>();
 

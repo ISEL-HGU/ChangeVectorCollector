@@ -8,7 +8,7 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Repository;
 
-public class Input {
+public class CLIOptions {
 	
 	public String inputDir = "";
 	public String outputDir = "";
@@ -20,7 +20,7 @@ public class Input {
 	public Git git;
 	public File gitDir;
 
-	public Input(String url, String in, String out)
+	public CLIOptions(String url, String in, String out)
 			throws InvalidRemoteException, TransportException, GitAPIException, IOException {
 		this.url = url;
 		this.REMOTE_URI = url + ".git";

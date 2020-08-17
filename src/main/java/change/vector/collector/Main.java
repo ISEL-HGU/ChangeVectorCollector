@@ -11,7 +11,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 public class Main {
-	Input input = null;
+	CLIOptions arguments = null;
 	boolean is_help = false;
 	public static boolean is_repo = false;
 	public static boolean is_local = false;
@@ -38,15 +38,15 @@ public class Main {
 
 			// colllect all clean changes in a repository -q
 			if (is_clean) {
-				bbics = Collector.getAllCleanCommits(input);
-				Gumtree.runGumtree(input, bbics);
+				bbics = Collector.getAllCleanCommits(arguments);
+				Gumtree.runGumtree(arguments, bbics);
 				return;
 			}
 
 			// collects all changes in a repository -a
 			if (is_all) {
-				bbics = Collector.getAllCommits(input);
-				BeforeBIC.writeBBICsOnCSV(input, bbics);
+				bbics = Collector.getAllCommits(arguments);
+				BeforeBIC.writeBBICsOnCSV(arguments, bbics);
 				return;
 			}
 
@@ -58,8 +58,8 @@ public class Main {
 
 			// collect bbic from git repository -r
 			if (is_repo) {
-				bbics = Collector.collectBeforeBIC(input);
-				bbics = Collector.rmDups(bbics, input);
+				bbics = Collector.collectBeforeBIC(arguments);
+				bbics = Collector.rmDups(bbics, arguments);
 			}
 
 			// collect bbic from .csv file -l
@@ -78,32 +78,32 @@ public class Main {
 
 			// get AST vectors with ordering using GumTree -g
 			if (is_gumtree) {
-				String bbic_F = input.inputDir + "BBIC_" + input.projectName + ".csv";
+				String bbic_F = arguments.inputDir + "BBIC_" + arguments.projectName + ".csv";
 				File bbicFile = new File(bbic_F);
 
 				if (bbicFile.exists()) {
-					bbics = Collector.collectBeforeBICFromLocalFile(input);
+					bbics = Collector.collectBeforeBICFromLocalFile(arguments);
 				} else {
-					bbics = Collector.collectBeforeBIC(input);
+					bbics = Collector.collectBeforeBIC(arguments);
 				}
-				Gumtree.runGumtree(input, bbics);
+				Gumtree.runGumtree(arguments, bbics);
 				return;
 			}
 
 			// get gumtree vectors from defects4j instances -d
 			if (is_defects4j) {
-				File bicFile = new File(input.inputDir + "BIC_d4j_" + input.projectName + ".csv");
+				File bicFile = new File(arguments.inputDir + "BIC_d4j_" + arguments.projectName + ".csv");
 				if (!bicFile.exists()) {
-					Gumtree.runD4j3(input);
+					Gumtree.runD4j3(arguments);
 				}
 
-				File bbicFile = new File(input.inputDir + "BBIC_d4j_" + input.projectName + ".csv");
+				File bbicFile = new File(arguments.inputDir + "BBIC_d4j_" + arguments.projectName + ".csv");
 				if (bbicFile.exists()) {
-					bbics = Collector.collectBeforeBICFromLocalFile(input);
+					bbics = Collector.collectBeforeBICFromLocalFile(arguments);
 				} else {
-					bbics = Collector.collectBeforeBIC(input);
+					bbics = Collector.collectBeforeBIC(arguments);
 				}
-				Gumtree.runGumtree(input, bbics);
+				Gumtree.runGumtree(arguments, bbics);
 
 				System.out.println("run d4j complete!");
 				return;
@@ -112,24 +112,24 @@ public class Main {
 			// get string data of commit -s
 			if (is_string) {
 				ArrayList<BeforeBIC> new_bbics = new ArrayList<BeforeBIC>();
-				FileWriter writer = new FileWriter(input.outputDir + "S_" + input.projectName + ".txt");
+				FileWriter writer = new FileWriter(arguments.outputDir + "S_" + arguments.projectName + ".txt");
 
-				String inputFile = input.inputDir + "BBIC_" + input.projectName + ".csv";
+				String inputFile = arguments.inputDir + "BBIC_" + arguments.projectName + ".csv";
 				File bbicFile = new File(inputFile);
 				if (bbicFile.exists()) {
-					bbics = Collector.collectBeforeBICFromLocalFile(input);
+					bbics = Collector.collectBeforeBICFromLocalFile(arguments);
 				} else {
-					bbics = Collector.collectBeforeBIC(input);
+					bbics = Collector.collectBeforeBIC(arguments);
 				}
 				for (BeforeBIC bbic : bbics) {
-					String bic = DefectPatchPair.getBICcode(input.repo, bbic, input);
+					String bic = DefectPatchPair.getBICcode(arguments.repo, bbic, arguments);
 					if (bic == null)
 						continue;
 					new_bbics.add(bbic);
 					writer.write(bic + "\n");
 				}
 
-				BeforeBIC.writeBBICsOnCSV(input, new_bbics);
+				BeforeBIC.writeBBICsOnCSV(arguments, new_bbics);
 
 				writer.close();
 
@@ -177,7 +177,7 @@ public class Main {
 				return false;
 			}
 
-			input = new Input(url, in, out);
+			arguments = new CLIOptions(url, in, out);
 		} catch (Exception e) {
 			e.printStackTrace();
 			printHelp(options);

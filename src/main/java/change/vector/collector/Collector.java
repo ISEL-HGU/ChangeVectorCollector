@@ -48,7 +48,7 @@ public class Collector {
 	public static int dups = 0;
 
 	// -r option
-	public static ArrayList<BeforeBIC> collectBeforeBIC(Input input)
+	public static ArrayList<BeforeBIC> collectBeforeBIC(CLIOptions input)
 			throws GitAPIException, FileNotFoundException, IOException {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 
@@ -201,7 +201,7 @@ public class Collector {
 		return bbics;
 	}
 
-	public static ArrayList<BeforeBIC> collectBeforeBICFromLocalFile(Input input)
+	public static ArrayList<BeforeBIC> collectBeforeBICFromLocalFile(CLIOptions input)
 			throws FileNotFoundException, IOException {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 		Reader in = new FileReader(input.inputDir + "BBIC_" + input.projectName + ".csv");
@@ -299,7 +299,7 @@ public class Collector {
 	 * KIND, either express or implied. See the License for the specific language
 	 * governing permissions and limitations under the License.
 	 */
-	public static void collectFiles(Input input, ArrayList<BeforeBIC> bbics) throws IOException {
+	public static void collectFiles(CLIOptions input, ArrayList<BeforeBIC> bbics) throws IOException {
 		String outPath = "./assets/collectedFiles/";
 		if (Main.is_all)
 			outPath = "./assets/alls/collectedFiles/";
@@ -367,7 +367,7 @@ public class Collector {
 	}
 
 	// removes instances that
-	public static ArrayList<BeforeBIC> rmDups(ArrayList<BeforeBIC> bbics, Input input) throws IOException {
+	public static ArrayList<BeforeBIC> rmDups(ArrayList<BeforeBIC> bbics, CLIOptions input) throws IOException {
 
 		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
 				"sha_bbfc", "sha_bfc", "key", "project", "label" };
@@ -412,7 +412,7 @@ public class Collector {
 		return bbics;
 	}
 
-	public static ArrayList<BeforeBIC> getAllCleanCommits(Input input)
+	public static ArrayList<BeforeBIC> getAllCleanCommits(CLIOptions input)
 			throws NoHeadException, GitAPIException, IOException {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 		RevWalk walk = new RevWalk(input.repo);
@@ -488,7 +488,7 @@ public class Collector {
 		return bbics;
 	}
 
-	public static ArrayList<BeforeBIC> getAllCommits(Input input) throws NoHeadException, GitAPIException, IOException {
+	public static ArrayList<BeforeBIC> getAllCommits(CLIOptions input) throws NoHeadException, GitAPIException, IOException {
 		ArrayList<BeforeBIC> bbics;
 		// load bbic from repo or local
 		if (new File(input.inputDir + "BBIC_" + input.projectName + ".csv").exists()) {
