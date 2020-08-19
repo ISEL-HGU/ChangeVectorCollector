@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
@@ -116,9 +117,9 @@ public class Gumtree {
 					g_vec.add(action.getNode().getType() + 85 + 1);
 				}
 			}
-			
+
 			// ignore changes greater than max length
-			if(max_change_length < actionsBIC.size()) {
+			if (max_change_length < actionsBIC.size()) {
 				continue;
 			}
 
@@ -174,6 +175,8 @@ public class Gumtree {
 
 			// adding the two lists
 			g_vec.addAll(context_vec);
+			if (g_vec.size() < 1)
+				continue;
 			System.out.println(cnt + ": " + g_vec.size());
 
 			gumtree_vectors.add(g_vec);
@@ -201,8 +204,73 @@ public class Gumtree {
 		csvprinter_GV.close();
 		walk.close();
 	}
+	
+	public static void rm_zeros(CLIOptions input) throws IOException {
+		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
+				"sha_bbfc", "sha_bfc", "key", "project", "label" };
+		File file_new_gvnc = new File(input.outputDir + "GV_" + input.projectName + ".csv");
+		BufferedWriter writer_gvnc = Files.newBufferedWriter(Paths.get(file_new_gvnc.getAbsolutePath()));
+		CSVPrinter csvprinter_gvnc = new CSVPrinter(writer_gvnc, CSVFormat.DEFAULT);
+		File file_new_y = new File(input.outputDir + "Y_" + input.projectName + ".csv");
+		BufferedWriter writer_y = Files.newBufferedWriter(Paths.get(file_new_y.getAbsolutePath()));
+		CSVPrinter csvprinter_y = new CSVPrinter(writer_y, CSVFormat.DEFAULT);
+		File file_log = new File(input.outputDir + "Log_" + input.projectName + ".csv");
+		BufferedWriter writer_log = Files.newBufferedWriter(Paths.get(file_log.getAbsolutePath()));
+		CSVPrinter csvprinter_log = new CSVPrinter(writer_log, CSVFormat.DEFAULT.withHeader(headers));
 
-	public static void writeGumVecs(CLIOptions input, ArrayList<ArrayList<Integer>> gumtree_vectors) throws IOException {
+		Reader gvnc = new FileReader(input.inputDir + "GVNC_" + input.projectName + ".csv");
+		Iterable<CSVRecord> records_gvnc = CSVFormat.RFC4180.parse(gvnc);
+		Reader y = new FileReader(input.inputDir + "Y_" + input.projectName + ".csv");
+		Iterable<CSVRecord> records_y = CSVFormat.RFC4180.parse(y);
+
+		Iterator<CSVRecord> iter_gvnc = records_gvnc.iterator();
+		Iterator<CSVRecord> iter_y = records_y.iterator();
+		
+		List<CSVRecord> list_gvnc = new ArrayList<CSVRecord>();
+		List<CSVRecord> list_y = new ArrayList<CSVRecord>();
+		List<CSVRecord> list_gvnc_new = new ArrayList<CSVRecord>();
+		List<CSVRecord> list_y_new = new ArrayList<CSVRecord>();
+		List<CSVRecord> list_log = new ArrayList<CSVRecord>();
+		
+		while (iter_gvnc.hasNext()) {
+			list_gvnc.add(iter_gvnc.next());
+		}
+		while (iter_y.hasNext()) {
+			list_y.add(iter_y.next());
+		}
+		System.out.println(list_gvnc.size());
+		System.out.println(list_y.size());
+		
+		for (int i = 0; i < list_gvnc.size() ; i++) {
+			if (list_gvnc.get(i).get(0).equals("")) {
+				list_log.add(list_y.get(i));
+				continue;
+			}
+			list_gvnc_new.add(list_gvnc.get(i));
+			list_y_new.add(list_y.get(i));
+		}
+		System.out.println(list_gvnc_new.size());
+		System.out.println(list_y_new.size());
+
+		for (CSVRecord record : list_gvnc_new) {
+			csvprinter_gvnc.printRecord(record);
+		}
+		for (CSVRecord record : list_y_new) {
+			csvprinter_y.printRecord(record);
+		}
+		for (CSVRecord record : list_log) {
+			csvprinter_log.printRecord(record);
+		}
+
+		csvprinter_y.close();
+		csvprinter_gvnc.close();
+		csvprinter_log.close();
+		
+		System.out.println("writing done!");
+	}
+
+	public static void writeGumVecs(CLIOptions input, ArrayList<ArrayList<Integer>> gumtree_vectors)
+			throws IOException {
 		File fileP = new File(input.outputDir + "GV_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
 		CSVPrinter csvprinter = new CSVPrinter(writer, CSVFormat.DEFAULT);

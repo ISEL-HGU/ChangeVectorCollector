@@ -53,8 +53,7 @@ public class Collector {
 		ArrayList<BeforeBIC> bbics = new ArrayList<BeforeBIC>();
 
 		// load the prepared BIC file from BugPatchCollector
-		Reader in;
-		in = new FileReader(input.inputDir + "BIC_" + input.projectName + ".csv");
+		Reader in = new FileReader(input.inputDir + "BIC_" + input.projectName + ".csv");
 
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
 
@@ -168,7 +167,7 @@ public class Collector {
 				}
 			}
 
-			String key = pathBIC + "\n" + shaBIC + pathBFC + "\n" + shaBFC + "\n";
+			String key = pathBIC + "\n" + shaBIC + "\n";
 
 			// skip duplicates
 			for (int j = 0; j < bbics.size(); j++) {
@@ -378,7 +377,7 @@ public class Collector {
 
 		// put bbics in a hashmap w.r.t. shaFix
 		for (BeforeBIC bbic : bbics) {
-			String key = bbic.pathBFC + bbic.shaBFC;
+			String key = bbic.pathBIC + bbic.shaBIC;
 
 			MutableInt count = dupMap.get(key);
 			if (count == null) {
@@ -390,7 +389,7 @@ public class Collector {
 
 		// if an instance count is greater than 1, remove
 		for (int i = 0; i < bbics.size(); i++) {
-			String key = bbics.get(i).pathBFC + bbics.get(i).shaBFC;
+			String key = bbics.get(i).pathBIC + bbics.get(i).shaBIC;
 			if (dupMap.get(key).value > 1) {
 				bbics.remove(i);
 				i--;
@@ -403,11 +402,11 @@ public class Collector {
 			// writing the BBIC file
 			csvprinter.printRecord(input.projectName + index, bbic.pathBeforeBIC, bbic.pathBIC, bbic.shaBeforeBIC,
 					bbic.shaBIC, bbic.pathBeforeBFC, bbic.pathBFC, bbic.shaBeforeBFC, bbic.shaBFC, bbic.key,
-					input.projectName);
+					input.projectName, bbic.label);
 			csvprinter.flush();
 			index++;
 		}
-
+		System.out.println("rm_dup complete!");
 		csvprinter.close();
 		return bbics;
 	}

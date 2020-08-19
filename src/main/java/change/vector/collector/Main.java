@@ -22,6 +22,7 @@ public class Main {
 	public static boolean is_string = false;
 	public static boolean is_defects4j = false;
 	public static boolean is_clean = false;
+	public static boolean is_remove_zero = false;
 
 	public static void main(String[] args) throws Exception {
 		Main cvc = new Main();
@@ -35,6 +36,15 @@ public class Main {
 		if (parseOptions(options, args)) {
 			if (is_help)
 				printHelp(options);
+			
+			// remove zero from gv instances -z
+			if (is_remove_zero) {
+				Gumtree.rm_zeros(arguments);
+//				bbics = Collector.collectBeforeBICFromLocalFile(arguments);
+//				Collector.rmDups(bbics, arguments);
+				
+				return;
+			}
 
 			// colllect all clean changes in a repository -q
 			if (is_clean) {
@@ -166,6 +176,8 @@ public class Main {
 					is_defects4j = true;
 				else if (cmd.hasOption("q"))
 					is_clean = true;
+				else if (cmd.hasOption("z"))
+					is_remove_zero = true;
 
 				in = cmd.getOptionValue("i");
 				out = cmd.getOptionValue("o");
@@ -189,6 +201,8 @@ public class Main {
 	private Options createOptions() {
 		Options options = new Options();
 
+		options.addOption(Option.builder("z").longOpt("zero remove").desc("remove gv instances with zero length").build());
+		
 		options.addOption(Option.builder("q").longOpt("clean").desc("get all clean commits").build());
 
 		options.addOption(Option.builder("s").longOpt("string retrieval").desc("mining commit as string").build());
@@ -212,7 +226,7 @@ public class Main {
 				Option.builder("l").longOpt("local").desc("Collect change vectors with BBIC file in local").build());
 
 		options.addOption(Option.builder("u").longOpt("url").desc("url of the git repo").hasArg().argName("git_url")
-				.required().build());
+				.build());
 
 		options.addOption(Option.builder("i").longOpt("input").desc("directory of the input file to parse").hasArg()
 				.argName("input_path").required().build());
