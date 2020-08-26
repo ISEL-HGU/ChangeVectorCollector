@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -204,44 +205,59 @@ public class Gumtree {
 		csvprinter_GV.close();
 		walk.close();
 	}
-	
+
+	public static List<CSVRecord> read_record_list(String inPath) throws IOException {
+		Reader in = new FileReader(inPath);
+		Iterable<CSVRecord> iterable_records = CSVFormat.RFC4180.parse(in);
+		Iterator<CSVRecord> iter_record = iterable_records.iterator();
+		List<CSVRecord> list_records = new ArrayList<CSVRecord>();
+
+		while (iter_record.hasNext()) {
+			list_records.add(iter_record.next());
+		}
+
+		return list_records;
+	}
+
+	public static void write_record_list(String outPath, List<CSVRecord> list_records, String[] headers)
+			throws IOException {
+		File file = new File(outPath);
+		BufferedWriter bf_writer = Files.newBufferedWriter(Paths.get(file.getAbsolutePath()));
+		CSVPrinter csvprinter = new CSVPrinter(bf_writer, CSVFormat.DEFAULT.withHeader(headers));
+
+		for (CSVRecord record : list_records) {
+			csvprinter.printRecord(record);
+		}
+
+		csvprinter.close();
+	}
+
+	public static void write_record_list(String outPath, List<CSVRecord> list_records) throws IOException {
+		File file = new File(outPath);
+		BufferedWriter bf_writer = Files.newBufferedWriter(Paths.get(file.getAbsolutePath()));
+		CSVPrinter csvprinter = new CSVPrinter(bf_writer, CSVFormat.DEFAULT);
+
+		for (CSVRecord record : list_records) {
+			csvprinter.printRecord(record);
+		}
+
+		csvprinter.close();
+	}
+
 	public static void rm_zeros(CLIOptions input) throws IOException {
 		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
 				"sha_bbfc", "sha_bfc", "key", "project", "label" };
-		File file_new_gvnc = new File(input.outputDir + "GV_" + input.projectName + ".csv");
-		BufferedWriter writer_gvnc = Files.newBufferedWriter(Paths.get(file_new_gvnc.getAbsolutePath()));
-		CSVPrinter csvprinter_gvnc = new CSVPrinter(writer_gvnc, CSVFormat.DEFAULT);
-		File file_new_y = new File(input.outputDir + "Y_" + input.projectName + ".csv");
-		BufferedWriter writer_y = Files.newBufferedWriter(Paths.get(file_new_y.getAbsolutePath()));
-		CSVPrinter csvprinter_y = new CSVPrinter(writer_y, CSVFormat.DEFAULT);
-		File file_log = new File(input.outputDir + "Log_" + input.projectName + ".csv");
-		BufferedWriter writer_log = Files.newBufferedWriter(Paths.get(file_log.getAbsolutePath()));
-		CSVPrinter csvprinter_log = new CSVPrinter(writer_log, CSVFormat.DEFAULT.withHeader(headers));
 
-		Reader gvnc = new FileReader(input.inputDir + "GVNC_" + input.projectName + ".csv");
-		Iterable<CSVRecord> records_gvnc = CSVFormat.RFC4180.parse(gvnc);
-		Reader y = new FileReader(input.inputDir + "Y_" + input.projectName + ".csv");
-		Iterable<CSVRecord> records_y = CSVFormat.RFC4180.parse(y);
-
-		Iterator<CSVRecord> iter_gvnc = records_gvnc.iterator();
-		Iterator<CSVRecord> iter_y = records_y.iterator();
-		
-		List<CSVRecord> list_gvnc = new ArrayList<CSVRecord>();
-		List<CSVRecord> list_y = new ArrayList<CSVRecord>();
+		List<CSVRecord> list_gvnc = read_record_list(input.inputDir + "GVNC_" + input.projectName + ".csv");
+		List<CSVRecord> list_y = read_record_list(input.inputDir + "Y_" + input.projectName + ".csv");
 		List<CSVRecord> list_gvnc_new = new ArrayList<CSVRecord>();
 		List<CSVRecord> list_y_new = new ArrayList<CSVRecord>();
 		List<CSVRecord> list_log = new ArrayList<CSVRecord>();
-		
-		while (iter_gvnc.hasNext()) {
-			list_gvnc.add(iter_gvnc.next());
-		}
-		while (iter_y.hasNext()) {
-			list_y.add(iter_y.next());
-		}
+
 		System.out.println(list_gvnc.size());
 		System.out.println(list_y.size());
-		
-		for (int i = 0; i < list_gvnc.size() ; i++) {
+
+		for (int i = 0; i < list_gvnc.size(); i++) {
 			if (list_gvnc.get(i).get(0).equals("")) {
 				list_log.add(list_y.get(i));
 				continue;
@@ -249,24 +265,110 @@ public class Gumtree {
 			list_gvnc_new.add(list_gvnc.get(i));
 			list_y_new.add(list_y.get(i));
 		}
+		System.out.println(list_log.size());
 		System.out.println(list_gvnc_new.size());
 		System.out.println(list_y_new.size());
 
-		for (CSVRecord record : list_gvnc_new) {
-			csvprinter_gvnc.printRecord(record);
-		}
-		for (CSVRecord record : list_y_new) {
-			csvprinter_y.printRecord(record);
-		}
-		for (CSVRecord record : list_log) {
-			csvprinter_log.printRecord(record);
+		write_record_list(input.outputDir + "GVNC_" + input.projectName + ".csv", list_gvnc_new);
+		write_record_list(input.outputDir + "Y_" + input.projectName + ".csv", list_y_new);
+		write_record_list(input.outputDir + "Log_" + input.projectName + ".csv", list_gvnc_new, headers);
+
+		System.out.println("writing done!");
+	}
+
+	public static void rm_dups(CLIOptions arguments) throws IOException {
+		String header[] = new String[501];
+		header[0] = "";
+		for (int i = 1; i < 501; i++) {
+			header[i] = "f" + i;
 		}
 
-		csvprinter_y.close();
-		csvprinter_gvnc.close();
-		csvprinter_log.close();
-		
-		System.out.println("writing done!");
+		List<CSVRecord> list_gvnc_buggy = read_record_list(
+				arguments.inputDir + "buggy_" + arguments.projectName + "_encoded.csv");
+		List<CSVRecord> list_y_buggy = read_record_list(
+				arguments.inputDir + "Y_buggy_" + arguments.projectName + ".csv");
+		List<CSVRecord> list_gvnc_clean = read_record_list(
+				arguments.inputDir + "clean_" + arguments.projectName + "_encoded.csv");
+		List<CSVRecord> list_y_clean = read_record_list(
+				arguments.inputDir + "Y_clean_" + arguments.projectName + ".csv");
+
+		List<CSVRecord> list_gvnc_buggy_new = new ArrayList<CSVRecord>();
+		List<CSVRecord> list_y_buggy_new = new ArrayList<CSVRecord>();
+		List<CSVRecord> list_gvnc_clean_new = new ArrayList<CSVRecord>();
+		List<CSVRecord> list_y_clean_new = new ArrayList<CSVRecord>();
+
+		System.out.println(list_gvnc_buggy.size());
+		System.out.println(list_y_buggy.size());
+		System.out.println(list_gvnc_clean.size());
+		System.out.println(list_y_clean.size());
+
+		Map<String, String> buggy_hash = new HashMap<String, String>();
+		Map<String, String> clean_hash = new HashMap<String, String>();
+		// 2 + 4
+		for (int i = 0; i < list_y_buggy.size(); i++) {
+			String key = list_y_buggy.get(i).get(2) + list_y_buggy.get(i).get(4);
+			if (!buggy_hash.containsKey(key)) {
+				list_gvnc_buggy_new.add(list_gvnc_buggy.get(i));
+				list_y_buggy_new.add(list_y_buggy.get(i));
+				buggy_hash.put(key, "yo");
+			}
+		}
+
+		for (int i = 0; i < list_y_clean.size(); i++) {
+			String key = list_y_clean.get(i).get(2) + list_y_clean.get(i).get(4);
+			if (!clean_hash.containsKey(key)) {
+				list_gvnc_clean_new.add(list_gvnc_clean.get(i));
+				list_y_clean_new.add(list_y_clean.get(i));
+				clean_hash.put(key, "yo");
+			}
+		}
+
+		System.out.println(list_gvnc_buggy_new.size());
+		System.out.println(list_y_buggy_new.size());
+		System.out.println(list_gvnc_clean_new.size());
+		System.out.println(list_y_clean_new.size());
+
+		write_record_list(arguments.outputDir + "buggy_" + arguments.projectName + "_encoded.csv", list_gvnc_buggy_new,
+				header);
+		write_record_list(arguments.outputDir + "Y_buggy_" + arguments.projectName + ".csv", list_y_buggy_new);
+		write_record_list(arguments.outputDir + "clean_" + arguments.projectName + "_encoded.csv", list_gvnc_clean_new,
+				header);
+		write_record_list(arguments.outputDir + "Y_clean_" + arguments.projectName + ".csv", list_y_clean_new);
+
+		System.out.println("rm_dups complete!");
+	}
+
+	public static void splitBuggyNClean(CLIOptions arguments) throws IOException {
+		List<CSVRecord> list_gvnc = read_record_list(arguments.inputDir + "GVNC_" + arguments.projectName + ".csv");
+		List<CSVRecord> list_y = read_record_list(arguments.inputDir + "Y_" + arguments.projectName + ".csv");
+		List<CSVRecord> list_gvnc_buggy = new ArrayList<CSVRecord>();
+		List<CSVRecord> list_y_buggy = new ArrayList<CSVRecord>();
+		List<CSVRecord> list_gvnc_clean = new ArrayList<CSVRecord>();
+		List<CSVRecord> list_y_clean = new ArrayList<CSVRecord>();
+
+		System.out.println(list_gvnc.size());
+		System.out.println(list_y.size());
+
+		for (int i = 0; i < list_gvnc.size(); i++) {
+			if (list_y.get(i).get(11).equals("1")) {
+				list_gvnc_buggy.add(list_gvnc.get(i));
+				list_y_buggy.add(list_y.get(i));
+			} else if (list_y.get(i).get(11).equals("0")) {
+				list_gvnc_clean.add(list_gvnc.get(i));
+				list_y_clean.add(list_y.get(i));
+			}
+		}
+		System.out.println(list_gvnc_buggy.size());
+		System.out.println(list_y_buggy.size());
+		System.out.println(list_gvnc_clean.size());
+		System.out.println(list_y_clean.size());
+
+		write_record_list(arguments.outputDir + "GVNC_buggy_" + arguments.projectName + ".csv", list_gvnc_buggy);
+		write_record_list(arguments.outputDir + "Y_buggy_" + arguments.projectName + ".csv", list_y_buggy);
+		write_record_list(arguments.outputDir + "GVNC_clean_" + arguments.projectName + ".csv", list_gvnc_clean);
+		write_record_list(arguments.outputDir + "Y_clean_" + arguments.projectName + ".csv", list_y_clean);
+
+		System.out.println("split complete!");
 	}
 
 	public static void writeGumVecs(CLIOptions input, ArrayList<ArrayList<Integer>> gumtree_vectors)

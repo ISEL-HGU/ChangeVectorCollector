@@ -39,7 +39,9 @@ public class Main {
 			
 			// remove zero from gv instances -z
 			if (is_remove_zero) {
-				Gumtree.rm_zeros(arguments);
+//				Gumtree.rm_zeros(arguments);
+//				Gumtree.splitBuggyNClean(arguments);
+				Gumtree.rm_dups(arguments);
 //				bbics = Collector.collectBeforeBICFromLocalFile(arguments);
 //				Collector.rmDups(bbics, arguments);
 				
