@@ -277,6 +277,37 @@ public class Gumtree {
 	}
 
 	public static void rm_dups(CLIOptions arguments) throws IOException {
+		List<CSVRecord> list_gvnc = read_record_list(arguments.inputDir + "GVNC_" + arguments.projectName + ".csv");
+		List<CSVRecord> list_y = read_record_list(arguments.inputDir + "Y_" + arguments.projectName + ".csv");
+
+		System.out.println(list_gvnc.size());
+		System.out.println(list_y.size());
+
+		List<CSVRecord> list_gvnc_new = new ArrayList<CSVRecord>();
+		List<CSVRecord> list_y_new = new ArrayList<CSVRecord>();
+
+		Map<String, String> hash = new HashMap<String, String>();
+
+		for (int i = 0; i < list_y.size(); i++) {
+			String key = list_y.get(i).get(2) + list_y.get(i).get(4);
+			if (!hash.containsKey(key)) {
+				list_gvnc_new.add(list_gvnc.get(i));
+				list_y_new.add(list_y.get(i));
+				hash.put(key, "yo");
+			}
+		}
+
+		System.out.println(list_gvnc_new.size());
+		System.out.println(list_y_new.size());
+
+		write_record_list(arguments.outputDir + "GVNC_" + arguments.projectName + ".csv", list_gvnc_new);
+		write_record_list(arguments.outputDir + "Y_" + arguments.projectName + ".csv", list_y_new);
+
+		System.out.println("rm_dups complete!");
+
+	}
+
+	public static void rm_dups_CnB(CLIOptions arguments) throws IOException {
 		String header[] = new String[501];
 		header[0] = "";
 		for (int i = 1; i < 501; i++) {
@@ -304,8 +335,9 @@ public class Gumtree {
 
 		Map<String, String> buggy_hash = new HashMap<String, String>();
 		Map<String, String> clean_hash = new HashMap<String, String>();
-		// 2 + 4
+
 		for (int i = 0; i < list_y_buggy.size(); i++) {
+			// 2 path_bic + 4 sha_bic
 			String key = list_y_buggy.get(i).get(2) + list_y_buggy.get(i).get(4);
 			if (!buggy_hash.containsKey(key)) {
 				list_gvnc_buggy_new.add(list_gvnc_buggy.get(i));
@@ -335,7 +367,7 @@ public class Gumtree {
 				header);
 		write_record_list(arguments.outputDir + "Y_clean_" + arguments.projectName + ".csv", list_y_clean_new);
 
-		System.out.println("rm_dups complete!");
+		System.out.println("rm_dups_CnB complete!");
 	}
 
 	public static void splitBuggyNClean(CLIOptions arguments) throws IOException {
