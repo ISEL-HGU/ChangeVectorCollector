@@ -75,6 +75,8 @@ dependencies {
 	// https://mvnrepository.com/artifact/fr.inria.gforge.spoon.labs/gumtree-spoon-ast-diff
 	compile group: 'fr.inria.gforge.spoon.labs', name: 'gumtree-spoon-ast-diff', version: '1.23'
 
+	// https://mvnrepository.com/artifact/org.netbeans.external/org-eclipse-equinox-common
+	compile group: 'org.netbeans.external', name: 'org-eclipse-equinox-common', version: 'RELEASE113'
 	
 }
 

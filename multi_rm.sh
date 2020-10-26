@@ -1,6 +1,6 @@
 #!/bin/bash
 
-filepath='./assets/rm_zero/train_clean/GVNC_*'
+filepath='./assets/rm_zero/train_clean/X_*'
 for eachfile in $filepath
 do
     project=${eachfile}

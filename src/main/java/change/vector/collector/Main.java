@@ -37,7 +37,7 @@ public class Main {
 			if (is_help)
 				printHelp(options);
 			
-			// remove zero from gv instances -z
+			// remove zero from x instances -z
 			if (is_remove_zero) {
 //				Gumtree.rm_zeros(arguments);
 //				Gumtree.splitBuggyNClean(arguments);
