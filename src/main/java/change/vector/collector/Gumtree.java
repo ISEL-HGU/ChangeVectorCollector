@@ -417,7 +417,7 @@ public class Gumtree {
 		}
 
 		csvprinter.close();
-		System.out.println("wrting gumvecs complete!");
+		System.out.println("wrting X_gumvecs complete!");
 		return;
 	}
 
