@@ -18,14 +18,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.CSVPrinter;
 import org.eclipse.jgit.annotations.NonNull;
-import org.eclipse.jgit.api.BlameCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
-import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
@@ -55,7 +54,7 @@ public class Collector {
 		// load the prepared BIC file from BugPatchCollector
 		Reader in = new FileReader(input.inputDir + "BIC_" + input.projectName + ".csv");
 
-		Iterable<CSVRecord> records = CSVFormat.RFC4180.parse(in);
+		CSVParser records = new CSVParser(in, CSVFormat.DEFAULT.withHeader());
 
 		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
 				"sha_bbfc", "sha_bfc", "key", "project", "label" };
@@ -67,46 +66,22 @@ public class Collector {
 		int index = 0;
 		for (CSVRecord record : records) {
 			boolean isKeyDuplicate = false;
-			BlameCommand blamer = new BlameCommand(input.repo);
 
 			// retrieve the record we need
 			String shaBIC = record.get(0);
 			String pathBIC = record.get(1);
 			String pathBFC = record.get(2);
 			String shaBFC = record.get(3);
-			String lineBIC = record.get(6);
-			String lineBFC = record.get(7);
 			String content = record.get(9);
 
-			if (shaBIC.contains("BISha1"))
-				continue; // skip the header
 			if (content.length() < 3)
 				continue; // skip really short ones
-			if (shaBIC.equals(shaBFC))
-				continue;// skip if BIC == FIX
 
-			// get before instance that has before instances by blaming
 			ObjectId bicID = input.repo.resolve(shaBIC);
-			blamer.setStartCommit(bicID);
-			blamer.setFilePath(pathBIC);
-
-			BlameResult blameBIC;
-			try {
-				blameBIC = blamer.call();
-			} catch (Exception e) {
-				continue;
-			}
-
-			RevCommit commitBeforeBIC;
-			try {
-				commitBeforeBIC = blameBIC.getSourceCommit(Integer.parseInt(lineBIC) - 1);
-			} catch (Exception e) {
-				continue;
-			}
 
 			// retrieve SHA and path of before BIC
-			String pathBeforeBIC = blameBIC.getSourcePath(Integer.parseInt(lineBIC) - 1);
-			String shaBeforeBIC = commitBeforeBIC.getName();
+			String pathBeforeBIC = pathBIC;
+			String shaBeforeBIC = shaBIC + "^";
 
 			// if there are no before instances
 			// (blamed commit is equal to BIC)
@@ -117,54 +92,32 @@ public class Collector {
 				continue;
 			}
 
-			if (shaBeforeBIC.equals(shaBIC)) {
-				DiffEntry diff = runDiff(input.repo, shaBIC + "^", shaBIC, pathBIC);
-				if (diff == null) {
-					continue;
-				} else {
-					pathBeforeBIC = diff.getOldPath();
-					shaBeforeBIC = shaBIC + "^";
-				}
+			DiffEntry diff = runDiff(input.repo, shaBIC + "^", shaBIC, pathBIC);
+			if (diff == null) {
+				System.out.println("BIC diff == null");
+				continue;
+			} else {
+				pathBeforeBIC = diff.getOldPath();
 			}
 
 			// get before instance of fix as well.
 			ObjectId fixID = input.repo.resolve(shaBFC);
-			blamer.setStartCommit(fixID);
-			blamer.setFilePath(pathBFC);
-
-			BlameResult blameFIX;
-			try {
-				blameFIX = blamer.call();
-			} catch (Exception e) {
-				continue;
-			}
-
-			RevCommit commitBeforeFix;
-			try {
-				commitBeforeFix = blameFIX.getSourceCommit(Integer.parseInt(lineBFC) - 1);
-			} catch (Exception e) {
-				continue;
-			}
 
 			// retrieve SHA and path of before FIX
-			String pathBeforeBFC = blameFIX.getSourcePath(Integer.parseInt(lineBFC) - 1);
-			String shaBeforeBFC = commitBeforeFix.getName();
+			String pathBeforeBFC = pathBFC;
+			String shaBeforeBFC = shaBFC + "^";
 
-			// if there are no before instances
-			// (blamed commit is equal to BIC)
-			// get the path of BIC~1
 			RevCommit commitFix = walk.parseCommit(fixID);
 			if (commitFix.getParentCount() == 0) {
 				continue;
 			}
-			if (shaBeforeBFC.equals(shaBFC)) {
-				DiffEntry diff = runDiff(input.repo, shaBFC + "^", shaBFC, pathBFC);
-				if (diff == null) {
-					continue;
-				} else {
-					pathBeforeBFC = diff.getOldPath();
-					shaBeforeBFC = shaBFC + "^";
-				}
+
+			diff = runDiff(input.repo, shaBFC + "^", shaBFC, pathBFC);
+			if (diff == null) {
+				System.out.println("BFC diff == null");
+				continue;
+			} else {
+				pathBeforeBFC = diff.getOldPath();
 			}
 
 			String key = pathBIC + "\n" + shaBIC + "\n";
@@ -174,6 +127,7 @@ public class Collector {
 				if (bbics.get(j).key.equals(key)) {
 					isKeyDuplicate = true;
 					dups++;
+					System.out.println("dups:" + dups);
 				}
 			}
 			if (isKeyDuplicate) {
@@ -197,6 +151,7 @@ public class Collector {
 
 		System.out.println("########### Finish collecting " + index + " BBICs from repo! ###########");
 		csvprinter.close();
+		records.close();
 		return bbics;
 	}
 
@@ -254,14 +209,14 @@ public class Collector {
 		config.setBoolean("diff", null, "renames", true);
 		DiffConfig diffConfig = config.get(DiffConfig.KEY);
 		try (Git git = new Git(repo)) {
-			List<DiffEntry> diffList = git.diff().setOldTree(prepareTreeParser(repo, oldCommit))
-					.setNewTree(prepareTreeParser(repo, newCommit)).setPathFilter(FollowFilter.create(path, diffConfig))
-					.call();
+			List<DiffEntry> diffList = git.diff().
+				setOldTree(prepareTreeParser(repo, oldCommit)).
+				setNewTree(prepareTreeParser(repo, newCommit)).
+				setPathFilter(FollowFilter.create(path, diffConfig)).
+				call();
 			if (diffList.size() == 0) {
-//				System.out.println("diffList.size() == 0");
 				return null;
 			}
-
 			if (diffList.size() > 1) {
 				throw new RuntimeException("invalid diff");
 			}
@@ -487,7 +442,8 @@ public class Collector {
 		return bbics;
 	}
 
-	public static ArrayList<BeforeBIC> getAllCommits(CLIOptions input) throws NoHeadException, GitAPIException, IOException {
+	public static ArrayList<BeforeBIC> getAllCommits(CLIOptions input)
+			throws NoHeadException, GitAPIException, IOException {
 		ArrayList<BeforeBIC> bbics;
 		// load bbic from repo or local
 		if (new File(input.inputDir + "BBIC_" + input.projectName + ".csv").exists()) {
@@ -523,7 +479,7 @@ public class Collector {
 			if (commit.getParentCount() < 1) {
 				continue;
 			}
-			
+
 			String cur_sha = commit.getName();
 			String prev_sha = cur_sha + "~1";
 

@@ -89,14 +89,9 @@ public class Gumtree {
 			Run.initGenerators();
 
 			// for BIC
-			ITree srcBIC;
-			ITree dstBIC;
-			try {
-				srcBIC = new JdtTreeGenerator().generateFromString(srcBlobBIC).getRoot();
-				dstBIC = new JdtTreeGenerator().generateFromString(dstBlobBIC).getRoot();
-			} catch (Exception e) {
-				continue;
-			}
+			ITree srcBIC = new JdtTreeGenerator().generateFromString(srcBlobBIC).getRoot();
+			ITree dstBIC = new JdtTreeGenerator().generateFromString(dstBlobBIC).getRoot();
+
 			Matcher matchBIC = Matchers.getInstance().getMatcher(srcBIC, dstBIC);
 			matchBIC.match();
 
@@ -106,12 +101,13 @@ public class Gumtree {
 			List<Action> actionsBIC = gBIC.getActions();
 
 			ArrayList<Integer> g_vec = new ArrayList<Integer>();
+			int check = 0;
 			for (Action action : actionsBIC) {
+				System.out.println(check++);
 				// if regards import, discard
 				if (action.getNode().getType() == 40 || action.getNode().getType() == 26) {
 					continue;
 				}
-
 				if (action.getName().equals("INS")) {
 					g_vec.add(action.getNode().getType() + 1);
 				} else if (action.getName().equals("DEL")) {
