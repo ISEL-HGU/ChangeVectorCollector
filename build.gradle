@@ -75,13 +75,6 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.github.gumtreediff/gen.jdt
 	compile group: 'com.github.gumtreediff', name: 'gen.jdt', version: '2.1.2'
 	
-	// https://mvnrepository.com/artifact/fr.inria.gforge.spoon.labs/gumtree-spoon-ast-diff
-	compile group: 'fr.inria.gforge.spoon.labs', name: 'gumtree-spoon-ast-diff', version: '1.27'
-	
-	// https://mvnrepository.com/artifact/fr.inria.gforge.spoon/spoon-core
-	compile group: 'fr.inria.gforge.spoon', name: 'spoon-core', version: '8.3.0'
-
-	
 }
 
 //jar {
