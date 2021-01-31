@@ -43,7 +43,7 @@ dependencies {
 	compile group: 'org.apache.commons', name: 'commons-text', version: '1.8'
 
 	// https://mvnrepository.com/artifact/org.eclipse.jdt/org.eclipse.jdt.core
-	compile group: 'org.eclipse.jdt', name: 'org.eclipse.jdt.core', version: '3.16.0'
+	//compile group: 'org.eclipse.jdt', name: 'org.eclipse.jdt.core', version: '3.16.0'
 	
     // https://mvnrepository.com/artifact/commons-cli/commons-cli
 	compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
@@ -57,28 +57,29 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.json/json
 	compile group: 'org.json', name: 'json', version: '20190722'
 	
+	// https://mvnrepository.com/artifact/com.github.gumtreediff/core
+	runtime group: 'com.github.gumtreediff', name: 'core', version: '2.1.2'
+	
+	// https://mvnrepository.com/artifact/com.github.gumtreediff/client
+	compile group: 'com.github.gumtreediff', name: 'client', version: '2.1.2'
+	
+	// https://mvnrepository.com/artifact/com.github.gumtreediff/gen.jdt
+	compile group: 'com.github.gumtreediff', name: 'gen.jdt', version: '2.1.2'
+	
 	// https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/weka-dev
 	compile group: 'nz.ac.waikato.cms.weka', name: 'weka-dev', version: '3.9.3'
 	
 	// https://mvnrepository.com/artifact/org.commoncrawl/libcommoncrawl
 	compile group: 'org.commoncrawl', name: 'libcommoncrawl', version: '1.1', ext: 'pom'
 
+	// https://mvnrepository.com/artifact/fr.inria.gforge.spoon.labs/gumtree-spoon-ast-diff
+	compile group: 'fr.inria.gforge.spoon.labs', name: 'gumtree-spoon-ast-diff', version: '1.23'
+
 	// https://mvnrepository.com/artifact/org.netbeans.external/org-eclipse-equinox-common
-	compile group: 'org.netbeans.external', name: 'org-eclipse-equinox-common', version: 'RELEASE113'
+	//compile group: 'org.netbeans.external', name: 'org-eclipse-equinox-common', version: 'RELEASE113'
 	
-	// https://mvnrepository.com/artifact/com.github.gumtreediff/core
-	runtime group: 'com.github.gumtreediff', name: 'core', version: '2.1.2'
+	//added by TE
+	//compile group: 'org.eclipse.birt.runtime', name: 'org.eclipse.core.resources', version: '3.10.0.v20150423-0755'
 
-	// https://mvnrepository.com/artifact/com.github.gumtreediff/client
-	compile group: 'com.github.gumtreediff', name: 'client', version: '2.1.2'
 
-	// https://mvnrepository.com/artifact/com.github.gumtreediff/gen.jdt
-	compile group: 'com.github.gumtreediff', name: 'gen.jdt', version: '2.1.2'
-	
 }
-
-//jar {
-//	manifest {
-//		attributes 'Main-Class':'change.vector.collector.Main'
-//	}
-//}
