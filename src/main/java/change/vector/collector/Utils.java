@@ -119,7 +119,7 @@ public class Utils {
 	}
 
 	public static String getReferencePath(CLIOptions input) {
-		return "/Users/jihoshin/Desktop" + File.separator + "reference";
+		return "./data" + File.separator + "reference";
 	}
 
 	public static File getGitDirectory(CLIOptions input) {

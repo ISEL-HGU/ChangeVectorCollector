@@ -57,7 +57,7 @@ public class Collector {
 		CSVParser records = new CSVParser(in, CSVFormat.DEFAULT.withHeader());
 
 		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
-				"sha_bbfc", "sha_bfc", "key", "project", "label" , "BIdate", "BFdate"};
+				"sha_bbfc", "sha_bfc", "key", "project", "label", "BIdate", "BFdate" };
 
 		File fileP = new File(input.outputDir + "BBIC_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
@@ -75,7 +75,7 @@ public class Collector {
 			String content = record.get(9);
 			String BIdate = record.get(4);
 			String BFdate = record.get(5);
-			
+
 			if (content.length() < 3)
 				continue; // skip really short ones
 
@@ -96,7 +96,7 @@ public class Collector {
 
 			DiffEntry diff = runDiff(input.repo, shaBIC + "^", shaBIC, pathBIC);
 			if (diff == null) {
-				System.out.println("BIC diff == null");
+				// System.out.println("BIC diff == null");
 				continue;
 			} else {
 				pathBeforeBIC = diff.getOldPath();
@@ -116,20 +116,20 @@ public class Collector {
 
 			diff = runDiff(input.repo, shaBFC + "^", shaBFC, pathBFC);
 			if (diff == null) {
-				System.out.println("BFC diff == null");
+				// System.out.println("BFC diff == null");
 				continue;
 			} else {
 				pathBeforeBFC = diff.getOldPath();
 			}
 
-			String key = pathBIC + "\n" + shaBIC + "\n";
+			String key = pathBIC + shaBIC;
 
 			// skip duplicates
 			for (int j = 0; j < bbics.size(); j++) {
 				if (bbics.get(j).key.equals(key)) {
 					isKeyDuplicate = true;
 					dups++;
-					System.out.println("dups:" + dups);
+					//System.out.println("dups:" + dups);
 				}
 			}
 			if (isKeyDuplicate) {
@@ -147,7 +147,7 @@ public class Collector {
 			csvprinter.flush();
 
 			index++;
-			System.out.println(index);
+			//System.out.println(index);
 			walk.close();
 		}
 
@@ -213,11 +213,9 @@ public class Collector {
 		config.setBoolean("diff", null, "renames", true);
 		DiffConfig diffConfig = config.get(DiffConfig.KEY);
 		try (Git git = new Git(repo)) {
-			List<DiffEntry> diffList = git.diff().
-				setOldTree(prepareTreeParser(repo, oldCommit)).
-				setNewTree(prepareTreeParser(repo, newCommit)).
-				setPathFilter(FollowFilter.create(path, diffConfig)).
-				call();
+			List<DiffEntry> diffList = git.diff().setOldTree(prepareTreeParser(repo, oldCommit))
+					.setNewTree(prepareTreeParser(repo, newCommit)).setPathFilter(FollowFilter.create(path, diffConfig))
+					.call();
 			if (diffList.size() == 0) {
 				return null;
 			}

@@ -101,9 +101,9 @@ public class Gumtree {
 			List<Action> actionsBIC = gBIC.getActions();
 
 			ArrayList<Integer> g_vec = new ArrayList<Integer>();
-			int check = 0;
+//			int check = 0;
 			for (Action action : actionsBIC) {
-				System.out.println(check++);
+				// System.out.println(check++);
 				// if regards import, discard
 				if (action.getNode().getType() == 40 || action.getNode().getType() == 26) {
 					continue;
@@ -174,7 +174,7 @@ public class Gumtree {
 			g_vec.addAll(context_vec);
 			if (g_vec.size() < 1)
 				continue;
-			System.out.println(cnt + ": " + g_vec.size());
+			// System.out.println(cnt + ": " + g_vec.size());
 
 			gumtree_vectors.add(g_vec);
 			new_bbics.add(bbic);
@@ -191,7 +191,7 @@ public class Gumtree {
 			csvprinter_X.println();
 			csvprinter_X.flush();
 
-			System.out.println(cnt + "/" + bbics.size());
+			// System.out.println(cnt + "/" + bbics.size());
 			cnt++;
 		}
 
