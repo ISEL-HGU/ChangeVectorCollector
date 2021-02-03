@@ -21,9 +21,11 @@ public class BeforeBIC {
 	public String key;
 	public String project;
 	public String label = "0";
+	public String BIdate;
+	public String BFdate;
 
 	public BeforeBIC(String pathBeforeBIC, String pathBIC, String shaBeforeBIC, String shaBIC, String pathBeforeBFC,
-			String pathBFC, String shaBeforeBFC, String shaBFC, String key, String project, String label) {
+			String pathBFC, String shaBeforeBFC, String shaBFC, String key, String project, String label, String BIdate, String BFdate) {
 		this.pathBeforeBIC = pathBeforeBIC;
 		this.pathBIC = pathBIC;
 		this.shaBeforeBIC = shaBeforeBIC;
@@ -35,6 +37,8 @@ public class BeforeBIC {
 		this.key = key;
 		this.project = project;
 		this.label = label;
+		this.BIdate = BIdate;
+		this.BFdate = BFdate;
 	}
 
 	public static void writeBBICsOnCSV(CLIOptions input, ArrayList<BeforeBIC> bbics) throws IOException {

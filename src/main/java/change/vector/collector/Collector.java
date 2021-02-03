@@ -57,7 +57,7 @@ public class Collector {
 		CSVParser records = new CSVParser(in, CSVFormat.DEFAULT.withHeader());
 
 		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
-				"sha_bbfc", "sha_bfc", "key", "project", "label" };
+				"sha_bbfc", "sha_bfc", "key", "project", "label" , "BIdate", "BFdate"};
 
 		File fileP = new File(input.outputDir + "BBIC_" + input.projectName + ".csv");
 		BufferedWriter writer = Files.newBufferedWriter(Paths.get(fileP.getAbsolutePath()));
@@ -73,7 +73,9 @@ public class Collector {
 			String pathBFC = record.get(2);
 			String shaBFC = record.get(3);
 			String content = record.get(9);
-
+			String BIdate = record.get(4);
+			String BFdate = record.get(5);
+			
 			if (content.length() < 3)
 				continue; // skip really short ones
 
@@ -136,12 +138,12 @@ public class Collector {
 
 			// add BBIC when passed all of the above
 			BeforeBIC bbic = new BeforeBIC(pathBeforeBIC, pathBIC, shaBeforeBIC, shaBIC, pathBeforeBFC, pathBFC,
-					shaBeforeBFC, shaBFC, key, input.projectName, "1");
+					shaBeforeBFC, shaBFC, key, input.projectName, "1", BIdate, BFdate);
 			bbics.add(bbic);
 
 			csvprinter.printRecord(input.projectName + index, bbic.pathBeforeBIC, bbic.pathBIC, bbic.shaBeforeBIC,
 					bbic.shaBIC, bbic.pathBeforeBFC, bbic.pathBFC, bbic.shaBeforeBFC, bbic.shaBFC, bbic.key,
-					input.projectName, "1");
+					input.projectName, "1", bbic.BIdate, bbic.BFdate);
 			csvprinter.flush();
 
 			index++;
@@ -174,10 +176,12 @@ public class Collector {
 			String key = record.get(9);
 			String project = record.get(10);
 			String label = record.get(11);
+			String bidate = record.get(12);
+			String bfdate = record.get(13);
 			if (pathBeforeBIC.contains("path_bbic"))
 				continue;
 			BeforeBIC bbic = new BeforeBIC(pathBeforeBIC, pathBIC, shaBeforeBIC, shaBIC, pathBeforeBFC, pathBFC,
-					shaBeforeBFC, shaBFC, key, project, label);
+					shaBeforeBFC, shaBFC, key, project, label, bidate, bfdate);
 			bbics.add(bbic);
 		}
 
@@ -429,7 +433,7 @@ public class Collector {
 				// else get only the commit itself because there is no fix for non-buggy commit
 
 				bbic = new BeforeBIC(prev_path, cur_path, prev_sha, cur_sha, "-", "-", "-", "-", key, input.projectName,
-						"0");
+						"0", "", "");
 				bbics.add(bbic);
 			}
 			count++;
@@ -513,7 +517,7 @@ public class Collector {
 				// else get only the commit itself because there is no fix for non-buggy commit
 				else {
 					bbic = new BeforeBIC(prev_path, cur_path, prev_sha, cur_sha, "-", "-", "-", "-", key,
-							input.projectName, "0");
+							input.projectName, "0", "", "");
 				}
 
 				bbics.add(bbic);
