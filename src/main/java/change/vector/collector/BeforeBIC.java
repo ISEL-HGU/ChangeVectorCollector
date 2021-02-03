@@ -25,7 +25,8 @@ public class BeforeBIC {
 	public String BFdate;
 
 	public BeforeBIC(String pathBeforeBIC, String pathBIC, String shaBeforeBIC, String shaBIC, String pathBeforeBFC,
-			String pathBFC, String shaBeforeBFC, String shaBFC, String key, String project, String label, String BIdate, String BFdate) {
+			String pathBFC, String shaBeforeBFC, String shaBFC, String key, String project, String label, String BIdate,
+			String BFdate) {
 		this.pathBeforeBIC = pathBeforeBIC;
 		this.pathBIC = pathBIC;
 		this.shaBeforeBIC = shaBeforeBIC;
@@ -44,7 +45,7 @@ public class BeforeBIC {
 	public static void writeBBICsOnCSV(CLIOptions input, ArrayList<BeforeBIC> bbics) throws IOException {
 
 		final String[] headers = { "index", "path_bbic", "path_bic", "sha_bbic", "sha_bic", "path_bbfc", "path_bfc",
-				"sha_bbfc", "sha_bfc", "key", "project", "label" };
+				"sha_bbfc", "sha_bfc", "key", "project", "label", "bidate", "bfdate" };
 		File fileP;
 		if (Main.is_clean) {
 			fileP = new File(input.outputDir + "BBIC_" + input.projectName + ".csv");
@@ -60,7 +61,7 @@ public class BeforeBIC {
 			// writing the BBIC file
 			csvprinter.printRecord(input.projectName + index, bbic.pathBeforeBIC, bbic.pathBIC, bbic.shaBeforeBIC,
 					bbic.shaBIC, bbic.pathBeforeBFC, bbic.pathBFC, bbic.shaBeforeBFC, bbic.shaBFC, bbic.key,
-					bbic.project, bbic.label);
+					bbic.project, bbic.label, bbic.BIdate, bbic.BFdate);
 			csvprinter.flush();
 			index++;
 		}
@@ -72,6 +73,7 @@ public class BeforeBIC {
 	@Override
 	public String toString() {
 		return pathBeforeBIC + "\n" + pathBIC + "\n" + shaBeforeBIC + "\n" + shaBIC + "\n" + pathBeforeBIC + "\n"
-				+ pathBFC + "\n" + shaBeforeBFC + "\n" + shaBFC + "\n" + project + "\n" + label;
+				+ pathBFC + "\n" + shaBeforeBFC + "\n" + shaBFC + "\n" + project + "\n" + label + "\n" + BIdate + "\n"
+				+ BFdate;
 	}
 }
