@@ -181,7 +181,7 @@ public class Gumtree {
 
 			csvprinter_Y.printRecord(input.projectName + cnt, bbic.pathBeforeBIC, bbic.pathBIC, bbic.shaBeforeBIC,
 					bbic.shaBIC, bbic.pathBeforeBFC, bbic.pathBFC, bbic.shaBeforeBFC, bbic.shaBFC, bbic.key,
-					input.projectName, bbic.label);
+					input.projectName, bbic.label, bbic.BIdate, bbic.BFdate);
 
 			csvprinter_Y.flush();
 
@@ -338,7 +338,7 @@ public class Gumtree {
 			if (!buggy_hash.containsKey(key)) {
 				list_x_buggy_new.add(list_x_buggy.get(i));
 				list_y_buggy_new.add(list_y_buggy.get(i));
-				buggy_hash.put(key, "yo");
+				buggy_hash.put(key, "value");
 			}
 		}
 
@@ -347,7 +347,7 @@ public class Gumtree {
 			if (!clean_hash.containsKey(key)) {
 				list_x_clean_new.add(list_x_clean.get(i));
 				list_y_clean_new.add(list_y_clean.get(i));
-				clean_hash.put(key, "yo");
+				clean_hash.put(key, "value");
 			}
 		}
 
