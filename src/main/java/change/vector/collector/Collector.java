@@ -42,6 +42,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
+
 public class Collector {
 	public static int instanceNumber;
 	public static int dups = 0;
@@ -488,6 +489,8 @@ public class Collector {
 			RevCommit prev_commit = walk.parseCommit(input.repo.resolve(prev_sha));
 			RevTree prev_tree = walk.parseTree(prev_commit);
 			RevTree cur_tree = walk.parseTree(commit);
+			String commitDate = Utils.getStringDateTimeFromCommit(commit);
+			
 
 			ObjectReader reader = input.repo.newObjectReader();
 			CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
@@ -515,7 +518,7 @@ public class Collector {
 				// else get only the commit itself because there is no fix for non-buggy commit
 				else {
 					bbic = new BeforeBIC(prev_path, cur_path, prev_sha, cur_sha, "-", "-", "-", "-", key,
-							input.projectName, "0", "", "");
+							input.projectName, "0", commitDate, "");
 				}
 
 				bbics.add(bbic);

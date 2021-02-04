@@ -289,7 +289,7 @@ public class Gumtree {
 			if (!hash.containsKey(key)) {
 				list_x_new.add(list_x.get(i));
 				list_y_new.add(list_y.get(i));
-				hash.put(key, "yo");
+				hash.put(key, "value");
 			}
 		}
 
