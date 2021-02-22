@@ -1,20 +1,23 @@
 # ChangeVectorCollector
 
-ChangeVectorCollector is a tool that uses GumTree to differentiate two code between a change.
+Uses the BIC information collected from DPminer to embed the BICs into a vector.
+The vector embedding is done by defining the type of changed nodes and their AST using an algorithm called Gumtree.
 
-### How it works:
-1. Takes a csv file that holds target commits and the target changed line.
-<br> You can use the results from [BugPatchCollector](https://github.com/HGUISEL/bugpatchcollector) to find difference of code when BIC occurs.
-2. Blames the changed line to get the commit before it is changed.
-3. Extracts the files that is before and after the change.
-4. Compares the change of files using GumTree distribution from https://github.com/GumTreeDiff/gumtree
-5. Difference of code is vectorized with the attribute counts of changes w.r.t AST node types.
-6. The output file is in the form of arff format.
-7. Different correlation coefficients can be computed to the change vectors.
+## Order of Scenario:
+1. making buggy train set
+    a. description: use BIC collected from DPMiner to vectorize commit by applying the Gumtree algorithm.
+    b. run ./make_buggy_train.sh located in the parent folder of 3 projects.
+2. making clean train set
+    a. description: use clean commits to vectorize commit by applying the Gumtree algorithm.
+    b. run ./make_clean_train.sh located in the parent folder of 3 projects.
+3. combine clean and buggy train set for a combined SimFin model.
+4. making test set
+    a. description: make test data by collecting all clean and buggy commits and also vectorize them using Gumtree.
+    b. run ./make_test located in the parent folder of 3 projects.
 
 <br>
 
-# How to build: Gradle
+## How to build: Gradle
 <pre><code> $ ./gradlew distZip </code></pre>
 or
 <pre><code> $ gradle distZip </code></pre>
@@ -27,28 +30,38 @@ The executable file is in build/distributions/change-vector-collector/bin
 If you have trouble to build using gradlew, enter
 <pre><code>$ gradle wrap</code></pre>
 
- 
- # Options
- >Required options 
-* -u (url) The url of the target GitHub repository.
-* -i (input) file path of the input file.
-* -o (output) file path of the output file.
->Must choose one of the following options
-* -r (repo) from target commit, collect before change from repo.
-<br> -i is the file path with target commit's SHA and path in the repo and the target line number.
-<br> -o is the file path and the file name you want to store the change-vector arff.
-* -l (local) if you already have information of before changes. 
-<br> -i is the file path with the information of before and after the change
-<br> -o is the same as above.
-* -c (correlation) computes correlations after retriveing the change vectors.
-<br> -i is the file path of the change vector arff.
-<br> -o is the folder path where you want to store the correlation csvs.
+ <br>
 
-# Example Tests 
-
-<pre><code> -r -u "https://github.com/apache/zookeeper" -i "./assets/BIC_zookeeper.csv" -o "./assets/CVC_zookeper.arff" </code></pre>
-
-<pre><code> -l -u "https://github.com/apache/zookeeper" -i "./assets/BBIC_zookeeper.csv" -o "./assets/CVC_zookeper.arff" </code></pre>
-
-<pre><code> -c -u "https://github.com/apache/zookeeper" -i "./assets/cvc.arff" -o "./assets/correlation/" </code></pre>
-
+### Project components
+1. making buggy training set
+    a. -r --repo (get BIC to BBIC)
+    1. description: collects BBIC from BIC, which is needed before gumvec collection. BBIC contains the information of changes of before BIC.
+    2. example:
+    <pre><code> ./ChangeVectorCollector/change-vector-collector/bin/change-vector-collector -r -u "https://github.com/haidaros/defects4j-math" -i "/Users/jihoshin/Downloads/" -o "/Users/jihoshin/Downloads/" </code></pre>
+    b. -g --gumtree (BBIC to x and y)
+    1. description: applies gumtree algorithm on BBICs and outputs change vectors and the information (label) file.
+    2.example:
+    <pre><code> ./ChangeVectorCollector/change-vector-collector/bin/change-vector-collector -g -u "https://github.com/apache/commons-math" -i "/Users/jihoshin/Downloads/" -o "/Users/jihoshin/Downloads/" </code></pre>
+2. making clean training set
+    a. -q --clean (repo to x and y)
+    1. description: collects clean changes in a repo. This is used to collect clean train sets. 
+    2. example:
+    <pre><code> ./ChangeVectorCollector/change-vector-collector/bin/change-vector-collector -q -u "https://github.com/apache/commons-math" -i "/Users/jihoshin/Downloads/" -o "/Users/jihoshin/Downloads/" </code></pre>
+3. making test set (combined)
+    a. -a --all
+    1. description: collects all changes (both buggy and clean) in a repo. This is used to collect test instances.
+    2. example:
+    <pre><code> ./ChangeVectorCollector/change-vector-collector/bin/change-vector-collector -a -u "https://github.com/apache/opennlp" -i "./assets/" -o "./assets/" </code></pre>
+4. miscellaneous
+    a. -z --zero
+    1. description: remove empty vectors and key duplications.
+    2. example:
+    <pre><code> ./ChangeVectorCollector/change-vector-collector/bin/change-vector-collector -z -u "https://github.com/apache/tez" -i "./assets/rm_zero/out/" -o "./assets/rm_zero/out/out2/" </code></pre>
+    b. -l --local
+    1. description: loads BBIC from an existing file in the local system.
+    2. example:
+    <pre><code> ./ChangeVectorCollector/change-vector-collector/bin/change-vector-collector -l -u "https://github.com/apache/commons-math" -i "./assets/BBIC_commons-math.csv" </code></pre>-o "./assets/"
+    c. -d --defects4j
+    1. description: makes test files for defects4j specifically (different in collecting BIC).
+    2. example:
+    <pre><code>./ChangeVectorCollector/change-vector-collector/bin/change-vector-collector -d -u "https://github.com/apache/commons-csv" -i "./assets/d4j/" -o "./assets/d4j/" </code></pre>
